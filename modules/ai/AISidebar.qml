@@ -4,7 +4,7 @@ import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls
 import "../../services"
-import "../../widgets"
+import "."
 
 PanelWindow {
     id: root
@@ -20,294 +20,188 @@ PanelWindow {
 
     anchors {
         top: true
-        bottom: true
         right: true
     }
 
-    implicitWidth: 400
+    margins {
+        top: AIState.isOpen ? 44 : 20
+        right: 14
+    }
+
+    implicitWidth: 432
+    implicitHeight: mainCard.implicitHeight
     color: "transparent"
 
-    margins.right: AIState.isOpen ? 0 : -implicitWidth
-    visible: AIState.isOpen || margins.right > -implicitWidth + 1
+    visible: mainCard.opacity > 0.0
 
-    Behavior on margins.right {
+    Behavior on margins.top {
         enabled: !Theme.reduceMotion
         NumberAnimation {
-            duration: Theme.animSlow
+            duration: Theme.animNormal
             easing.type: Easing.OutQuint
         }
     }
 
-    Connections {
-        target: AIState
-        function onIsOpenChanged() {
-            if (AIState.isOpen) {
-                Qt.callLater(() => inputField.forceActiveFocus())
-            }
-        }
+    readonly property real currentTabH: {
+        if (AIState.activeTab === "chat") return 520
+        if (AIState.activeTab === "usage") return 420
+        if (AIState.activeTab === "tools") return 580
+        return 480
     }
 
     Rectangle {
-        id: panelBackground
+        id: mainCard
         anchors.fill: parent
-        color: Theme.bgGlass
+        implicitHeight: root.currentTabH
+        color: Theme.bgPanel
+        radius: Theme.radiusPanel
+        border.color: Theme.borderSubtle
+        border.width: Theme.borderWidth
 
-        // Sol kenarlık (1px subtle border)
-        Rectangle {
-            id: leftBorder
-            width: Theme.borderWidth
+        opacity: AIState.isOpen ? 1.0 : 0.0
+
+        Behavior on opacity {
+            enabled: !Theme.reduceMotion
+            NumberAnimation {
+                duration: Theme.animNormal
+                easing.type: Easing.OutQuint
+            }
+        }
+
+        Behavior on implicitHeight {
+            enabled: !Theme.reduceMotion
+            NumberAnimation {
+                duration: Theme.animNormal
+                easing.type: Easing.OutQuint
+            }
+        }
+
+        // ── SOL ETKİNLİK ŞERİDİ (ACTIVITY RAIL) ──
+        Item {
+            id: rail
             anchors {
                 left: parent.left
                 top: parent.top
                 bottom: parent.bottom
+                margins: 1
             }
-            color: Theme.borderSubtle
+            width: 52
+
+            // Dikey ayırıcı çizgi
+            Rectangle {
+                anchors {
+                    right: parent.right
+                    top: parent.top
+                    bottom: parent.bottom
+                    topMargin: 12
+                    bottomMargin: 12
+                }
+                width: 1
+                color: Theme.borderSubtle
+            }
+
+            Column {
+                anchors {
+                    top: parent.top
+                    topMargin: 14
+                    horizontalCenter: parent.horizontalCenter
+                }
+                spacing: 6
+
+                readonly property var tabs: [
+                    { id: "chat", icon: "󰭹", label: "Sohbet" },
+                    { id: "usage", icon: "󰄪", label: "Kullanım" },
+                    { id: "tools", icon: "󰇚", label: "Araçlar" }
+                ]
+
+                Repeater {
+                    model: parent.tabs
+                    delegate: Item {
+                        id: tabItem
+                        required property var modelData
+                        readonly property bool active: AIState.activeTab === modelData.id
+                        width: 44
+                        height: 50
+
+                        // Dairesel İkon Alanı
+                        Rectangle {
+                            id: iconCircle
+                            anchors {
+                                top: parent.top
+                                horizontalCenter: parent.horizontalCenter
+                            }
+                            width: 36
+                            height: 36
+                            radius: 18
+                            color: tabItem.active ? Theme.accent
+                                : (tabMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+                            Behavior on color {
+                                enabled: !Theme.reduceMotion
+                                ColorAnimation { duration: Theme.animFast }
+                            }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: tabItem.modelData.icon
+                                color: tabItem.active ? Theme.bgDark : Theme.textSecondary
+                                font.family: Theme.fontMono
+                                font.pixelSize: 15
+                                font.bold: tabItem.active
+
+                                Behavior on color {
+                                    enabled: !Theme.reduceMotion
+                                    ColorAnimation { duration: Theme.animFast }
+                                }
+                            }
+                        }
+
+                        // Sekme Başlığı
+                        Text {
+                            anchors {
+                                bottom: parent.bottom
+                                horizontalCenter: parent.horizontalCenter
+                            }
+                            text: tabItem.modelData.label
+                            color: tabItem.active ? Theme.textPrimary : Theme.textMuted
+                            font.family: Theme.fontFamily
+                            font.pixelSize: 8.5
+                            font.bold: tabItem.active
+                        }
+
+                        MouseArea {
+                            id: tabMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: AIState.activeTab = tabItem.modelData.id
+                        }
+                    }
+                }
+            }
         }
 
-        ColumnLayout {
-            anchors.fill: parent
-            anchors.margins: Theme.spacingMedium
-            spacing: Theme.spacingMedium
-
-            // Başlık Çubuğu
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Theme.spacingSmall
-
-                Text {
-                    text: "✦"
-                    color: Theme.accent
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontSizeLarge
-                }
-
-                Text {
-                    text: "Enyxma AI"
-                    color: Theme.textPrimary
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeLarge
-                    font.bold: true
-                }
-
-                Rectangle {
-                    implicitHeight: 18
-                    implicitWidth: statusText.implicitWidth + Theme.spacingSmall * 2
-                    radius: height / 2
-                    color: Theme.surface1
-                    border.color: Theme.borderSubtle
-                    border.width: Theme.borderWidth
-
-                    Text {
-                        id: statusText
-                        anchors.centerIn: parent
-                        text: AIState.isStreaming ? "Akışta..." : "Hazır"
-                        color: AIState.isStreaming ? Theme.accent : Theme.textSecondary
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeSmall
-                    }
-                }
-
-                Item {
-                    Layout.fillWidth: true
-                }
-
-                EnyxmaPill {
-                    id: clearButton
-                    implicitHeight: 26
-                    visible: AIState.messages.length > 0
-                    onClicked: AIState.clearHistory()
-
-                    Text {
-                        text: "Temizle"
-                        color: Theme.textSecondary
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeSmall
-                    }
-                }
-
-                EnyxmaPill {
-                    id: closeButton
-                    implicitHeight: 26
-                    implicitWidth: 26
-                    onClicked: AIState.close()
-
-                    Text {
-                        text: "✕"
-                        color: Theme.textSecondary
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeSmall
-                    }
-                }
+        // ── SAĞ İÇERİK ALANI ──
+        Item {
+            id: contentArea
+            anchors {
+                left: rail.right
+                right: parent.right
+                top: parent.top
+                bottom: parent.bottom
+                margins: 1
             }
+            clip: true
 
-            // Mesaj Alanı
-            Item {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
+            Component { id: chatComponent; ChatTab {} }
+            Component { id: usageComponent; UsageTab {} }
+            Component { id: toolsComponent; ToolsTab {} }
 
-                // Boş Durum (Empty State)
-                ColumnLayout {
-                    anchors.centerIn: parent
-                    spacing: Theme.spacingSmall
-                    visible: AIState.messages.length === 0
-                    width: parent.width * 0.85
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: "✦"
-                        color: Theme.accent
-                        font.family: Theme.fontMono
-                        font.pixelSize: 32
-                    }
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: "Enyxma AI Asistanı"
-                        color: Theme.textPrimary
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeLarge
-                        font.bold: true
-                    }
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        Layout.fillWidth: true
-                        horizontalAlignment: Text.AlignHCenter
-                        wrapMode: Text.Wrap
-                        text: "Sistem, Hyprland komutları veya iş akışları hakkında soru sorun."
-                        color: Theme.textSecondary
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeSmall
-                    }
-                }
-
-                // Mesaj Listesi
-                ListView {
-                    id: messageListView
-                    anchors.fill: parent
-                    clip: true
-                    spacing: Theme.spacingMedium
-                    model: AIState.messages
-
-                    onCountChanged: {
-                        Qt.callLater(() => {
-                            messageListView.positionViewAtEnd()
-                        })
-                    }
-
-                    delegate: Item {
-                        id: messageDelegate
-                        required property var modelData
-                        required property int index
-
-                        readonly property bool isUser: modelData.role === "user"
-
-                        width: messageListView.width
-                        implicitHeight: bubbleRect.implicitHeight
-
-                        Rectangle {
-                            id: bubbleRect
-                            width: Math.min(contentCol.implicitWidth + Theme.spacingMedium * 2, messageListView.width * 0.85)
-                            implicitHeight: contentCol.implicitHeight + Theme.spacingMedium * 2
-                            anchors.right: isUser ? parent.right : undefined
-                            anchors.left: isUser ? undefined : parent.left
-
-                            radius: Theme.radiusWidget
-                            color: isUser ? Theme.surfaceActive : Theme.surface1
-                            border.color: Theme.borderSubtle
-                            border.width: Theme.borderWidth
-
-                            ColumnLayout {
-                                id: contentCol
-                                anchors.fill: parent
-                                anchors.margins: Theme.spacingMedium
-                                spacing: Theme.spacingXS
-
-                                Text {
-                                    text: isUser ? "Sen" : "Enyxma AI"
-                                    color: isUser ? Theme.textSecondary : Theme.accent
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontSizeSmall
-                                    font.bold: true
-                                }
-
-                                Text {
-                                    Layout.fillWidth: true
-                                    text: modelData.content || (AIState.isStreaming && index === AIState.messages.length - 1 ? "..." : "")
-                                    color: Theme.textPrimary
-                                    font.family: Theme.fontFamily
-                                    font.pixelSize: Theme.fontSizeNormal
-                                    wrapMode: Text.Wrap
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Giriş Alanı (Kapsül)
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: Theme.spacingSmall
-
-                TextField {
-                    id: inputField
-                    Layout.fillWidth: true
-                    Layout.preferredHeight: 40
-                    color: Theme.textPrimary
-                    font.family: Theme.fontFamily
-                    font.pixelSize: Theme.fontSizeNormal
-                    placeholderText: "Bir mesaj yazın... (Enter ile gönder)"
-                    placeholderTextColor: Theme.textMuted
-                    verticalAlignment: TextInput.AlignVCenter
-                    leftPadding: Theme.spacingMedium
-                    rightPadding: Theme.spacingMedium
-
-                    background: Rectangle {
-                        radius: Theme.radiusWidget
-                        color: Theme.surface1
-                        border.color: inputField.activeFocus ? Theme.borderFocus : Theme.borderSubtle
-                        border.width: Theme.borderWidth
-
-                        Behavior on border.color {
-                            enabled: !Theme.reduceMotion
-                            ColorAnimation {
-                                duration: Theme.animFast
-                                easing.type: Easing.OutQuint
-                            }
-                        }
-                    }
-
-                    onAccepted: {
-                        if (text.trim().length > 0) {
-                            AIState.sendMessage(text.trim())
-                            text = ""
-                        }
-                    }
-
-                    Keys.onEscapePressed: {
-                        AIState.close()
-                    }
-                }
-
-                EnyxmaPill {
-                    id: sendButton
-                    implicitHeight: 40
-                    implicitWidth: 44
-                    onClicked: {
-                        if (inputField.text.trim().length > 0) {
-                            AIState.sendMessage(inputField.text.trim())
-                            inputField.text = ""
-                        }
-                    }
-
-                    Text {
-                        text: "➤"
-                        color: inputField.text.trim().length > 0 ? Theme.accent : Theme.textMuted
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontSizeNormal
-                    }
-                }
+            Loader {
+                id: tabLoader
+                anchors.fill: parent
+                sourceComponent: AIState.activeTab === "chat" ? chatComponent
+                    : (AIState.activeTab === "usage" ? usageComponent : toolsComponent)
             }
         }
     }

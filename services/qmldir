@@ -15,3 +15,5 @@ singleton PerformanceState 1.0 PerformanceState.qml
 singleton WeatherState 1.0 WeatherState.qml
 singleton MediaBrowserState 1.0 MediaBrowserState.qml
 singleton OverviewState 1.0 OverviewState.qml
+singleton ScreenTimeState 1.0 ScreenTimeState.qml
+singleton ToolsState 1.0 ToolsState.qml
