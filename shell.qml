@@ -15,6 +15,7 @@ import "./modules/performance"
 import "./modules/media"
 import "./modules/time"
 import "./modules/wallpaper"
+import "./modules/overview"
 
 ShellRoot {
     id: root
@@ -190,6 +191,16 @@ ShellRoot {
         model: Quickshell.screens
 
         MediaBrowser {
+            property var modelData
+            screen: modelData
+        }
+    }
+
+    // Genel Bakış (Mission Control / Overview) katmanı (Çoklu ekran)
+    Variants {
+        model: Quickshell.screens
+
+        Overview {
             property var modelData
             screen: modelData
         }

@@ -423,6 +423,123 @@ PanelWindow {
                 color: Theme.borderSubtle
             }
 
+            // ── GRAFİK İŞLEMCİ (GPU & VRAM) BÖLÜMÜ ──
+            RowLayout {
+                Layout.fillWidth: true
+
+                Text {
+                    text: PerformanceState.gpuModel
+                    color: Theme.textPrimary
+                    font.family: Theme.fontMono
+                    font.pixelSize: 11
+                    font.bold: true
+                    Layout.fillWidth: true
+                    elide: Text.ElideRight
+                }
+
+                Text {
+                    text: "GPU"
+                    color: Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: 10
+                }
+            }
+
+            // GPU İlerleme Çubuğu
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingSmall
+
+                Text {
+                    text: "YÜK"
+                    color: Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: 10
+                    font.letterSpacing: 1
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 8
+                    radius: 4
+                    color: Theme.surfaceActive
+
+                    Rectangle {
+                        height: parent.height
+                        radius: 4
+                        color: PerformanceState.gpuPercent > 80 ? Theme.danger : Theme.accent
+                        width: parent.width * Math.max(0, Math.min(100, PerformanceState.gpuPercent)) / 100
+
+                        Behavior on width {
+                            enabled: !Theme.reduceMotion
+                            NumberAnimation {
+                                duration: Theme.animNormal
+                                easing.type: Easing.OutQuint
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    text: PerformanceState.gpuPercent + "%"
+                    color: Theme.accent
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.bold: true
+                }
+            }
+
+            // VRAM İlerleme Çubuğu
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingSmall
+
+                Text {
+                    text: "VRAM"
+                    color: Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: 10
+                    font.letterSpacing: 1
+                }
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 8
+                    radius: 4
+                    color: Theme.surfaceActive
+
+                    Rectangle {
+                        height: parent.height
+                        radius: 4
+                        color: PerformanceState.vramPercent > 85 ? Theme.danger : Theme.accent
+                        width: parent.width * Math.max(0, Math.min(100, PerformanceState.vramPercent)) / 100
+
+                        Behavior on width {
+                            enabled: !Theme.reduceMotion
+                            NumberAnimation {
+                                duration: Theme.animNormal
+                                easing.type: Easing.OutQuint
+                            }
+                        }
+                    }
+                }
+
+                Text {
+                    text: PerformanceState.vramTotalGiB > 0 ? (PerformanceState.vramUsedGiB.toFixed(1) + " / " + PerformanceState.vramTotalGiB.toFixed(1) + " GiB") : (PerformanceState.vramPercent + "%")
+                    color: Theme.textPrimary
+                    font.family: Theme.fontMono
+                    font.pixelSize: 10
+                    font.bold: true
+                }
+            }
+
+            // Çizgi
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 1
+                color: Theme.borderSubtle
+            }
+
             // ── ALT BUTON (btop'u aç) ──
             Rectangle {
                 Layout.fillWidth: true

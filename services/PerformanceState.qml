@@ -42,14 +42,21 @@ Singleton {
     property real memAvailGiB: 0.0
     property real memTotalGiB: 0.0
 
+    // GPU & VRAM Metrikleri
+    property int gpuPercent: 0
+    property string gpuModel: "Ekran Kartı"
+    property int vramPercent: 0
+    property real vramUsedGiB: 0.0
+    property real vramTotalGiB: 0.0
+
     // Dahili CPU zaman damgası takibi
     property real _prevTotal: 0
     property real _prevIdle: 0
 
-    // Statik sistem bilgilerini al (İşlemci Modeli, Çekirdek, Kernel)
+    // Statik sistem bilgilerini al (İşlemci Modeli, Çekirdek, Kernel, Ekran Kartı Modeli)
     Process {
         id: staticInfoProc
-        command: ["bash", "-c", "uname -r && awk -F: '/model name/ {m=$2; gsub(/^[ \t]+/, \"\", m); if (!found) {name=m; found=1}} /processor/ {cores++} END {printf \"%s|%d\\n\", name, cores}' /proc/cpuinfo"]
+        command: ["bash", "-c", "uname -r && awk -F: '/model name/ {m=$2; gsub(/^[ \t]+/, \"\", m); if (!found) {name=m; found=1}} /processor/ {cores++} END {printf \"%s|%d\\n\", name, cores}' /proc/cpuinfo && (lspci 2>/dev/null | awk -F: '/VGA|3D/ {gsub(/^[ \t]+/, \"\", $3); print $3; exit}' || echo \"Ekran Kartı\")"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -62,14 +69,27 @@ Singleton {
                         root.cpuCores = parseInt(parts[1]) || 0
                     }
                 }
+                if (lines.length >= 3) {
+                    var rawGpu = lines[2].trim()
+                    if (rawGpu.indexOf("[") !== -1 && rawGpu.indexOf("]") !== -1) {
+                        var matches = rawGpu.match(/\[([^\]]+)\]/g)
+                        if (matches && matches.length > 0) {
+                            root.gpuModel = matches[matches.length - 1].replace(/[\[\]]/g, "")
+                        } else {
+                            root.gpuModel = rawGpu
+                        }
+                    } else {
+                        root.gpuModel = rawGpu.replace(/\(rev .*\)/, "").trim()
+                    }
+                }
             }
         }
     }
 
-    // Telemetri Process: CPU tick, Meminfo, Loadavg, En çok tüketen işlemler
+    // Telemetri Process: CPU tick, Meminfo, Loadavg, En çok tüketen işlemler, GPU ve VRAM
     Process {
         id: telemetryProc
-        command: ["bash", "-c", "LC_ALL=C awk 'BEGIN { while ((getline < \"/proc/stat\") > 0) { if ($1 == \"cpu\") { printf \"%d|%d|\", $2+$3+$4+$5+$6+$7+$8+$9, $5+$6; break } } close(\"/proc/stat\"); getline < \"/proc/loadavg\"; load1=$1; load5=$2; load15=$3; close(\"/proc/loadavg\"); while ((getline < \"/proc/meminfo\") > 0) { if ($1 == \"MemTotal:\") total=$2; else if ($1 == \"MemAvailable:\") avail=$2 } close(\"/proc/meminfo\"); used = total - avail; pct = (total > 0) ? int((used * 100) / total) : 0; printf \"%d|%.1f|%.1f|%.1f|%s|%s|%s\\n\", pct, used/1048576, avail/1048576, total/1048576, load1, load5, load15 }'; ps -eo comm,%cpu --sort=-%cpu --no-headers 2>/dev/null | head -n 3 | awk '{printf \"%s|%s;\", $1, $2}'"]
+        command: ["bash", "-c", "LC_ALL=C awk 'BEGIN { while ((getline < \"/proc/stat\") > 0) { if ($1 == \"cpu\") { printf \"%d|%d|\", $2+$3+$4+$5+$6+$7+$8+$9, $5+$6; break } } close(\"/proc/stat\"); getline < \"/proc/loadavg\"; load1=$1; load5=$2; load15=$3; close(\"/proc/loadavg\"); while ((getline < \"/proc/meminfo\") > 0) { if ($1 == \"MemTotal:\") total=$2; else if ($1 == \"MemAvailable:\") avail=$2 } close(\"/proc/meminfo\"); used = total - avail; pct = (total > 0) ? int((used * 100) / total) : 0; printf \"%d|%.1f|%.1f|%.1f|%s|%s|%s\\n\", pct, used/1048576, avail/1048576, total/1048576, load1, load5, load15 }'; ps -eo comm,%cpu --sort=-%cpu --no-headers 2>/dev/null | head -n 3 | awk '{printf \"%s|%s;\", $1, $2}'; echo \"\"; dev=$(ls -d /sys/class/drm/card[1-9]/device 2>/dev/null | head -n1); [ -z \"$dev\" ] && dev=$(ls -d /sys/class/drm/card0/device 2>/dev/null | head -n1); gpu=$(cat \"$dev/gpu_busy_percent\" 2>/dev/null || echo 0); u=$(cat \"$dev/mem_info_vram_used\" 2>/dev/null || echo 0); t=$(cat \"$dev/mem_info_vram_total\" 2>/dev/null || echo 0); awk -v g=\"$gpu\" -v u=\"$u\" -v t=\"$t\" 'BEGIN { if (t > 0) printf \"%d|%d|%.1f|%.1f\\n\", g, (u/t)*100, u/1073741824, t/1073741824; else printf \"%d|0|0.0|0.0\\n\", g }'"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
@@ -114,6 +134,15 @@ Singleton {
                         }
                     }
                     root.topProcesses = list
+                }
+                if (lines.length >= 3) {
+                    var gpuParts = lines[2].split("|")
+                    if (gpuParts.length >= 4) {
+                        root.gpuPercent = parseInt(gpuParts[0]) || 0
+                        root.vramPercent = parseInt(gpuParts[1]) || 0
+                        root.vramUsedGiB = parseFloat(gpuParts[2]) || 0.0
+                        root.vramTotalGiB = parseFloat(gpuParts[3]) || 0.0
+                    }
                 }
             }
         }
