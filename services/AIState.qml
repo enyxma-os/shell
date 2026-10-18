@@ -9,6 +9,23 @@ Singleton {
     property bool isOpen: false
     property bool isStreaming: false
     property var messages: []
+    property string activeTab: "chat" // chat | usage | tools
+
+    function setTab(tab) {
+        if (tab === "chat" || tab === "usage" || tab === "tools") {
+            activeTab = tab
+            if (!isOpen) open()
+        }
+    }
+
+    function newChat() {
+        if (isStreaming && aiProcess.running) {
+            aiProcess.running = false
+            isStreaming = false
+        }
+        messages = []
+        saveHistory()
+    }
 
     onIsOpenChanged: {
         WallpaperState.dimLevel = (isOpen || LauncherState.isOpen) ? 0.3 : 0.0
@@ -47,6 +64,14 @@ Singleton {
 
         function send(text: string): void {
             root.sendMessage(text)
+        }
+
+        function tab(t: string): void {
+            root.setTab(t)
+        }
+
+        function newChat(): void {
+            root.newChat()
         }
     }
 
