@@ -18,6 +18,49 @@ Item {
 
     readonly property string exportTmp: "/tmp/enyxma-shot-beautified.png"
 
+    focus: true
+    onVisibleChanged: {
+        if (visible) forceActiveFocus();
+    }
+
+    function doSaveAction() {
+        if (!beautify.busy && !beautify.savedNotice) {
+            beautify.savedNotice = true;
+            beautify.exportStage(beautify.exportTmp, function (ok) {
+                if (ok) beautify.saveRequested(beautify.exportTmp);
+                else beautify.savedNotice = false;
+            });
+        }
+    }
+
+    function doCopyAction() {
+        if (!beautify.busy && !beautify.copiedNotice) {
+            beautify.copiedNotice = true;
+            beautify.exportStage(beautify.exportTmp, function (ok) {
+                if (ok) beautify.copyRequested(beautify.exportTmp);
+                else beautify.copiedNotice = false;
+            });
+        }
+    }
+
+    Keys.onPressed: (e) => {
+        var ctrl = (e.modifiers & Qt.ControlModifier) !== 0;
+        if (ctrl) {
+            if (e.key === Qt.Key_S) { doSaveAction(); e.accepted = true; return; }
+            if (e.key === Qt.Key_C) { doCopyAction(); e.accepted = true; return; }
+        }
+        if (e.key === Qt.Key_Return || e.key === Qt.Key_Enter) {
+            doSaveAction();
+            e.accepted = true;
+            return;
+        }
+        if (e.key === Qt.Key_Escape) {
+            beautify.closeRequested();
+            e.accepted = true;
+            return;
+        }
+    }
+
     // ---- State ----
     property string bgKind: "preset"     // preset | solid | gradient | image | none
     property int bgPreset: 0
@@ -160,30 +203,14 @@ Item {
             }
 
             TopBtn {
-                label: beautify.busy ? "İşleniyor..." : (beautify.copiedNotice ? "✦ Kopyalandı!" : "Panoya Kopyala")
-                onTapped: {
-                    if (!beautify.busy && !beautify.copiedNotice) {
-                        beautify.copiedNotice = true;
-                        beautify.exportStage(beautify.exportTmp, function (ok) {
-                            if (ok) beautify.copyRequested(beautify.exportTmp);
-                            else beautify.copiedNotice = false;
-                        });
-                    }
-                }
+                label: beautify.busy ? "İşleniyor..." : (beautify.copiedNotice ? "✦ Kopyalandı!" : "Panoya Kopyala (Ctrl+C)")
+                onTapped: beautify.doCopyAction()
             }
 
             TopBtn {
-                label: beautify.busy ? "İşleniyor..." : (beautify.savedNotice ? "✦ Kaydedildi!" : "Görseli Kaydet")
+                label: beautify.busy ? "İşleniyor..." : (beautify.savedNotice ? "✦ Kaydedildi!" : "Görseli Kaydet (Ctrl+S)")
                 accent: true
-                onTapped: {
-                    if (!beautify.busy && !beautify.savedNotice) {
-                        beautify.savedNotice = true;
-                        beautify.exportStage(beautify.exportTmp, function (ok) {
-                            if (ok) beautify.saveRequested(beautify.exportTmp);
-                            else beautify.savedNotice = false;
-                        });
-                    }
-                }
+                onTapped: beautify.doSaveAction()
             }
         }
     }

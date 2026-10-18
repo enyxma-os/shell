@@ -376,6 +376,7 @@ ShellRoot {
     }
 
     function editKey(e) {
+        if (phase === "beautify") return false;
         var ctrl = (e.modifiers & Qt.ControlModifier) !== 0;
         var shift = (e.modifiers & Qt.ShiftModifier) !== 0;
         if (ctrl) {
