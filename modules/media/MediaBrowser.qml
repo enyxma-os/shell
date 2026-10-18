@@ -188,6 +188,11 @@ PanelWindow {
                     root.confirmDelete = true
                 }
                 event.accepted = true
+            } else if (event.key === Qt.Key_B && (event.modifiers & Qt.ControlModifier)) {
+                if (root.currentItem && !root.currentItem.isVideo) {
+                    MediaBrowserState.openInMockupStudio(root.currentItem.rawPath)
+                }
+                event.accepted = true
             } else if (event.key === Qt.Key_C && (event.modifiers & Qt.ControlModifier)) {
                 if (root.currentItem) {
                     MediaBrowserState.copyItem(root.currentItem.rawPath, root.currentItem.isVideo)
@@ -458,7 +463,7 @@ PanelWindow {
             Text {
                 visible: !root.confirmDelete && MediaBrowserState.toastText.length === 0
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "← →  gezin et     Enter  aç     Del  sil     Ctrl+C  kopyala     Esc"
+                text: "← →  gezin     Enter  aç     Ctrl+B  ✦ güzelleştir     Ctrl+C  kopyala     Del  sil     Esc"
                 color: Theme.textMuted
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall

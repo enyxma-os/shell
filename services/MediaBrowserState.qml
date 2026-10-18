@@ -134,6 +134,15 @@ Singleton {
         root.close()
     }
 
+    // Mockup Stüdyosunda Aç
+    function openInMockupStudio(path) {
+        if (!path) return
+        var p = String(path).replace(/^file:\/\//, "")
+        var scriptPath = Quickshell.env("HOME") + "/.config/quickshell/modules/screenshot/shell.qml"
+        Quickshell.execDetached(["sh", "-c", "ENYXMA_SHOT_OPEN='" + p + "' quickshell -p '" + scriptPath + "' 2>/dev/null || true"])
+        root.close()
+    }
+
     // Panoya kopyalama
     Process {
         id: copyProc
