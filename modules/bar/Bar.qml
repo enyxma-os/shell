@@ -70,6 +70,10 @@ Rectangle {
             }
         }
 
+        MediaBrowserWidget {
+            id: mediaBrowserWidget
+        }
+
         WallpaperWidget {
             id: wallpaperWidget
         }

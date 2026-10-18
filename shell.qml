@@ -184,4 +184,14 @@ ShellRoot {
             screen: modelData
         }
     }
+
+    // Medya Tarayıcısı (Ekran Görüntüleri & Videolar) katmanı (Çoklu ekran)
+    Variants {
+        model: Quickshell.screens
+
+        MediaBrowser {
+            property var modelData
+            screen: modelData
+        }
+    }
 }
