@@ -32,6 +32,12 @@
 exec ${qsPkg}/bin/quickshell -p$out/share/enyxma-shell/shell.qml "\$@"
 EOF
           chmod +x $out/bin/enyxma-shell
+
+          cat << EOF > $out/bin/enyxma-shot
+#!/usr/bin/env bash
+exec flock -n -o /tmp/enyxma-shot.lock ${qsPkg}/bin/quickshell -p$out/share/enyxma-shell/modules/screenshot/shell.qml "\$@"
+EOF
+          chmod +x $out/bin/enyxma-shot
         '';
       };
 
