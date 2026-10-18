@@ -8,14 +8,44 @@ Singleton {
 
     property string currentWallpaper: ""
     property real dimLevel: 0.0
+    property bool pickerVisible: false
+    property var wallpapers: []
+    property bool isScanning: false
 
-    function setWallpaper(path: string) {
-        if (!path || path.trim().length === 0) {
+    function togglePicker() {
+        pickerVisible = !pickerVisible
+        if (pickerVisible && wallpapers.length === 0) {
+            scanWallpapers()
+        }
+    }
+
+    function openPicker() {
+        pickerVisible = true
+        if (wallpapers.length === 0) {
+            scanWallpapers()
+        }
+    }
+
+    function closePicker() {
+        pickerVisible = false
+    }
+
+    function formatLabel(fileName) {
+        if (!fileName) return ""
+        var name = String(fileName).replace(/\.[^/.]+$/, "")
+        name = name.replace(/^enyxma[-_]/i, "")
+        return name.replace(/[-_]+/g, " ").replace(/\b\w/g, function(m) {
+            return m.toUpperCase()
+        })
+    }
+
+    function setWallpaper(path) {
+        if (!path || String(path).trim().length === 0) {
             currentWallpaper = ""
             saveState()
             return
         }
-        let p = path.trim()
+        var p = String(path).trim()
         if (!p.startsWith("file://") && !p.startsWith("http://") && !p.startsWith("https://") && !p.startsWith("qrc:/")) {
             p = "file://" + p
         }
@@ -23,7 +53,7 @@ Singleton {
         saveState()
     }
 
-    function setDim(level: real) {
+    function setDim(level) {
         dimLevel = Math.max(0.0, Math.min(1.0, level))
     }
 
@@ -36,9 +66,9 @@ Singleton {
 
     function loadState() {
         try {
-            const raw = stateFile.text()
+            var raw = stateFile.text()
             if (raw && raw.trim().length > 0) {
-                const data = JSON.parse(raw)
+                var data = JSON.parse(raw)
                 if (data && typeof data === "object") {
                     if (typeof data.wallpaper === "string" && data.wallpaper.trim().length > 0) {
                         root.currentWallpaper = data.wallpaper.trim()
@@ -64,6 +94,56 @@ Singleton {
         }
     }
 
+    // Duvar kağıtlarını sistemden tarayan süreç
+    Process {
+        id: scanProc
+        command: [
+            "bash", "-c",
+            "shopt -s nullglob nocaseglob; " +
+            "DIRS=(\"$HOME/.config/quickshell/assets/wallpapers\" \"$HOME/Pictures/Wallpapers\" \"$HOME/.local/share/wallpapers\"); " +
+            "for d in \"${DIRS[@]}\"; do " +
+            "  [ -d \"$d\" ] || continue; " +
+            "  for f in \"$d\"/*.{jpg,jpeg,png,webp}; do " +
+            "    [ -f \"$f\" ] && echo \"$f\"; " +
+            "  done; " +
+            "done | sort -u"
+        ]
+        running: false
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.isScanning = false
+                var lines = this.text.split("\n")
+                var list = []
+                var seen = {}
+                for (var i = 0; i < lines.length; i++) {
+                    var p = lines[i].trim()
+                    if (!p) continue
+                    var fileName = p.substring(p.lastIndexOf("/") + 1)
+                    if (seen[fileName]) continue
+                    seen[fileName] = true
+                    list.push({
+                        filePath: "file://" + p,
+                        rawPath: p,
+                        fileName: fileName,
+                        label: root.formatLabel(fileName)
+                    })
+                }
+                root.wallpapers = list
+                // Eğer kayıtlı bir duvar kağıdı yoksa ilk bulunanı varsayılan yap
+                if ((!root.currentWallpaper || root.currentWallpaper.length === 0) && list.length > 0) {
+                    root.setWallpaper(list[0].filePath)
+                }
+            }
+        }
+    }
+
+    function scanWallpapers() {
+        if (isScanning) return
+        isScanning = true
+        scanProc.running = false
+        scanProc.running = true
+    }
+
     IpcHandler {
         target: "wallpaper"
 
@@ -73,6 +153,14 @@ Singleton {
 
         function dim(level: real): void {
             root.setDim(level)
+        }
+
+        function toggle(): void {
+            root.togglePicker()
+        }
+
+        function picker(): void {
+            root.togglePicker()
         }
     }
 
@@ -86,9 +174,18 @@ Singleton {
         function dim(level: real): void {
             root.setDim(level)
         }
+
+        function toggle(): void {
+            root.togglePicker()
+        }
+
+        function picker(): void {
+            root.togglePicker()
+        }
     }
 
     Component.onCompleted: {
         root.loadState()
+        root.scanWallpapers()
     }
 }

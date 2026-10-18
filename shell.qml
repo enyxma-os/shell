@@ -14,6 +14,7 @@ import "./modules/storage"
 import "./modules/performance"
 import "./modules/media"
 import "./modules/time"
+import "./modules/wallpaper"
 
 ShellRoot {
     id: root
@@ -169,6 +170,16 @@ ShellRoot {
         model: Quickshell.screens
 
         OmniLauncher {
+            property var modelData
+            screen: modelData
+        }
+    }
+
+    // Duvar Kağıdı Seçici (Tanzaku Filmstrip Carousel) katmanı (Çoklu ekran)
+    Variants {
+        model: Quickshell.screens
+
+        WallpaperPicker {
             property var modelData
             screen: modelData
         }

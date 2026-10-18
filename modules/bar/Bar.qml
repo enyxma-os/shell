@@ -70,6 +70,10 @@ Rectangle {
             }
         }
 
+        WallpaperWidget {
+            id: wallpaperWidget
+        }
+
         PerformanceWidget {
             id: performanceWidget
         }
