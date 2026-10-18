@@ -91,12 +91,18 @@ Rectangle {
         }
     }
 
-    // Orta Alan: Sol ve Sağ arasındaki alana kilitlenmiş, asla taşmayan Pencere Başlığı
+    // Tam Merkez Aksında Saat & Tarih & Hava Durumu Hapı (ClockWidget)
+    ClockWidget {
+        id: clockWidget
+        anchors.centerIn: parent
+    }
+
+    // Sol ve Merkez Arasında Sınırlandırılmış Aktif Pencere Başlığı
     Item {
-        id: centerContainer
+        id: titleContainer
         anchors {
             left: leftLayout.right
-            right: rightLayout.left
+            right: clockWidget.left
             leftMargin: Theme.spacingMedium
             rightMargin: Theme.spacingMedium
             verticalCenter: parent.verticalCenter

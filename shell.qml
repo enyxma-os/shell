@@ -13,6 +13,7 @@ import "./modules/network"
 import "./modules/storage"
 import "./modules/performance"
 import "./modules/media"
+import "./modules/time"
 
 ShellRoot {
     id: root
@@ -138,6 +139,26 @@ ShellRoot {
         model: Quickshell.screens
 
         MediaPanel {
+            property var modelData
+            screen: modelData
+        }
+    }
+
+    // Zaman & Takvim Paneli (Harmonik Bento Hub) (Çoklu ekran)
+    Variants {
+        model: Quickshell.screens
+
+        TimePanel {
+            property var modelData
+            screen: modelData
+        }
+    }
+
+    // Zaman Sağ Tık Hızlı Ayar Menüsü (Çoklu ekran)
+    Variants {
+        model: Quickshell.screens
+
+        TimeContextMenu {
             property var modelData
             screen: modelData
         }

@@ -9,9 +9,7 @@ singleton SystemState 1.0 SystemState.qml
 singleton NotificationState 1.0 NotificationState.qml
 singleton LauncherState 1.0 LauncherState.qml
 singleton WallpaperState 1.0 WallpaperState.qml
-
 singleton NetworkState 1.0 NetworkState.qml
-
 singleton StorageState 1.0 StorageState.qml
-
 singleton PerformanceState 1.0 PerformanceState.qml
+singleton WeatherState 1.0 WeatherState.qml

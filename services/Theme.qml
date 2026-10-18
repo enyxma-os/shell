@@ -38,6 +38,7 @@ Singleton {
     readonly property int radiusPanel: 14
     readonly property int radiusWidget: 10
     readonly property int radiusButton: 8
+    readonly property int radiusSmall: 6
     readonly property int spacingXS: 4
     readonly property int spacingSmall: 8
     readonly property int spacingMedium: 12
