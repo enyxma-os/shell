@@ -1,0 +1,17 @@
+module services
+singleton Theme 1.0 Theme.qml
+singleton HyprlandState 1.0 HyprlandState.qml
+singleton AudioState 1.0 AudioState.qml
+singleton TimeState 1.0 TimeState.qml
+singleton AIState 1.0 AIState.qml
+singleton MediaState 1.0 MediaState.qml
+singleton SystemState 1.0 SystemState.qml
+singleton NotificationState 1.0 NotificationState.qml
+singleton LauncherState 1.0 LauncherState.qml
+singleton WallpaperState 1.0 WallpaperState.qml
+
+singleton NetworkState 1.0 NetworkState.qml
+
+singleton StorageState 1.0 StorageState.qml
+
+singleton PerformanceState 1.0 PerformanceState.qml
