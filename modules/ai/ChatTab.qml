@@ -258,7 +258,7 @@ Item {
                             text: isUser ? "SEN" : "ENYXMA AI"
                             color: isUser ? Theme.textSecondary : Theme.accent
                             font.family: Theme.fontMono
-                            font.pixelSize: 8.5
+                            font.pixelSize: 9
                             font.bold: true
                             font.letterSpacing: 1.2
                         }
