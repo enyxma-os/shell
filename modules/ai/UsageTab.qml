@@ -33,7 +33,7 @@ Item {
                         text: "EKRAN SÜRESİ"
                         color: Theme.textSecondary
                         font.family: Theme.fontMono
-                        font.pixelSize: 8.5
+                        font.pixelSize: 9
                         font.bold: true
                         font.letterSpacing: 1.5
                     }
@@ -44,7 +44,7 @@ Item {
                         text: Qt.formatDate(new Date(), "ddd, MMM d")
                         color: Theme.textSecondary
                         font.family: Theme.fontMono
-                        font.pixelSize: 8.5
+                        font.pixelSize: 9
                     }
                 }
 
@@ -73,7 +73,7 @@ Item {
                     text: "BU HAFTA"
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
-                    font.pixelSize: 8.5
+                    font.pixelSize: 9
                     font.bold: true
                     font.letterSpacing: 1.5
                 }
@@ -115,7 +115,7 @@ Item {
                                 text: modelData.label
                                 color: modelData.isToday ? Theme.textPrimary : Theme.textSecondary
                                 font.family: Theme.fontMono
-                                font.pixelSize: 8.5
+                                font.pixelSize: 9
                                 font.bold: modelData.isToday
                             }
                         }
@@ -132,7 +132,7 @@ Item {
                     text: "EN ÇOK KULLANILAN"
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
-                    font.pixelSize: 8.5
+                    font.pixelSize: 9
                     font.bold: true
                     font.letterSpacing: 1.5
                 }

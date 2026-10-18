@@ -165,7 +165,7 @@ PanelWindow {
                             text: tabItem.modelData.label
                             color: tabItem.active ? Theme.textPrimary : Theme.textMuted
                             font.family: Theme.fontFamily
-                            font.pixelSize: 8.5
+                            font.pixelSize: 9
                             font.bold: tabItem.active
                         }
 

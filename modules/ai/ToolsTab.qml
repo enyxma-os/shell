@@ -26,7 +26,7 @@ Item {
                 text: "İNDİR"
                 color: Theme.textSecondary
                 font.family: Theme.fontMono
-                font.pixelSize: 8.5
+                font.pixelSize: 9
                 font.bold: true
                 font.letterSpacing: 1.5
             }
@@ -272,7 +272,7 @@ Item {
                             text: "YT-DLP TARAFINDAN YAPILDI"
                             color: Theme.textSecondary
                             font.family: Theme.fontMono
-                            font.pixelSize: 7.5
+                            font.pixelSize: 8
                             font.bold: true
                             font.letterSpacing: 1.2
                         }
@@ -299,7 +299,7 @@ Item {
                     text: "SON İNDİRİLENLER"
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
-                    font.pixelSize: 8.5
+                    font.pixelSize: 9
                     font.bold: true
                     font.letterSpacing: 1.5
                 }
@@ -381,7 +381,7 @@ Item {
                     text: "DÖNÜŞTÜR VE YÜKLE"
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
-                    font.pixelSize: 8.5
+                    font.pixelSize: 9
                     font.bold: true
                     font.letterSpacing: 1.5
                 }
