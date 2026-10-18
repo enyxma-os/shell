@@ -32,13 +32,33 @@ Singleton {
     readonly property bool isConnected: NetworkState.isConnected
     readonly property string wifiSSID: NetworkState.connectionType === "wifi" ? (NetworkState.connectionName || "Wi-Fi") : (NetworkState.connectionName || "Ethernet")
 
+    // Sistem Uptime (Çalışma Süresi)
+    property string uptime: ""
+
+    Process {
+        id: uptimeProc
+        command: ["bash", "-c", "awk '{s=int($1); d=int(s/86400); h=int((s%86400)/3600); m=int((s%3600)/60); if (d>0) printf \"%dg %ds %dd\", d, h, m; else if (h>0) printf \"%ds %dd\", h, m; else printf \"%dd\", m}' /proc/uptime 2>/dev/null"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                root.uptime = this.text.trim();
+            }
+        }
+    }
+
+    Timer {
+        interval: 60000
+        running: true
+        repeat: true
+        onTriggered: uptimeProc.running = true
+    }
+
     IpcHandler {
         target: "system"
 
         function toggle(): void { root.toggleControlCenter() }
         function toggleControlCenter(): void { root.toggleControlCenter() }
         function open(): void { root.openControlCenter() }
-        function openControlCenter(): void { root.openControlCenter() }
         function close(): void { root.closeControlCenter() }
         function closeControlCenter(): void { root.closeControlCenter() }
     }
