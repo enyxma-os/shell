@@ -65,6 +65,9 @@ Singleton {
         id: scanProc
         command: []
         running: false
+        onExited: function(code) {
+            root.isScanning = false
+        }
         stdout: StdioCollector {
             onStreamFinished: {
                 root.isScanning = false
@@ -202,6 +205,14 @@ Singleton {
         function close(): void {
             root.close()
         }
+
+        function refresh(): void {
+            root.scanMedia()
+        }
+
+        function scan(): void {
+            root.scanMedia()
+        }
     }
 
     IpcHandler {
@@ -213,6 +224,10 @@ Singleton {
 
         function toggle(): void {
             root.toggle("screenshots")
+        }
+
+        function refresh(): void {
+            root.scanMedia()
         }
     }
 

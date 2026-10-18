@@ -83,6 +83,7 @@ PanelWindow {
         target: MediaBrowserState
         function onIsOpenChanged() {
             if (MediaBrowserState.isOpen) {
+                MediaBrowserState.scanMedia()
                 root.filterText = ""
                 root.selectedIndex = 0
                 root.confirmDelete = false
@@ -384,7 +385,7 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             spacing: 12
 
-            // Gradyanlı fırça darbesi vurgu çizgisi
+            // Enyxma vurgu çizgisi
             Rectangle {
                 anchors.horizontalCenter: parent.horizontalCenter
                 width: 220

@@ -45,13 +45,23 @@ ShellRoot {
     readonly property string openPath: Quickshell.env("ENYXMA_SHOT_OPEN") || ""
 
     readonly property string saveRoot: (Quickshell.env("XDG_PICTURES_DIR") || (Quickshell.env("HOME") + "/Pictures")) + "/Screenshots"
-    readonly property string defaultPath: {
+
+    function makeTimestamp() {
         var d = new Date();
         function pad(n) { return (n < 10 ? "0" : "") + n; }
-        var ts = d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + "_"
+        return d.getFullYear() + pad(d.getMonth() + 1) + pad(d.getDate()) + "_"
             + pad(d.getHours()) + pad(d.getMinutes()) + pad(d.getSeconds());
-        return root.saveRoot + "/enyxma_" + ts + ".png";
     }
+
+    function generateSavePath() {
+        return root.saveRoot + "/enyxma_" + makeTimestamp() + ".png";
+    }
+
+    function exitApp() {
+        Quickshell.execDetached(["kill", "-TERM", String(Quickshell.processId)]);
+    }
+
+    readonly property string defaultPath: generateSavePath()
 
     readonly property var toolDescriptors: [
         { id: "select",   key: "s", icon: "select",   label: "Kırp" },
@@ -308,17 +318,21 @@ ShellRoot {
     function copyImageAndQuit(file) {
         if (root.exported) return;
         root.exported = true;
-        Quickshell.execDetached(["sh", "-c", "wl-copy --type image/png < '$1' 2>/dev/null || wl-copy < '$1' 2>/dev/null || true", "sh", file]);
-        Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-i", file, "✦ Ekran Görüntüsü Kopyalandı", "Görsel panoya aktarıldı."]);
+        var cmd = "(wl-copy --type image/png < '" + file + "' 2>/dev/null || wl-copy < '" + file + "' 2>/dev/null || true)";
+        cmd += " && (notify-send -a 'Enyxma Shot' -i '" + file + "' '✦ Ekran Görüntüsü Kopyalandı' 'Görsel panoya aktarıldı.' 2>/dev/null || true)";
+        Quickshell.execDetached(["sh", "-c", cmd]);
         quitTimer.restart();
     }
 
     function saveToScreenshots(file) {
         if (root.exported) return;
         root.exported = true;
-        var target = root.defaultPath;
-        Quickshell.execDetached(["sh", "-c", "mkdir -p '$1'; cp -f '$2' '$3'; wl-copy --type image/png < '$3' 2>/dev/null || true", "sh", root.saveRoot, file, target]);
-        Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-i", target, "✦ Ekran Görüntüsü Kaydedildi", target]);
+        var target = root.generateSavePath();
+        var cmd = "mkdir -p '" + root.saveRoot + "' && cp -f '" + file + "' '" + target + "'";
+        cmd += " && (wl-copy --type image/png < '" + target + "' 2>/dev/null || true)";
+        cmd += " && (notify-send -a 'Enyxma Shot' -i '" + target + "' '✦ Ekran Görüntüsü Kaydedildi' '" + target + "' 2>/dev/null || true)";
+        cmd += " && (quickshell ipc call media-browser refresh 2>/dev/null || true)";
+        Quickshell.execDetached(["sh", "-c", cmd]);
         quitTimer.restart();
     }
 
@@ -326,7 +340,7 @@ ShellRoot {
         var tmp = "/tmp/enyxma-shot-copy.png";
         grabTo(tmp, function (ok) {
             if (ok) copyImageAndQuit(tmp);
-            else Qt.quit();
+            else root.exitApp();
         });
     }
 
@@ -334,7 +348,7 @@ ShellRoot {
         var tmp = "/tmp/enyxma-shot-save.png";
         grabTo(tmp, function (ok) {
             if (ok) saveToScreenshots(tmp);
-            else Qt.quit();
+            else root.exitApp();
         });
     }
 
@@ -354,11 +368,11 @@ ShellRoot {
         if (openPopover.length > 0) { openPopover = ""; return; }
         if (shortcutsOpen) { shortcutsOpen = false; return; }
         if (phase === "beautify") {
-            if (fromFile) Qt.quit();
+            if (fromFile) root.exitApp();
             else phase = "editing";
             return;
         }
-        Qt.quit();
+        root.exitApp();
     }
 
     function editKey(e) {
@@ -398,8 +412,8 @@ ShellRoot {
 
     Timer {
         id: quitTimer
-        interval: 250
-        onTriggered: Qt.quit()
+        interval: 200
+        onTriggered: root.exitApp()
     }
 
     Variants {
@@ -537,7 +551,7 @@ ShellRoot {
                     onCopyRequested: (p) => root.copyImageAndQuit(p)
                     onSaveRequested: (p) => root.saveToScreenshots(p)
                     onCloseRequested: {
-                        if (root.fromFile) Qt.quit();
+                        if (root.fromFile) root.exitApp();
                         else root.phase = "editing";
                     }
                 }
