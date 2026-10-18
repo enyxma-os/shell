@@ -22,9 +22,11 @@
         version = "0.1.0";
         src = ./.;
 
+        nativeBuildInputs = [ pkgs.makeWrapper ];
+
         installPhase = ''
           mkdir -p $out/share/enyxma-shell
-          cp -r shell.qml services modules widgets $out/share/enyxma-shell/
+          cp -r shell.qml services modules widgets assets $out/share/enyxma-shell/
 
           mkdir -p $out/bin
           cat << EOF > $out/bin/enyxma-shell
@@ -38,6 +40,12 @@ EOF
 exec flock -n -o /tmp/enyxma-shot.lock ${qsPkg}/bin/quickshell -p$out/share/enyxma-shell/modules/screenshot/shell.qml "\$@"
 EOF
           chmod +x $out/bin/enyxma-shot
+
+          wrapProgram $out/bin/enyxma-shell \
+            --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.wl-clipboard pkgs.libnotify pkgs.imagemagick pkgs.coreutils pkgs.procps pkgs.findutils ]}
+
+          wrapProgram $out/bin/enyxma-shot \
+            --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.wl-clipboard pkgs.libnotify pkgs.imagemagick pkgs.coreutils pkgs.procps pkgs.findutils ]}
         '';
       };
 

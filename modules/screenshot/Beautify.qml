@@ -38,6 +38,8 @@ Item {
     property real adjSat: 0
     property string ratioKey: "auto"
     property bool watermark: true
+    property bool savedNotice: false
+    property bool copiedNotice: false
     readonly property string userName: Quickshell.env("USER") || "enyxma"
     property bool composeOnly: false
     property string composeMode: ""
@@ -158,23 +160,29 @@ Item {
             }
 
             TopBtn {
-                label: beautify.busy ? "İşleniyor..." : "Panoya Kopyala"
+                label: beautify.busy ? "İşleniyor..." : (beautify.copiedNotice ? "✦ Kopyalandı!" : "Panoya Kopyala")
                 onTapped: {
-                    if (!beautify.busy)
+                    if (!beautify.busy && !beautify.copiedNotice) {
+                        beautify.copiedNotice = true;
                         beautify.exportStage(beautify.exportTmp, function (ok) {
                             if (ok) beautify.copyRequested(beautify.exportTmp);
+                            else beautify.copiedNotice = false;
                         });
+                    }
                 }
             }
 
             TopBtn {
-                label: beautify.busy ? "İşleniyor..." : "Görseli Kaydet"
+                label: beautify.busy ? "İşleniyor..." : (beautify.savedNotice ? "✦ Kaydedildi!" : "Görseli Kaydet")
                 accent: true
                 onTapped: {
-                    if (!beautify.busy)
+                    if (!beautify.busy && !beautify.savedNotice) {
+                        beautify.savedNotice = true;
                         beautify.exportStage(beautify.exportTmp, function (ok) {
                             if (ok) beautify.saveRequested(beautify.exportTmp);
+                            else beautify.savedNotice = false;
                         });
+                    }
                 }
             }
         }
