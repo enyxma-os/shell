@@ -34,7 +34,7 @@ Singleton {
     function next(): void {
         if (!root.isOpen) {
             root.open()
-            root.selectedIndex = 1
+            root.selectedIndex = 0
         } else {
             if (root.clients.length > 0) {
                 root.selectedIndex = (root.selectedIndex + 1) % root.clients.length
@@ -56,7 +56,7 @@ Singleton {
         if (root.clients.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.clients.length) {
             root.focusClient(root.clients[root.selectedIndex].address)
         } else {
-            root.close()
+            root.switchWorkspace(root.viewedWorkspaceId)
         }
     }
 
@@ -69,17 +69,20 @@ Singleton {
 
     function focusClient(addr): void {
         root.close()
-        Quickshell.execDetached(["hyprctl", "dispatch", "focuswindow", "address:" + addr])
+        var cmd = "sleep 0.15; hyprctl dispatch \"hl.dsp.focus({ window = 'address:" + addr + "' })\""
+        Quickshell.execDetached(["bash", "-c", cmd])
     }
 
     function closeClient(addr): void {
-        Quickshell.execDetached(["hyprctl", "dispatch", "closewindow", "address:" + addr])
+        var cmd = "hyprctl dispatch \"hl.dsp.window.close({ window = 'address:" + addr + "' })\""
+        Quickshell.execDetached(["bash", "-c", cmd])
         refreshProc.running = true
     }
 
     function switchWorkspace(id): void {
         root.close()
-        Quickshell.execDetached(["hyprctl", "dispatch", "workspace", String(id)])
+        var cmd = "sleep 0.15; hyprctl dispatch \"hl.dsp.focus({ workspace = " + id + " })\""
+        Quickshell.execDetached(["bash", "-c", cmd])
     }
 
     function createWorkspace(): void {
@@ -139,7 +142,7 @@ Singleton {
                     // Workspaces
                     var rawWs = data.workspaces || []
                     rawWs.sort(function(a, b) { return a.id - b.id })
-                    
+
                     // If no workspaces reported, provide at least active
                     if (rawWs.length === 0 && data.active && data.active.id) {
                         rawWs.push(data.active)

@@ -5,7 +5,7 @@ import "../../services"
 Row {
     id: root
 
-    spacing: Theme.spacingMedium
+    spacing: Theme.spacingSmall
 
     Repeater {
         model: OverviewState.workspaces
@@ -19,15 +19,15 @@ Row {
             readonly property bool isActive: OverviewState.activeWorkspaceId === deskCard.modelData.id
             readonly property var wsClients: OverviewState.clientsForWorkspace(deskCard.modelData.id)
 
-            width: 100
-            height: 48
+            width: 84
+            height: 44
             radius: Theme.radiusWidget
 
             color: deskCard.isViewed ? Theme.surfaceActive : (cardMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
             border.width: (deskCard.isViewed || deskCard.isActive) ? 2 : Theme.borderWidth
             border.color: deskCard.isViewed ? Theme.accent : (deskCard.isActive ? Theme.borderFocus : Theme.borderSubtle)
 
-            scale: cardMa.containsMouse ? 1.05 : 1.0
+            scale: cardMa.containsMouse ? 1.04 : 1.0
 
             Behavior on scale {
                 enabled: !Theme.reduceMotion
@@ -40,7 +40,7 @@ Row {
 
             ColumnLayout {
                 anchors.centerIn: parent
-                spacing: Theme.spacingXS
+                spacing: 2
 
                 Text {
                     Layout.alignment: Qt.AlignHCenter
@@ -51,7 +51,6 @@ Row {
                     font.bold: true
                 }
 
-                // Çalışma alanındaki pencere sayısı noktaları (Dots)
                 Row {
                     Layout.alignment: Qt.AlignHCenter
                     spacing: 3
@@ -61,9 +60,9 @@ Row {
                         model: Math.min(deskCard.wsClients.length, 5)
 
                         delegate: Rectangle {
-                            width: 5
-                            height: 5
-                            radius: 2.5
+                            width: 4
+                            height: 4
+                            radius: 2
                             color: deskCard.isViewed ? Theme.accent : Theme.textSecondary
                         }
                     }
@@ -83,15 +82,15 @@ Row {
     // Trailing "YENİ +" Kartı
     Rectangle {
         id: addCard
-        width: 72
-        height: 48
+        width: 68
+        height: 44
         radius: Theme.radiusWidget
 
         color: addMa.containsMouse ? Theme.surfaceHover : Theme.surface1
         border.width: Theme.borderWidth
         border.color: addMa.containsMouse ? Theme.accent : Theme.borderSubtle
 
-        scale: addMa.containsMouse ? 1.05 : 1.0
+        scale: addMa.containsMouse ? 1.04 : 1.0
 
         Behavior on scale {
             enabled: !Theme.reduceMotion
@@ -106,7 +105,7 @@ Row {
                 text: "+"
                 color: addMa.containsMouse ? Theme.accent : Theme.textSecondary
                 font.family: Theme.fontMono
-                font.pixelSize: Theme.fontSizeLarge
+                font.pixelSize: Theme.fontSizeNormal
                 font.bold: true
             }
 
