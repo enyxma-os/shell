@@ -13,7 +13,7 @@ PanelWindow {
 
     WlrLayershell.namespace: "enyxma-overview"
     WlrLayershell.layer: WlrLayer.Overlay
-    WlrLayershell.keyboardFocus: WlrKeyboardFocus.OnDemand
+    WlrLayershell.keyboardFocus: OverviewState.isOpen ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
 
     anchors {
@@ -32,6 +32,23 @@ PanelWindow {
         focus: OverviewState.isOpen
 
         Keys.onEscapePressed: OverviewState.close()
+        Keys.onTabPressed: (event) => {
+            if (event.modifiers & Qt.AltModifier) {
+                OverviewState.cycleWorkspace(1)
+            } else if (event.modifiers & Qt.ShiftModifier) {
+                OverviewState.prev()
+            } else {
+                OverviewState.next()
+            }
+        }
+        Keys.onBacktabPressed: OverviewState.prev()
+        Keys.onReturnPressed: OverviewState.activateSelected()
+        Keys.onEnterPressed: OverviewState.activateSelected()
+        Keys.onDeletePressed: OverviewState.closeSelected()
+        Keys.onLeftPressed: OverviewState.prev()
+        Keys.onRightPressed: OverviewState.next()
+        Keys.onUpPressed: OverviewState.cycleWorkspace(-1)
+        Keys.onDownPressed: OverviewState.cycleWorkspace(1)
     }
 
     Rectangle {
@@ -54,171 +71,378 @@ PanelWindow {
             onClicked: OverviewState.close()
         }
 
+        WheelHandler {
+            acceptedDevices: PointerDevice.Mouse | PointerDevice.TouchPad
+            onWheel: (event) => {
+                if (event.angleDelta.y < 0) {
+                    OverviewState.next()
+                } else if (event.angleDelta.y > 0) {
+                    OverviewState.prev()
+                }
+            }
+        }
+
         ColumnLayout {
-            anchors.centerIn: parent
+            anchors.fill: parent
+            anchors.margins: 40
             spacing: Theme.spacingLarge
-            width: Math.min(parent.width - 80, 1100)
 
-            // ── BAŞLIK BÖLÜMÜ ──
+            // ── ÜST BAR: SOLDA BAŞLIK, ORTADA DESKTOP STRIP, SAĞDA SAYAÇ ──
             RowLayout {
-                Layout.alignment: Qt.AlignHCenter
-                spacing: Theme.spacingMedium
+                Layout.fillWidth: true
+                Layout.preferredHeight: 60
 
-                Text {
-                    text: "✦"
-                    color: Theme.accent
-                    font.pixelSize: Theme.fontSizeLarge + 4
+                // Sol: Brand Mark & Genel Bakış Başlığı
+                RowLayout {
+                    spacing: Theme.spacingMedium
+
+                    Text {
+                        text: "✦"
+                        color: Theme.accent
+                        font.pixelSize: Theme.fontSizeLarge + 6
+                    }
+
+                    ColumnLayout {
+                        spacing: 2
+
+                        Text {
+                            text: "GENEL BAKIŞ"
+                            color: Theme.textPrimary
+                            font.family: Theme.fontMono
+                            font.pixelSize: Theme.fontSizeLarge
+                            font.bold: true
+                            font.letterSpacing: 3
+                        }
+
+                        Text {
+                            text: "MASAÜSTÜ " + ("0" + OverviewState.viewedWorkspaceId).slice(-2)
+                            color: Theme.textSecondary
+                            font.family: Theme.fontMono
+                            font.pixelSize: 10
+                            font.letterSpacing: 2
+                        }
+                    }
                 }
 
-                Text {
-                    text: "GENEL BAKIŞ"
-                    color: Theme.textPrimary
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontSizeLarge
-                    font.bold: true
-                    font.letterSpacing: 3
+                Item { Layout.fillWidth: true }
+
+                // Orta: Desktop Strip (Çalışma Alanları Seçici)
+                DesktopStrip {
+                    Layout.alignment: Qt.AlignHCenter
                 }
 
-                Text {
-                    text: "• " + OverviewState.clients.length + " Açık Pencere"
-                    color: Theme.textSecondary
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontSizeNormal
+                Item { Layout.fillWidth: true }
+
+                // Sağ: Pencere Sayacı Rozeti
+                Rectangle {
+                    implicitHeight: 28
+                    implicitWidth: countText.implicitWidth + 20
+                    radius: Theme.radiusSmall
+                    color: Theme.surface1
+                    border.color: Theme.borderSubtle
+                    border.width: Theme.borderWidth
+
+                    Text {
+                        id: countText
+                        anchors.centerIn: parent
+                        text: OverviewState.clients.length + " Açık Pencere"
+                        color: Theme.textSecondary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 11
+                    }
                 }
             }
 
-            // Pencereler Akışı (Flow Grid)
-            Flow {
+            // ── ORTA BÖLÜM: ÇALIŞMA ALANLARI VE MİNİ MASAÜSTÜ KARTLARI ──
+            Item {
                 Layout.fillWidth: true
-                spacing: Theme.spacingMedium
-                Layout.alignment: Qt.AlignHCenter
+                Layout.fillHeight: true
 
-                Repeater {
-                    model: OverviewState.clients
+                Flickable {
+                    id: wsFlickable
+                    anchors.centerIn: parent
+                    width: Math.min(parent.width, wsRow.implicitWidth)
+                    height: Math.min(parent.height - 20, 360)
+                    contentWidth: wsRow.implicitWidth
+                    contentHeight: wsRow.implicitHeight
+                    clip: true
 
-                    delegate: Rectangle {
-                        id: clientCard
-                        required property var modelData
-                        required property int index
+                    Row {
+                        id: wsRow
+                        spacing: Theme.spacingLarge
+                        anchors.verticalCenter: parent.verticalCenter
 
-                        width: 250
-                        height: 150
-                        radius: Theme.radiusPanel
-                        color: cardMa.containsMouse ? Theme.surfaceHover : Theme.bgGlass
-                        border.color: cardMa.containsMouse ? Theme.accent : Theme.borderSubtle
-                        border.width: cardMa.containsMouse ? 2 : Theme.borderWidth
+                        Repeater {
+                            model: OverviewState.workspaces
 
-                        scale: cardMa.containsMouse ? 1.04 : 1.0
+                            delegate: Rectangle {
+                                id: wsCard
+                                required property var modelData
+                                required property int index
 
-                        Behavior on scale {
-                            enabled: !Theme.reduceMotion
-                            NumberAnimation {
-                                duration: Theme.animFast
-                                easing.type: Easing.OutQuint
-                            }
-                        }
+                                readonly property bool isViewed: OverviewState.viewedWorkspaceId === wsCard.modelData.id
+                                readonly property bool isActive: OverviewState.activeWorkspaceId === wsCard.modelData.id
+                                readonly property var wsClients: OverviewState.clientsForWorkspace(wsCard.modelData.id)
 
-                        Behavior on border.color {
-                            ColorAnimation { duration: Theme.animFast }
-                        }
+                                width: 440
+                                height: 280
+                                radius: Theme.radiusPanel
 
-                        ColumnLayout {
-                            anchors.fill: parent
-                            anchors.margins: Theme.spacingMedium
-                            spacing: Theme.spacingSmall
+                                color: wsCard.isViewed ? Theme.surface2 : Theme.surface1
+                                border.width: wsCard.isViewed ? 2 : Theme.borderWidth
+                                border.color: wsCard.isViewed ? Theme.accent : Theme.borderSubtle
 
-                            // Üst Etiket: Workspace Rozeti
-                            RowLayout {
-                                Layout.fillWidth: true
+                                scale: wsCard.isViewed ? 1.02 : 1.0
 
-                                Rectangle {
-                                    implicitHeight: 20
-                                    implicitWidth: wsText.implicitWidth + 12
-                                    radius: Theme.radiusSmall
-                                    color: Theme.surfaceActive
-                                    border.color: Theme.borderSubtle
-                                    border.width: Theme.borderWidth
+                                Behavior on scale {
+                                    enabled: !Theme.reduceMotion
+                                    NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuint }
+                                }
 
-                                    Text {
-                                        id: wsText
-                                        anchors.centerIn: parent
-                                        text: "Alan " + (clientCard.modelData.workspace ? clientCard.modelData.workspace.id : "?")
-                                        color: Theme.accent
-                                        font.family: Theme.fontMono
-                                        font.pixelSize: 10
-                                        font.bold: true
+                                Behavior on border.color {
+                                    ColorAnimation { duration: Theme.animFast }
+                                }
+
+                                ColumnLayout {
+                                    anchors.fill: parent
+                                    anchors.margins: Theme.spacingMedium
+                                    spacing: Theme.spacingSmall
+
+                                    // Kart Başlığı: Çalışma Alanı Numarası ve Durumu
+                                    RowLayout {
+                                        Layout.fillWidth: true
+
+                                        Rectangle {
+                                            implicitHeight: 22
+                                            implicitWidth: 32
+                                            radius: Theme.radiusSmall
+                                            color: wsCard.isViewed ? Theme.accent : Theme.surfaceActive
+
+                                            Text {
+                                                anchors.centerIn: parent
+                                                text: ("0" + wsCard.modelData.id).slice(-2)
+                                                color: wsCard.isViewed ? Theme.bgDark : Theme.textPrimary
+                                                font.family: Theme.fontMono
+                                                font.pixelSize: 11
+                                                font.bold: true
+                                            }
+                                        }
+
+                                        Item { Layout.fillWidth: true }
+
+                                        Text {
+                                            text: wsCard.isActive ? "Aktif" : (wsCard.wsClients.length + " Pencere")
+                                            color: wsCard.isActive ? Theme.accent : Theme.textMuted
+                                            font.family: Theme.fontMono
+                                            font.pixelSize: 10
+                                        }
+                                    }
+
+                                    // Çalışma Alanı İçi: Pencereler Izgarası
+                                    Item {
+                                        Layout.fillWidth: true
+                                        Layout.fillHeight: true
+
+                                        // Boş Çalışma Alanı Görünümü
+                                        Item {
+                                            anchors.fill: parent
+                                            visible: wsCard.wsClients.length === 0
+
+                                            ColumnLayout {
+                                                anchors.centerIn: parent
+                                                spacing: Theme.spacingSmall
+
+                                                Text {
+                                                    Layout.alignment: Qt.AlignHCenter
+                                                    text: "+"
+                                                    color: Theme.textMuted
+                                                    font.pixelSize: 32
+                                                }
+
+                                                Text {
+                                                    Layout.alignment: Qt.AlignHCenter
+                                                    text: "Boş Masaüstü"
+                                                    color: Theme.textMuted
+                                                    font.family: Theme.fontMono
+                                                    font.pixelSize: 11
+                                                }
+                                            }
+
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                hoverEnabled: true
+                                                cursorShape: Qt.PointingHandCursor
+                                                onClicked: OverviewState.switchWorkspace(wsCard.modelData.id)
+                                            }
+                                        }
+
+                                        // Dolu Çalışma Alanı Pencereleri (Grid)
+                                        Flow {
+                                            anchors.fill: parent
+                                            spacing: Theme.spacingSmall
+                                            visible: wsCard.wsClients.length > 0
+
+                                            Repeater {
+                                                model: wsCard.wsClients
+
+                                                delegate: Rectangle {
+                                                    id: winItem
+                                                    required property var modelData
+                                                    required property int index
+
+                                                    readonly property int globalIndex: OverviewState.clients.indexOf(winItem.modelData)
+                                                    readonly property bool isSelected: OverviewState.selectedIndex === winItem.globalIndex
+
+                                                    width: wsCard.wsClients.length === 1 ? parent.width : (parent.width - Theme.spacingSmall) / 2
+                                                    height: wsCard.wsClients.length <= 2 ? parent.height : (parent.height - Theme.spacingSmall) / 2
+                                                    radius: Theme.radiusWidget
+
+                                                    color: (winMa.containsMouse || winItem.isSelected) ? Theme.surfaceHover : Theme.surfaceActive
+                                                    border.width: winItem.isSelected ? 2 : Theme.borderWidth
+                                                    border.color: winItem.isSelected ? Theme.accent : (winMa.containsMouse ? Theme.borderFocus : Theme.borderSubtle)
+
+                                                    ColumnLayout {
+                                                        anchors.fill: parent
+                                                        anchors.margins: Theme.spacingSmall
+                                                        spacing: 2
+
+                                                        // Pencere Üst Barı: Sınıf ve Kapatma Butonu (✕)
+                                                        RowLayout {
+                                                            Layout.fillWidth: true
+
+                                                            Text {
+                                                                text: winItem.modelData["class"] || "Pencere"
+                                                                color: Theme.textPrimary
+                                                                font.family: Theme.fontFamily
+                                                                font.pixelSize: 11
+                                                                font.bold: true
+                                                                Layout.fillWidth: true
+                                                                elide: Text.ElideRight
+                                                            }
+
+                                                            // Kapat Butonu
+                                                            Rectangle {
+                                                                implicitWidth: 18
+                                                                implicitHeight: 18
+                                                                radius: 9
+                                                                color: closeMa.containsMouse ? Theme.danger : "transparent"
+
+                                                                Text {
+                                                                    anchors.centerIn: parent
+                                                                    text: "✕"
+                                                                    color: closeMa.containsMouse ? Theme.textPrimary : Theme.textMuted
+                                                                    font.pixelSize: 10
+                                                                }
+
+                                                                MouseArea {
+                                                                    id: closeMa
+                                                                    anchors.fill: parent
+                                                                    hoverEnabled: true
+                                                                    cursorShape: Qt.PointingHandCursor
+                                                                    onClicked: OverviewState.closeClient(winItem.modelData.address)
+                                                                }
+                                                            }
+                                                        }
+
+                                                        Item { Layout.fillHeight: true }
+
+                                                        // Pencere Başlığı
+                                                        Text {
+                                                            text: winItem.modelData.title || ""
+                                                            color: Theme.textSecondary
+                                                            font.family: Theme.fontMono
+                                                            font.pixelSize: 9
+                                                            Layout.fillWidth: true
+                                                            elide: Text.ElideRight
+                                                        }
+                                                    }
+
+                                                    MouseArea {
+                                                        id: winMa
+                                                        anchors.fill: parent
+                                                        hoverEnabled: true
+                                                        cursorShape: Qt.PointingHandCursor
+                                                        onClicked: OverviewState.focusClient(winItem.modelData.address)
+                                                    }
+                                                }
+                                            }
+                                        }
                                     }
                                 }
 
-                                Item { Layout.fillWidth: true }
-
-                                Text {
-                                    text: clientCard.modelData.floating ? "Yüzer" : "Döşeli"
-                                    color: Theme.textMuted
-                                    font.family: Theme.fontMono
-                                    font.pixelSize: 9
+                                MouseArea {
+                                    anchors.fill: parent
+                                    z: -1
+                                    onClicked: OverviewState.switchWorkspace(wsCard.modelData.id)
                                 }
-                            }
-
-                            Item { Layout.fillHeight: true }
-
-                            // Uygulama Sınıfı (Class)
-                            Text {
-                                text: clientCard.modelData["class"] || "Uygulama"
-                                color: Theme.textPrimary
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSizeNormal
-                                font.bold: true
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
-                            }
-
-                            // Pencere Başlığı (Title)
-                            Text {
-                                text: clientCard.modelData.title || ""
-                                color: Theme.textSecondary
-                                font.family: Theme.fontMono
-                                font.pixelSize: 10
-                                Layout.fillWidth: true
-                                elide: Text.ElideRight
                             }
                         }
 
-                        MouseArea {
-                            id: cardMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: OverviewState.focusClient(clientCard.modelData.address)
+                        // Trailing "YENİ MASAÜSTÜ EKLE" Kartı
+                        Rectangle {
+                            id: newWsCard
+                            width: 220
+                            height: 280
+                            radius: Theme.radiusPanel
+
+                            color: newWsMa.containsMouse ? Theme.surfaceHover : Theme.surface1
+                            border.width: Theme.borderWidth
+                            border.color: newWsMa.containsMouse ? Theme.accent : Theme.borderSubtle
+
+                            scale: newWsMa.containsMouse ? 1.02 : 1.0
+
+                            Behavior on scale {
+                                enabled: !Theme.reduceMotion
+                                NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutQuint }
+                            }
+
+                            ColumnLayout {
+                                anchors.centerIn: parent
+                                spacing: Theme.spacingMedium
+
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    text: "+"
+                                    color: newWsMa.containsMouse ? Theme.accent : Theme.textSecondary
+                                    font.pixelSize: 42
+                                    font.bold: true
+                                }
+
+                                Text {
+                                    Layout.alignment: Qt.AlignHCenter
+                                    text: "YENİ MASAÜSTÜ"
+                                    color: newWsMa.containsMouse ? Theme.accent : Theme.textSecondary
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 11
+                                    font.bold: true
+                                    font.letterSpacing: 2
+                                }
+                            }
+
+                            MouseArea {
+                                id: newWsMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: OverviewState.createWorkspace()
+                            }
                         }
                     }
                 }
             }
 
-            // Boş Durum
-            Item {
-                Layout.fillWidth: true
-                implicitHeight: 120
-                visible: OverviewState.clients.length === 0
+            // ── ALT LEJANT / KISAYOL İPUCU BARI ──
+            RowLayout {
+                Layout.alignment: Qt.AlignHCenter
+                Layout.preferredHeight: 30
 
-                ColumnLayout {
-                    anchors.centerIn: parent
-                    spacing: Theme.spacingSmall
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: "✦"
-                        color: Theme.accent
-                        font.pixelSize: 28
-                    }
-
-                    Text {
-                        Layout.alignment: Qt.AlignHCenter
-                        text: "Açık pencere bulunamadı"
-                        color: Theme.textSecondary
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontSizeNormal
-                    }
+                Text {
+                    text: "KAYDIR / TAB  DÖNGÜ      ALT+TAB  MASAÜSTÜ      ✕  KAPAT      ENTER  GİT      ESC  KAPAT"
+                    color: Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: 10
+                    font.letterSpacing: 2
+                    opacity: 0.85
                 }
             }
         }
