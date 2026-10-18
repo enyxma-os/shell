@@ -96,30 +96,4 @@ Rectangle {
         id: clockWidget
         anchors.centerIn: parent
     }
-
-    // Sol ve Merkez Arasında Sınırlandırılmış Aktif Pencere Başlığı
-    Item {
-        id: titleContainer
-        anchors {
-            left: leftLayout.right
-            right: clockWidget.left
-            leftMargin: Theme.spacingMedium
-            rightMargin: Theme.spacingMedium
-            verticalCenter: parent.verticalCenter
-        }
-        height: parent.height
-        clip: true
-
-        Text {
-            id: windowTitleText
-            anchors.centerIn: parent
-            width: Math.min(implicitWidth, parent.width)
-            text: HyprlandState.activeWindowTitle.length > 0 ? HyprlandState.activeWindowTitle : "Enyxma OS"
-            color: Theme.textSecondary
-            font.family: Theme.fontFamily
-            font.pixelSize: Theme.fontSizeNormal
-            elide: Text.ElideRight
-            horizontalAlignment: Text.AlignHCenter
-        }
-    }
 }
