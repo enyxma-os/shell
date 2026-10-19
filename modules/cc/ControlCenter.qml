@@ -23,11 +23,11 @@ PanelWindow {
     }
 
     margins {
-        top: SystemState.isControlCenterOpen ? 46 : 20
+        top: SystemState.isControlCenterOpen ? 42 : 20
         right: 12
     }
 
-    implicitWidth: 330
+    implicitWidth: 340
     implicitHeight: mainCard.implicitHeight
     color: "transparent"
 
@@ -41,7 +41,7 @@ PanelWindow {
         }
     }
 
-    // Ekran parlaklığı durumu ve süreci
+    // ── Ekran Parlaklığı Yönetimi ──
     property real brightnessLevel: 0.85
 
     Process {
@@ -58,7 +58,7 @@ PanelWindow {
         brightProc.running = true
     }
 
-    // Gece Işığı durumu (hyprsunset toggle)
+    // ── Gece Işığı (hyprsunset) ──
     property bool nightLightActive: false
     Process {
         id: nightLightProc
@@ -75,7 +75,7 @@ PanelWindow {
         nightLightProc.running = true
     }
 
-    // Rahatsız Etme (DND)
+    // ── Rahatsız Etme (DND / Sessiz Mod) ──
     property bool dndActive: false
 
     Rectangle {
@@ -84,7 +84,7 @@ PanelWindow {
         implicitHeight: contentCol.implicitHeight + Theme.spacingMedium * 2
         color: Theme.bgGlass
         radius: Theme.radiusPanel
-        border.color: Theme.borderFocus
+        border.color: Theme.borderSubtle
         border.width: Theme.borderWidth
 
         opacity: SystemState.isControlCenterOpen ? 1.0 : 0.0
@@ -105,66 +105,67 @@ PanelWindow {
                 right: parent.right
                 margins: Theme.spacingMedium
             }
-            spacing: Theme.spacingMedium
+            spacing: Theme.spacingSmall
 
-            // ── 1. Üst Başlık: Kullanıcı & Oturum Bilgisi ──
+            // ── 1. BAŞLIK BÖLÜMÜ (SİSTEM, DURUM, KAPAT) ──
             RowLayout {
                 Layout.fillWidth: true
-                spacing: Theme.spacingSmall
+
+                Text {
+                    text: "SİSTEM"
+                    color: Theme.textPrimary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeNormal
+                    font.bold: true
+                    font.letterSpacing: 2
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    text: (SystemState.isBatteryPresent ? ("BATARYA %" + SystemState.batteryPercent) : "GÜÇ: AC") + (SystemState.isCharging ? " ⚡" : "")
+                    color: Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: 10
+                    font.letterSpacing: 1
+                }
 
                 Rectangle {
-                    implicitWidth: 34
-                    implicitHeight: 34
-                    radius: 17
-                    color: Theme.surfaceActive
+                    implicitHeight: 24
+                    implicitWidth: 24
+                    radius: Theme.radiusButton
+                    color: closeMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                     border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
 
                     Text {
-                        Layout.alignment: Qt.AlignCenter
-                        text: ""
-                        color: Theme.accent
-                        font.family: Theme.fontMono
-                        font.pixelSize: 15
-                    }
-                }
-
-                ColumnLayout {
-                    spacing: 1
-                    Layout.fillWidth: true
-
-                    Text {
-                        text: "Enyxma OS"
-                        color: Theme.textPrimary
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeNormal
-                        font.bold: true
-                    }
-
-                    Text {
-                        text: TimeState.formattedDate + " • " + TimeState.formattedTime
-                        color: Theme.textSecondary
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeSmall
-                    }
-                }
-
-                EnyxmaPill {
-                    implicitHeight: 26
-                    implicitWidth: 26
-                    onClicked: SystemState.closeControlCenter()
-
-                    Text {
-                        Layout.alignment: Qt.AlignCenter
+                        anchors.centerIn: parent
                         text: "✕"
                         color: Theme.textSecondary
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
                     }
+
+                    MouseArea {
+                        id: closeMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: SystemState.closeControlCenter()
+                    }
                 }
             }
 
-            // ── 2. Hızlı Kartlar (2x2 Eylem Matrisi) ──
+            // İnce Ayırıcı
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 1
+                color: Theme.borderSubtle
+            }
+
+            // ── 2. HIZLI EYLEM KAROLARI (2x2 MATRİS) ──
             GridLayout {
                 Layout.fillWidth: true
                 columns: 2
@@ -173,14 +174,18 @@ PanelWindow {
 
                 // Ağ (Network)
                 Rectangle {
+                    id: netTile
                     Layout.fillWidth: true
-                    implicitHeight: 52
+                    implicitHeight: 46
                     radius: Theme.radiusWidget
-                    color: SystemState.isConnected ? Theme.surfaceActive : Theme.surface1
-                    border.color: SystemState.isConnected ? Theme.borderFocus : Theme.borderSubtle
+                    color: SystemState.isConnected
+                        ? (netMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive)
+                        : (netMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                    border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
 
                     MouseArea {
+                        id: netMa
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -192,14 +197,15 @@ PanelWindow {
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: Theme.spacingSmall
+                        anchors.leftMargin: Theme.spacingSmall
+                        anchors.rightMargin: Theme.spacingSmall
                         spacing: Theme.spacingSmall
 
                         Text {
                             text: SystemState.isConnected ? "󰤨" : "󰤭"
                             color: SystemState.isConnected ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
-                            font.pixelSize: Theme.fontSizeLarge
+                            font.pixelSize: 16
                         }
 
                         ColumnLayout {
@@ -207,18 +213,19 @@ PanelWindow {
                             Layout.fillWidth: true
 
                             Text {
-                                text: "Ağ"
+                                text: "AĞ"
                                 color: Theme.textPrimary
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSizeSmall
+                                font.family: Theme.fontMono
+                                font.pixelSize: 10
                                 font.bold: true
+                                font.letterSpacing: 1
                             }
 
                             Text {
                                 text: SystemState.isConnected ? (SystemState.wifiSSID || "Bağlı") : "Bağlı Değil"
-                                color: Theme.textSecondary
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 10
+                                color: SystemState.isConnected ? Theme.accent : Theme.textSecondary
+                                font.family: Theme.fontMono
+                                font.pixelSize: 9
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
@@ -228,23 +235,32 @@ PanelWindow {
 
                 // Bluetooth
                 Rectangle {
+                    id: btTile
                     Layout.fillWidth: true
-                    implicitHeight: 52
+                    implicitHeight: 46
                     radius: Theme.radiusWidget
-                    color: Theme.surface1
+                    color: btMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                     border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
 
+                    MouseArea {
+                        id: btMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                    }
+
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: Theme.spacingSmall
+                        anchors.leftMargin: Theme.spacingSmall
+                        anchors.rightMargin: Theme.spacingSmall
                         spacing: Theme.spacingSmall
 
                         Text {
                             text: "󰂯"
-                            color: Theme.accent
+                            color: Theme.textSecondary
                             font.family: Theme.fontMono
-                            font.pixelSize: Theme.fontSizeLarge
+                            font.pixelSize: 16
                         }
 
                         ColumnLayout {
@@ -252,18 +268,19 @@ PanelWindow {
                             Layout.fillWidth: true
 
                             Text {
-                                text: "Bluetooth"
+                                text: "BLUETOOTH"
                                 color: Theme.textPrimary
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSizeSmall
+                                font.family: Theme.fontMono
+                                font.pixelSize: 10
                                 font.bold: true
+                                font.letterSpacing: 1
                             }
 
                             Text {
                                 text: "Hazır"
                                 color: Theme.textSecondary
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 10
+                                font.family: Theme.fontMono
+                                font.pixelSize: 9
                                 elide: Text.ElideRight
                                 Layout.fillWidth: true
                             }
@@ -273,14 +290,18 @@ PanelWindow {
 
                 // Gece Işığı
                 Rectangle {
+                    id: nightTile
                     Layout.fillWidth: true
-                    implicitHeight: 52
+                    implicitHeight: 46
                     radius: Theme.radiusWidget
-                    color: root.nightLightActive ? Theme.surfaceActive : Theme.surface1
-                    border.color: root.nightLightActive ? Theme.borderFocus : Theme.borderSubtle
+                    color: root.nightLightActive
+                        ? (nightMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive)
+                        : (nightMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                    border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
 
                     MouseArea {
+                        id: nightMa
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -289,14 +310,15 @@ PanelWindow {
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: Theme.spacingSmall
+                        anchors.leftMargin: Theme.spacingSmall
+                        anchors.rightMargin: Theme.spacingSmall
                         spacing: Theme.spacingSmall
 
                         Text {
                             text: "󰔎"
                             color: root.nightLightActive ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
-                            font.pixelSize: Theme.fontSizeLarge
+                            font.pixelSize: 16
                         }
 
                         ColumnLayout {
@@ -304,33 +326,38 @@ PanelWindow {
                             Layout.fillWidth: true
 
                             Text {
-                                text: "Gece Işığı"
+                                text: "GECE IŞIĞI"
                                 color: Theme.textPrimary
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSizeSmall
+                                font.family: Theme.fontMono
+                                font.pixelSize: 10
                                 font.bold: true
+                                font.letterSpacing: 1
                             }
 
                             Text {
-                                text: root.nightLightActive ? "Aktif" : "Kapalı"
-                                color: Theme.textSecondary
-                                font.family: Theme.fontFamily
-                                font.pixelSize: 10
+                                text: root.nightLightActive ? "4500K" : "Kapalı"
+                                color: root.nightLightActive ? Theme.accent : Theme.textSecondary
+                                font.family: Theme.fontMono
+                                font.pixelSize: 9
                             }
                         }
                     }
                 }
 
-                // Rahatsız Etme (DND)
+                // Sessiz Mod (DND)
                 Rectangle {
+                    id: dndTile
                     Layout.fillWidth: true
-                    implicitHeight: 52
+                    implicitHeight: 46
                     radius: Theme.radiusWidget
-                    color: root.dndActive ? Theme.surfaceActive : Theme.surface1
-                    border.color: root.dndActive ? Theme.borderFocus : Theme.borderSubtle
+                    color: root.dndActive
+                        ? (dndMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive)
+                        : (dndMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                    border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
 
                     MouseArea {
+                        id: dndMa
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -339,14 +366,15 @@ PanelWindow {
 
                     RowLayout {
                         anchors.fill: parent
-                        anchors.margins: Theme.spacingSmall
+                        anchors.leftMargin: Theme.spacingSmall
+                        anchors.rightMargin: Theme.spacingSmall
                         spacing: Theme.spacingSmall
 
                         Text {
                             text: root.dndActive ? "󰂛" : "󰂚"
-                            color: root.dndActive ? Theme.danger : Theme.accent
+                            color: root.dndActive ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
-                            font.pixelSize: Theme.fontSizeLarge
+                            font.pixelSize: 16
                         }
 
                         ColumnLayout {
@@ -354,206 +382,200 @@ PanelWindow {
                             Layout.fillWidth: true
 
                             Text {
-                                text: "Sessiz Mod"
+                                text: "BİLDİRİM"
                                 color: Theme.textPrimary
-                                font.family: Theme.fontFamily
-                                font.pixelSize: Theme.fontSizeSmall
-                                font.bold: true
-                            }
-
-                            Text {
-                                text: root.dndActive ? "Susturuldu" : "Açık"
-                                color: Theme.textSecondary
-                                font.family: Theme.fontFamily
+                                font.family: Theme.fontMono
                                 font.pixelSize: 10
+                                font.bold: true
+                                font.letterSpacing: 1
+                            }
+
+                            Text {
+                                text: root.dndActive ? "Sessiz" : "Açık"
+                                color: root.dndActive ? Theme.accent : Theme.textSecondary
+                                font.family: Theme.fontMono
+                                font.pixelSize: 9
                             }
                         }
                     }
                 }
             }
 
-            // ── 3. Kaydırıcılar Kartı (Ses & Parlaklık) ──
+            // İnce Ayırıcı
             Rectangle {
                 Layout.fillWidth: true
-                implicitHeight: sliderCol.implicitHeight + Theme.spacingMedium * 2
-                radius: Theme.radiusWidget
-                color: Theme.surface1
-                border.color: Theme.borderSubtle
-                border.width: Theme.borderWidth
-
-                ColumnLayout {
-                    id: sliderCol
-                    anchors {
-                        top: parent.top
-                        left: parent.left
-                        right: parent.right
-                        margins: Theme.spacingMedium
-                    }
-                    spacing: Theme.spacingMedium
-
-                    // Ses Kaydırıcısı
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: Theme.spacingXS
-
-                        RowLayout {
-                            Layout.fillWidth: true
-
-                            Text {
-                                text: AudioState.muted ? "󰝟 Ses" : "󰕾 Ses"
-                                color: AudioState.muted ? Theme.danger : Theme.textSecondary
-                                font.family: Theme.fontMono
-                                font.pixelSize: Theme.fontSizeSmall
-
-                                MouseArea {
-                                    anchors.fill: parent
-                                    cursorShape: Qt.PointingHandCursor
-                                    onClicked: AudioState.toggleMute()
-                                }
-                            }
-
-                            Item { Layout.fillWidth: true }
-
-                            Text {
-                                text: AudioState.muted ? "Sessiz" : Math.round(AudioState.volume * 100) + "%"
-                                color: Theme.textPrimary
-                                font.family: Theme.fontMono
-                                font.pixelSize: Theme.fontSizeSmall
-                            }
-                        }
-
-                        Slider {
-                            id: volumeSlider
-                            Layout.fillWidth: true
-                            from: 0.0
-                            to: 1.0
-                            value: AudioState.muted ? 0.0 : AudioState.volume
-
-                            Behavior on value {
-                                enabled: !volumeSlider.pressed && !Theme.reduceMotion
-                                NumberAnimation {
-                                    duration: Theme.animFast
-                                    easing.type: Easing.OutQuint
-                                }
-                            }
-
-                            onMoved: AudioState.setVolume(value)
-
-                            background: Rectangle {
-                                x: volumeSlider.leftPadding
-                                y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
-                                implicitWidth: 200
-                                implicitHeight: 6
-                                width: volumeSlider.availableWidth
-                                height: implicitHeight
-                                radius: height / 2
-                                color: Theme.surfaceActive
-
-                                Rectangle {
-                                    width: volumeSlider.visualPosition * parent.width
-                                    height: parent.height
-                                    color: AudioState.muted ? Theme.danger : Theme.accent
-                                    radius: height / 2
-                                }
-                            }
-
-                            handle: Rectangle {
-                                x: volumeSlider.leftPadding + volumeSlider.visualPosition * (volumeSlider.availableWidth - width)
-                                y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
-                                implicitWidth: 14
-                                implicitHeight: 14
-                                radius: width / 2
-                                color: Theme.textPrimary
-                            }
-                        }
-                    }
-
-                    // Parlaklık Kaydırıcısı
-                    ColumnLayout {
-                        Layout.fillWidth: true
-                        spacing: Theme.spacingXS
-
-                        RowLayout {
-                            Layout.fillWidth: true
-
-                            Text {
-                                text: "󰃠 Parlaklık"
-                                color: Theme.textSecondary
-                                font.family: Theme.fontMono
-                                font.pixelSize: Theme.fontSizeSmall
-                            }
-
-                            Item { Layout.fillWidth: true }
-
-                            Text {
-                                text: Math.round(brightSlider.value * 100) + "%"
-                                color: Theme.textPrimary
-                                font.family: Theme.fontMono
-                                font.pixelSize: Theme.fontSizeSmall
-                            }
-                        }
-
-                        Slider {
-                            id: brightSlider
-                            Layout.fillWidth: true
-                            from: 0.05
-                            to: 1.0
-                            value: root.brightnessLevel
-
-                            Behavior on value {
-                                enabled: !brightSlider.pressed && !Theme.reduceMotion
-                                NumberAnimation {
-                                    duration: Theme.animFast
-                                    easing.type: Easing.OutQuint
-                                }
-                            }
-
-                            onMoved: root.setBrightness(value)
-
-                            background: Rectangle {
-                                x: brightSlider.leftPadding
-                                y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
-                                implicitWidth: 200
-                                implicitHeight: 6
-                                width: brightSlider.availableWidth
-                                height: implicitHeight
-                                radius: height / 2
-                                color: Theme.surfaceActive
-
-                                Rectangle {
-                                    width: brightSlider.visualPosition * parent.width
-                                    height: parent.height
-                                    color: Theme.accent
-                                    radius: height / 2
-                                }
-                            }
-
-                            handle: Rectangle {
-                                x: brightSlider.leftPadding + brightSlider.visualPosition * (brightSlider.availableWidth - width)
-                                y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
-                                implicitWidth: 14
-                                implicitHeight: 14
-                                radius: width / 2
-                                color: Theme.textPrimary
-                            }
-                        }
-                    }
-                }
+                implicitHeight: 1
+                color: Theme.borderSubtle
             }
 
-            // ── 4. Mini Medya Bandı (Yalnızca Müzik/Video Çalıyorsa Görünür) ──
-            Rectangle {
+            // ── 3. SES KONTROLÜ (MİNİMALİST ÇUBUK) ──
+            ColumnLayout {
                 Layout.fillWidth: true
-                implicitHeight: 46
-                radius: Theme.radiusWidget
-                color: Theme.surface2
-                border.color: Theme.borderSubtle
-                border.width: Theme.borderWidth
-                visible: MediaState.hasMedia
+                spacing: 6
 
                 RowLayout {
-                    anchors.fill: parent
-                    anchors.margins: Theme.spacingSmall
+                    Layout.fillWidth: true
+
+                    Text {
+                        text: AudioState.muted ? "󰝟 SES" : "󰕾 SES"
+                        color: AudioState.muted ? Theme.danger : Theme.textSecondary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 10
+                        font.letterSpacing: 1
+
+                        MouseArea {
+                            anchors.fill: parent
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: AudioState.toggleMute()
+                        }
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    Text {
+                        text: AudioState.muted ? "SESSİZ" : Math.round(AudioState.volume * 100) + "%"
+                        color: AudioState.muted ? Theme.danger : Theme.accent
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.bold: true
+                    }
+                }
+
+                Slider {
+                    id: volumeSlider
+                    Layout.fillWidth: true
+                    implicitHeight: 20
+                    from: 0.0
+                    to: 1.0
+                    value: AudioState.muted ? 0.0 : AudioState.volume
+
+                    Behavior on value {
+                        enabled: !volumeSlider.pressed && !Theme.reduceMotion
+                        NumberAnimation {
+                            duration: Theme.animFast
+                            easing.type: Easing.OutQuint
+                        }
+                    }
+
+                    onMoved: AudioState.setVolume(value)
+
+                    background: Rectangle {
+                        x: volumeSlider.leftPadding
+                        y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
+                        implicitWidth: 200
+                        implicitHeight: 6
+                        width: volumeSlider.availableWidth
+                        height: implicitHeight
+                        radius: 3
+                        color: Theme.surfaceActive
+
+                        Rectangle {
+                            width: volumeSlider.visualPosition * parent.width
+                            height: parent.height
+                            color: AudioState.muted ? Theme.danger : Theme.accent
+                            radius: 3
+                        }
+                    }
+
+                    handle: Rectangle {
+                        x: volumeSlider.leftPadding + volumeSlider.visualPosition * (volumeSlider.availableWidth - width)
+                        y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
+                        implicitWidth: 12
+                        implicitHeight: 12
+                        radius: 6
+                        color: Theme.textPrimary
+                    }
+                }
+            }
+
+            // ── 4. PARLAKLIK KONTROLÜ (MİNİMALİST ÇUBUK) ──
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 6
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    Text {
+                        text: "󰃠 PARLAKLIK"
+                        color: Theme.textSecondary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 10
+                        font.letterSpacing: 1
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    Text {
+                        text: Math.round(brightSlider.value * 100) + "%"
+                        color: Theme.accent
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.bold: true
+                    }
+                }
+
+                Slider {
+                    id: brightSlider
+                    Layout.fillWidth: true
+                    implicitHeight: 20
+                    from: 0.05
+                    to: 1.0
+                    value: root.brightnessLevel
+
+                    Behavior on value {
+                        enabled: !brightSlider.pressed && !Theme.reduceMotion
+                        NumberAnimation {
+                            duration: Theme.animFast
+                            easing.type: Easing.OutQuint
+                        }
+                    }
+
+                    onMoved: root.setBrightness(value)
+
+                    background: Rectangle {
+                        x: brightSlider.leftPadding
+                        y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
+                        implicitWidth: 200
+                        implicitHeight: 6
+                        width: brightSlider.availableWidth
+                        height: implicitHeight
+                        radius: 3
+                        color: Theme.surfaceActive
+
+                        Rectangle {
+                            width: brightSlider.visualPosition * parent.width
+                            height: parent.height
+                            color: Theme.accent
+                            radius: 3
+                        }
+                    }
+
+                    handle: Rectangle {
+                        x: brightSlider.leftPadding + brightSlider.visualPosition * (brightSlider.availableWidth - width)
+                        y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
+                        implicitWidth: 12
+                        implicitHeight: 12
+                        radius: 6
+                        color: Theme.textPrimary
+                    }
+                }
+            }
+
+            // ── 5. MEDYA ŞERİDİ (Varsa Görünür) ──
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingSmall
+                visible: MediaState.hasMedia
+
+                Rectangle {
+                    Layout.fillWidth: true
+                    implicitHeight: 1
+                    color: Theme.borderSubtle
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
                     spacing: Theme.spacingSmall
 
                     Text {
@@ -570,7 +592,7 @@ PanelWindow {
                         Text {
                             text: MediaState.trackTitle || "Bilinmeyen Parça"
                             color: Theme.textPrimary
-                            font.family: Theme.fontFamily
+                            font.family: Theme.fontMono
                             font.pixelSize: 11
                             font.bold: true
                             elide: Text.ElideRight
@@ -580,55 +602,98 @@ PanelWindow {
                         Text {
                             text: MediaState.artist || "Bilinmeyen Sanatçı"
                             color: Theme.textSecondary
-                            font.family: Theme.fontFamily
+                            font.family: Theme.fontMono
                             font.pixelSize: 9
                             elide: Text.ElideRight
                             Layout.fillWidth: true
                         }
                     }
 
-                    EnyxmaPill {
-                        implicitHeight: 26
-                        implicitWidth: 26
-                        onClicked: MediaState.previous()
+                    Rectangle {
+                        implicitHeight: 24
+                        implicitWidth: 24
+                        radius: Theme.radiusButton
+                        color: prevMa.containsMouse ? Theme.surfaceHover : Theme.surface1
+                        border.color: Theme.borderSubtle
+                        border.width: Theme.borderWidth
+
                         Text {
-                            Layout.alignment: Qt.AlignCenter
+                            anchors.centerIn: parent
                             text: "󰒮"
                             color: Theme.textPrimary
                             font.family: Theme.fontMono
                             font.pixelSize: 10
                         }
-                    }
 
-                    EnyxmaPill {
-                        implicitHeight: 26
-                        implicitWidth: 26
-                        onClicked: MediaState.togglePlay()
-                        Text {
-                            Layout.alignment: Qt.AlignCenter
-                            text: MediaState.isPlaying ? "󰏤" : "󰐊"
-                            color: Theme.accent
-                            font.family: Theme.fontMono
-                            font.pixelSize: 12
+                        MouseArea {
+                            id: prevMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: MediaState.previous()
                         }
                     }
 
-                    EnyxmaPill {
-                        implicitHeight: 26
-                        implicitWidth: 26
-                        onClicked: MediaState.next()
+                    Rectangle {
+                        implicitHeight: 24
+                        implicitWidth: 24
+                        radius: Theme.radiusButton
+                        color: playMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive
+                        border.color: Theme.borderSubtle
+                        border.width: Theme.borderWidth
+
                         Text {
-                            Layout.alignment: Qt.AlignCenter
+                            anchors.centerIn: parent
+                            text: MediaState.isPlaying ? "󰏤" : "󰐊"
+                            color: Theme.accent
+                            font.family: Theme.fontMono
+                            font.pixelSize: 11
+                        }
+
+                        MouseArea {
+                            id: playMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: MediaState.togglePlay()
+                        }
+                    }
+
+                    Rectangle {
+                        implicitHeight: 24
+                        implicitWidth: 24
+                        radius: Theme.radiusButton
+                        color: nextMa.containsMouse ? Theme.surfaceHover : Theme.surface1
+                        border.color: Theme.borderSubtle
+                        border.width: Theme.borderWidth
+
+                        Text {
+                            anchors.centerIn: parent
                             text: "󰒭"
                             color: Theme.textPrimary
                             font.family: Theme.fontMono
                             font.pixelSize: 10
                         }
+
+                        MouseArea {
+                            id: nextMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: MediaState.next()
+                        }
                     }
                 }
             }
 
-            // ── 5. Alt Bölüm: Hızlı Oturum & Güç Çubuğu ──
+            // İnce Ayırıcı
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 1
+                color: Theme.borderSubtle
+            }
+
+            // ── 6. ALT BÖLÜM: ZARİF GÜÇ & OTURUM ŞERİDİ ──
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Theme.spacingSmall
@@ -636,13 +701,14 @@ PanelWindow {
                 // Kilitle
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 34
-                    radius: Theme.radiusSmall
-                    color: Theme.surface1
+                    implicitHeight: 28
+                    radius: Theme.radiusButton
+                    color: lockMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                     border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
 
                     MouseArea {
+                        id: lockMa
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -653,19 +719,21 @@ PanelWindow {
                     }
 
                     RowLayout {
-                        Layout.alignment: Qt.AlignCenter
+                        anchors.centerIn: parent
                         spacing: 4
                         Text {
                             text: ""
                             color: Theme.textPrimary
                             font.family: Theme.fontMono
-                            font.pixelSize: 12
+                            font.pixelSize: 11
                         }
                         Text {
-                            text: "Kilit"
+                            text: "KİLİT"
                             color: Theme.textPrimary
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeSmall
+                            font.family: Theme.fontMono
+                            font.pixelSize: 9
+                            font.bold: true
+                            font.letterSpacing: 1
                         }
                     }
                 }
@@ -673,13 +741,14 @@ PanelWindow {
                 // Uyku
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 34
-                    radius: Theme.radiusSmall
-                    color: Theme.surface1
+                    implicitHeight: 28
+                    radius: Theme.radiusButton
+                    color: suspMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                     border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
 
                     MouseArea {
+                        id: suspMa
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -690,19 +759,21 @@ PanelWindow {
                     }
 
                     RowLayout {
-                        Layout.alignment: Qt.AlignCenter
+                        anchors.centerIn: parent
                         spacing: 4
                         Text {
                             text: "󰒲"
                             color: Theme.textPrimary
                             font.family: Theme.fontMono
-                            font.pixelSize: 12
+                            font.pixelSize: 11
                         }
                         Text {
-                            text: "Uyku"
+                            text: "UYKU"
                             color: Theme.textPrimary
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeSmall
+                            font.family: Theme.fontMono
+                            font.pixelSize: 9
+                            font.bold: true
+                            font.letterSpacing: 1
                         }
                     }
                 }
@@ -710,13 +781,14 @@ PanelWindow {
                 // Yeniden Başlat
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 34
-                    radius: Theme.radiusSmall
-                    color: Theme.surface1
+                    implicitHeight: 28
+                    radius: Theme.radiusButton
+                    color: rebootMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                     border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
 
                     MouseArea {
+                        id: rebootMa
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -727,33 +799,37 @@ PanelWindow {
                     }
 
                     RowLayout {
-                        Layout.alignment: Qt.AlignCenter
+                        anchors.centerIn: parent
                         spacing: 4
                         Text {
                             text: "󰜉"
                             color: Theme.textPrimary
                             font.family: Theme.fontMono
-                            font.pixelSize: 12
+                            font.pixelSize: 11
                         }
                         Text {
-                            text: "Yeniden"
+                            text: "YENİDEN"
                             color: Theme.textPrimary
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeSmall
+                            font.family: Theme.fontMono
+                            font.pixelSize: 9
+                            font.bold: true
+                            font.letterSpacing: 1
                         }
                     }
                 }
 
                 // Kapat
                 Rectangle {
+                    id: poweroffBtn
                     Layout.fillWidth: true
-                    implicitHeight: 34
-                    radius: Theme.radiusSmall
-                    color: Theme.surfaceActive
-                    border.color: Theme.danger
+                    implicitHeight: 28
+                    radius: Theme.radiusButton
+                    color: powerMa.containsMouse ? Qt.rgba(Theme.danger.r, Theme.danger.g, Theme.danger.b, 0.16) : Theme.surface1
+                    border.color: powerMa.containsMouse ? Qt.rgba(Theme.danger.r, Theme.danger.g, Theme.danger.b, 0.3) : Theme.borderSubtle
                     border.width: Theme.borderWidth
 
                     MouseArea {
+                        id: powerMa
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
@@ -764,20 +840,21 @@ PanelWindow {
                     }
 
                     RowLayout {
-                        Layout.alignment: Qt.AlignCenter
+                        anchors.centerIn: parent
                         spacing: 4
                         Text {
                             text: "⏻"
-                            color: Theme.danger
+                            color: powerMa.containsMouse ? Theme.danger : Theme.textPrimary
                             font.family: Theme.fontMono
-                            font.pixelSize: 13
+                            font.pixelSize: 11
                         }
                         Text {
-                            text: "Kapat"
-                            color: Theme.danger
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeSmall
+                            text: "KAPAT"
+                            color: powerMa.containsMouse ? Theme.danger : Theme.textPrimary
+                            font.family: Theme.fontMono
+                            font.pixelSize: 9
                             font.bold: true
+                            font.letterSpacing: 1
                         }
                     }
                 }
