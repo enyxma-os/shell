@@ -26,6 +26,7 @@ PanelWindow {
     visible: container.opacity > 0.0
 
     property bool isReady: false
+    property string osdMode: "audio" // "audio" | "brightness"
 
     Timer {
         id: initTimer
@@ -48,8 +49,22 @@ PanelWindow {
 
     Connections {
         target: AudioState
-        function onVolumeChanged() { root.show() }
-        function onMutedChanged() { root.show() }
+        function onVolumeChanged() {
+            root.osdMode = "audio"
+            root.show()
+        }
+        function onMutedChanged() {
+            root.osdMode = "audio"
+            root.show()
+        }
+    }
+
+    Connections {
+        target: BrightnessState
+        function onLevelChanged() {
+            root.osdMode = "brightness"
+            root.show()
+        }
     }
 
     Rectangle {
@@ -76,8 +91,12 @@ PanelWindow {
             spacing: Theme.spacingMedium
 
             Text {
-                text: AudioState.muted ? "MUTED" : "VOL"
-                color: AudioState.muted ? Theme.danger : Theme.textPrimary
+                text: root.osdMode === "brightness"
+                    ? "󰃠 BRT"
+                    : (AudioState.muted ? "󰝟 MUTED" : "󰕾 VOL")
+                color: root.osdMode === "brightness"
+                    ? Theme.accent
+                    : (AudioState.muted ? Theme.danger : Theme.textPrimary)
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall
             }
@@ -90,9 +109,15 @@ PanelWindow {
 
                 Rectangle {
                     height: parent.height
-                    width: parent.width * (AudioState.muted ? 0.0 : Math.max(0.0, Math.min(1.0, AudioState.volume)))
+                    width: parent.width * (
+                        root.osdMode === "brightness"
+                            ? Math.max(0.0, Math.min(1.0, BrightnessState.level))
+                            : (AudioState.muted ? 0.0 : Math.max(0.0, Math.min(1.0, AudioState.volume)))
+                    )
                     radius: height / 2
-                    color: AudioState.muted ? Theme.danger : Theme.accent
+                    color: root.osdMode === "brightness"
+                        ? Theme.accent
+                        : (AudioState.muted ? Theme.danger : Theme.accent)
 
                     Behavior on width {
                         enabled: !Theme.reduceMotion
@@ -105,8 +130,10 @@ PanelWindow {
             }
 
             Text {
-                text: Math.round(AudioState.volume * 100) + "%"
-                color: Theme.textSecondary
+                text: root.osdMode === "brightness"
+                    ? (Math.round(BrightnessState.level * 100) + "%")
+                    : (AudioState.muted ? "0%" : (Math.round(AudioState.volume * 100) + "%"))
+                color: (root.osdMode === "audio" && AudioState.muted) ? Theme.danger : Theme.textSecondary
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall
             }
