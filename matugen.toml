@@ -1,0 +1,11 @@
+[config]
+reload_apps = true
+
+[templates.quickshell]
+input_path = "~/.config/quickshell/templates/GeneratedColors.qml.in"
+output_path = "~/.config/quickshell/services/GeneratedColors.qml"
+
+[templates.hyprland]
+input_path = "~/.config/quickshell/templates/colors.lua.in"
+output_path = "~/.config/hypr/colors.lua"
+post_hook = "sh -c 'SIG=$(ls -d /run/user/1000/hypr/*_* 2>/dev/null | head -n1); [ -n \"$SIG\" ] && export HYPRLAND_INSTANCE_SIGNATURE=$(basename \"$SIG\"); hyprctl reload 2>/dev/null || true'"

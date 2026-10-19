@@ -26,7 +26,7 @@
 
         installPhase = ''
           mkdir -p $out/share/enyxma-shell
-          cp -r shell.qml services modules widgets assets $out/share/enyxma-shell/
+          cp -r shell.qml services modules widgets assets templates matugen.toml $out/share/enyxma-shell/
 
           mkdir -p $out/bin
           cat << EOF > $out/bin/enyxma-shell
@@ -42,10 +42,10 @@ EOF
           chmod +x $out/bin/enyxma-shot
 
           wrapProgram $out/bin/enyxma-shell \
-            --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.wl-clipboard pkgs.libnotify pkgs.imagemagick pkgs.coreutils pkgs.procps pkgs.findutils ]}
+            --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.wl-clipboard pkgs.libnotify pkgs.imagemagick pkgs.coreutils pkgs.procps pkgs.findutils pkgs.matugen ]}
 
           wrapProgram $out/bin/enyxma-shot \
-            --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.wl-clipboard pkgs.libnotify pkgs.imagemagick pkgs.coreutils pkgs.procps pkgs.findutils ]}
+            --prefix PATH : ${pkgs.lib.makeBinPath [ pkgs.wl-clipboard pkgs.libnotify pkgs.imagemagick pkgs.coreutils pkgs.procps pkgs.findutils pkgs.matugen ]}
         '';
       };
 
@@ -58,6 +58,7 @@ EOF
           ripgrep           # rg kaçak taraması için
           jetbrains-mono
           inter
+          matugen
         ];
 
         shellHook = ''
