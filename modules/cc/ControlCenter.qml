@@ -41,23 +41,6 @@ PanelWindow {
         }
     }
 
-    // ── Ekran Parlaklığı Yönetimi ──
-    property real brightnessLevel: 0.85
-
-    Process {
-        id: brightProc
-        running: false
-    }
-
-    function setBrightness(val) {
-        var clamped = Math.max(0.05, Math.min(1.0, val))
-        root.brightnessLevel = clamped
-        var pct = Math.round(clamped * 100)
-        brightProc.command = ["bash", "-c", "brightnessctl set " + pct + "% >/dev/null 2>&1 || true"]
-        brightProc.running = false
-        brightProc.running = true
-    }
-
     // ── Gece Işığı (hyprsunset) ──
     property bool nightLightActive: false
     Process {
@@ -488,7 +471,7 @@ PanelWindow {
                 }
             }
 
-            // ── 4. PARLAKLIK KONTROLÜ (MİNİMALİST ÇUBUK) ──
+            // ── 4. PARLAKLIK KONTROLÜ (MİNİMALİST ÇUBUK, OSD TETİKLER) ──
             ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 6
@@ -507,7 +490,7 @@ PanelWindow {
                     Item { Layout.fillWidth: true }
 
                     Text {
-                        text: Math.round(brightSlider.value * 100) + "%"
+                        text: Math.round(BrightnessState.level * 100) + "%"
                         color: Theme.accent
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSizeSmall
@@ -521,7 +504,7 @@ PanelWindow {
                     implicitHeight: 20
                     from: 0.05
                     to: 1.0
-                    value: root.brightnessLevel
+                    value: BrightnessState.level
 
                     Behavior on value {
                         enabled: !brightSlider.pressed && !Theme.reduceMotion
@@ -531,7 +514,7 @@ PanelWindow {
                         }
                     }
 
-                    onMoved: root.setBrightness(value)
+                    onMoved: BrightnessState.setBrightness(value)
 
                     background: Rectangle {
                         x: brightSlider.leftPadding
@@ -592,7 +575,7 @@ PanelWindow {
                         Text {
                             text: MediaState.trackTitle || "Bilinmeyen Parça"
                             color: Theme.textPrimary
-                            font.family: Theme.fontMono
+                            font.family: Theme.fontFamily
                             font.pixelSize: 11
                             font.bold: true
                             elide: Text.ElideRight
@@ -693,19 +676,27 @@ PanelWindow {
                 color: Theme.borderSubtle
             }
 
-            // ── 6. ALT BÖLÜM: ZARİF GÜÇ & OTURUM ŞERİDİ ──
+            // ── 6. ALT BÖLÜM: SADE İKONLARLA GÜÇ & OTURUM ŞERİDİ ──
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Theme.spacingSmall
 
-                // Kilitle
+                // Kilit (hyprlock)
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 28
+                    implicitHeight: 36
                     radius: Theme.radiusButton
                     color: lockMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                     border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰌾"
+                        color: lockMa.containsMouse ? Theme.accent : Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 16
+                    }
 
                     MouseArea {
                         id: lockMa
@@ -714,38 +705,27 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             SystemState.closeControlCenter()
-                            Quickshell.execDetached(["loginctl", "lock-session"])
-                        }
-                    }
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 4
-                        Text {
-                            text: ""
-                            color: Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 11
-                        }
-                        Text {
-                            text: "KİLİT"
-                            color: Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 9
-                            font.bold: true
-                            font.letterSpacing: 1
+                            Quickshell.execDetached(["sh", "-c", "pidof hyprlock || hyprlock"])
                         }
                     }
                 }
 
-                // Uyku
+                // Uyku / Suspend
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 28
+                    implicitHeight: 36
                     radius: Theme.radiusButton
                     color: suspMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                     border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰒲"
+                        color: suspMa.containsMouse ? Theme.accent : Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 16
+                    }
 
                     MouseArea {
                         id: suspMa
@@ -754,38 +734,27 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             SystemState.closeControlCenter()
-                            Quickshell.execDetached(["systemctl", "suspend"])
-                        }
-                    }
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 4
-                        Text {
-                            text: "󰒲"
-                            color: Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 11
-                        }
-                        Text {
-                            text: "UYKU"
-                            color: Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 9
-                            font.bold: true
-                            font.letterSpacing: 1
+                            Quickshell.execDetached(["sh", "-c", "systemctl suspend || sudo -n systemctl suspend"])
                         }
                     }
                 }
 
-                // Yeniden Başlat
+                // Yeniden Başlat (Reboot)
                 Rectangle {
                     Layout.fillWidth: true
-                    implicitHeight: 28
+                    implicitHeight: 36
                     radius: Theme.radiusButton
                     color: rebootMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                     border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "󰑓"
+                        color: rebootMa.containsMouse ? Theme.accent : Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 16
+                    }
 
                     MouseArea {
                         id: rebootMa
@@ -794,39 +763,28 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             SystemState.closeControlCenter()
-                            Quickshell.execDetached(["systemctl", "reboot"])
-                        }
-                    }
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 4
-                        Text {
-                            text: "󰜉"
-                            color: Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 11
-                        }
-                        Text {
-                            text: "YENİDEN"
-                            color: Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 9
-                            font.bold: true
-                            font.letterSpacing: 1
+                            Quickshell.execDetached(["sh", "-c", "systemctl reboot || sudo -n systemctl reboot"])
                         }
                     }
                 }
 
-                // Kapat
+                // Kapat (Power Off)
                 Rectangle {
                     id: poweroffBtn
                     Layout.fillWidth: true
-                    implicitHeight: 28
+                    implicitHeight: 36
                     radius: Theme.radiusButton
-                    color: powerMa.containsMouse ? Qt.rgba(Theme.danger.r, Theme.danger.g, Theme.danger.b, 0.16) : Theme.surface1
-                    border.color: powerMa.containsMouse ? Qt.rgba(Theme.danger.r, Theme.danger.g, Theme.danger.b, 0.3) : Theme.borderSubtle
+                    color: powerMa.containsMouse ? Qt.rgba(Theme.danger.r, Theme.danger.g, Theme.danger.b, 0.18) : Theme.surface1
+                    border.color: powerMa.containsMouse ? Qt.rgba(Theme.danger.r, Theme.danger.g, Theme.danger.b, 0.35) : Theme.borderSubtle
                     border.width: Theme.borderWidth
+
+                    Text {
+                        anchors.centerIn: parent
+                        text: "⏻"
+                        color: powerMa.containsMouse ? Theme.danger : Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 16
+                    }
 
                     MouseArea {
                         id: powerMa
@@ -835,26 +793,7 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             SystemState.closeControlCenter()
-                            Quickshell.execDetached(["systemctl", "poweroff"])
-                        }
-                    }
-
-                    RowLayout {
-                        anchors.centerIn: parent
-                        spacing: 4
-                        Text {
-                            text: "⏻"
-                            color: powerMa.containsMouse ? Theme.danger : Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 11
-                        }
-                        Text {
-                            text: "KAPAT"
-                            color: powerMa.containsMouse ? Theme.danger : Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 9
-                            font.bold: true
-                            font.letterSpacing: 1
+                            Quickshell.execDetached(["sh", "-c", "systemctl poweroff || sudo -n systemctl poweroff"])
                         }
                     }
                 }

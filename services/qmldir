@@ -3,6 +3,7 @@ singleton Theme 1.0 Theme.qml
 singleton GeneratedColors 1.0 GeneratedColors.qml
 singleton HyprlandState 1.0 HyprlandState.qml
 singleton AudioState 1.0 AudioState.qml
+singleton BrightnessState 1.0 BrightnessState.qml
 singleton TimeState 1.0 TimeState.qml
 singleton AIState 1.0 AIState.qml
 singleton MediaState 1.0 MediaState.qml
