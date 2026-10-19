@@ -51,10 +51,36 @@ Singleton {
         }
         currentWallpaper = p
         saveState()
+
+        // Canlı Tema Ekosistemi (Matugen M3) tetikle
+        var raw = p.replace(/^file:\/\//, "")
+        generateThemeFromImage(raw)
     }
 
     function setDim(level) {
         dimLevel = Math.max(0.0, Math.min(1.0, level))
+    }
+
+    // Dinamik Matugen Süreci
+    Process {
+        id: matugenProc
+        running: false
+    }
+
+    function generateThemeFromImage(rawPath) {
+        if (!rawPath || rawPath.length === 0) return
+        var cmd = "matugen -c \"$HOME/.config/quickshell/matugen.toml\" --source-color-index 0 image \"" + rawPath + "\" >/dev/null 2>&1 || true"
+        matugenProc.command = ["bash", "-c", cmd]
+        matugenProc.running = false
+        matugenProc.running = true
+    }
+
+    function generateThemeFromColor(hexColor) {
+        if (!hexColor || hexColor.length === 0) return
+        var cmd = "matugen -c \"$HOME/.config/quickshell/matugen.toml\" color hex \"" + hexColor + "\" >/dev/null 2>&1 || true"
+        matugenProc.command = ["bash", "-c", cmd]
+        matugenProc.running = false
+        matugenProc.running = true
     }
 
     FileView {
@@ -162,6 +188,10 @@ Singleton {
         function picker(): void {
             root.togglePicker()
         }
+
+        function color(hex: string): void {
+            root.generateThemeFromColor(hex)
+        }
     }
 
     IpcHandler {
@@ -181,6 +211,10 @@ Singleton {
 
         function picker(): void {
             root.togglePicker()
+        }
+
+        function color(hex: string): void {
+            root.generateThemeFromColor(hex)
         }
     }
 

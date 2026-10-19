@@ -1,5 +1,6 @@
 module services
 singleton Theme 1.0 Theme.qml
+singleton GeneratedColors 1.0 GeneratedColors.qml
 singleton HyprlandState 1.0 HyprlandState.qml
 singleton AudioState 1.0 AudioState.qml
 singleton TimeState 1.0 TimeState.qml
