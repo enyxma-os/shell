@@ -3,35 +3,36 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 
+/**
+ * NetworkState — ağ durumu, trafik ve hız testi.
+ *
+ * P0: `bash -c` ve string komut birleştirme TAMAMEN kaldırıldı.
+ *   • Arayüz keşfi: `ip -j route get 1.1.1.1` (JSON) → dev
+ *   • Bağlantı adı: `nmcli -t -f NAME,DEVICE con show --active`
+ *   • IP: `ip -j -4 addr show dev <if>` (JSON)
+ *   • SSID/sinyal: `iw dev <if> link`
+ *   • DNS: `nmcli -t -f IP4.DNS dev show <if>`
+ *   • Trafik: `/proc/net/dev` FileView ile okunur → SIFIR fork.
+ *   • DNS değiştirme: `nmcli con mod <ad> ipv4.dns <ip...>` argüman dizisi.
+ *     SSID/bağlantı adı artık bir kabuğa gömülmediği için tırnak kaçışı
+ *     (`Kafe'$(...)`) enjeksiyonu yapısal olarak imkânsız.
+ */
 Singleton {
     id: root
 
-    // Panel Görünürlük Durumu
     property bool isOpen: false
 
     function toggle() {
         isOpen = !isOpen
-        if (isOpen) {
-            refreshDetails()
-        } else if (speedRunning) {
-            cancelSpeedTest()
-        }
+        if (isOpen) refreshDetails()
+        else if (speedRunning) cancelSpeedTest()
     }
+    function open() { isOpen = true; refreshDetails() }
+    function close() { isOpen = false; if (speedRunning) cancelSpeedTest() }
 
-    function open() {
-        isOpen = true
-        refreshDetails()
-    }
-
-    function close() {
-        isOpen = false
-        if (speedRunning)
-            cancelSpeedTest()
-    }
-
-    // Ağ Durumu ve Arayüz Bilgileri
+    // ── Ağ durumu ────────────────────────────────────────────────────
     property bool isConnected: false
-    property string connectionType: "none" // "ethernet" | "wifi" | "none"
+    property string connectionType: "none" // ethernet | wifi | none
     property string connectionName: ""
     property string interfaceName: ""
     property string ipAddress: ""
@@ -39,13 +40,13 @@ Singleton {
     property string frequency: ""
     property string linkSpeed: ""
 
-    // DNS Durumu ve Yönetimi
-    property string dnsProvider: "dhcp" // "dhcp" | "cloudflare" | "google" | "custom"
+    // ── DNS ──────────────────────────────────────────────────────────
+    property string dnsProvider: "dhcp"
     property var dnsServers: []
     property bool dnsBusy: false
     property string dnsError: ""
 
-    // Ağ Trafik Metrikleri (RX / TX)
+    // ── Trafik ───────────────────────────────────────────────────────
     property real rxRate: 0
     property real txRate: 0
     property real rxLevel: 0
@@ -75,205 +76,328 @@ Singleton {
         prevMs = now
     }
 
+    // ── Arayüz keşif hattı (sıralı, kabuksuz) ────────────────────────
+    property int _step: 0
+    property string _iface: ""
+    property string _conn: ""
+    property string _ip: ""
+    property string _ssid: ""
+    property int _sig: -1
+    property string _freq: ""
+    property string _speed: ""
+    property var _dns: []
+
     function refreshDetails() {
-        detailProc.running = false
-        detailProc.running = true
+        if (pipeProc.running) return
+        root._step = 0
+        root._iface = ""
+        root._conn = ""
+        root._ip = ""
+        root._ssid = ""
+        root._sig = -1
+        root._freq = ""
+        root._speed = ""
+        root._dns = []
+        pipeProc.command = ["ip", "-j", "route", "get", "1.1.1.1"]
+        pipeProc.running = true
     }
 
-    // İlk yükleme ve olay tabanlı ağ izleme (nmcli monitor)
+    function advance(code, text) {
+        var t = (text || "").trim()
+        switch (root._step) {
+        case 0: // route
+            root._iface = parseRouteDev(t)
+            if (root._iface === "") { root.applyDisconnected(); return }
+            root._step = 1
+            pipeProc.command = ["nmcli", "-t", "-f", "NAME,DEVICE,STATE", "con", "show", "--active"]
+            pipeProc.running = true
+            return
+        case 1: // nmcli active connections
+            root._conn = parseConnForDevice(t, root._iface)
+            root._step = 2
+            pipeProc.command = ["ip", "-j", "-4", "addr", "show", "dev", root._iface]
+            pipeProc.running = true
+            return
+        case 2: // address
+            root._ip = parseAddr(t)
+            root._step = 3
+            pipeProc.command = ["nmcli", "-t", "-f", "IP4.DNS", "dev", "show", root._iface]
+            pipeProc.running = true
+            return
+        case 3: // dns
+            root._dns = parseDnsLines(t)
+            root._step = 4
+            pipeProc.command = ["cat", "/sys/class/net/" + root._iface + "/speed"]
+            pipeProc.running = true
+            return
+        case 4: // link speed
+            root._speed = t
+            root._step = 5
+            pipeProc.command = ["iw", "dev", root._iface, "link"]
+            pipeProc.running = true
+            return
+        case 5: // wifi link (boşsa ethernet)
+            parseIwLink(t)
+            root.applyConnected()
+            return
+        }
+    }
+
+    Process {
+        id: pipeProc
+        running: false
+        stdout: StdioCollector { id: pipeOut }
+        onExited: (code, status) => root.advance(code, pipeOut.text)
+    }
+
+    function parseRouteDev(text) {
+        try {
+            var arr = JSON.parse(text)
+            if (arr && arr.length > 0 && arr[0].dev) return String(arr[0].dev)
+        } catch (e) {}
+        return ""
+    }
+
+    function parseConnForDevice(text, iface) {
+        var lines = text.split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            // nmcli -t: AD:DEVICE:STATE → ad içinde ':' olabilir, sondan böl
+            var parts = lines[i].split(":")
+            if (parts.length >= 3 && parts[parts.length - 2] === iface) {
+                return parts.slice(0, parts.length - 2).join(":")
+            }
+        }
+        return ""
+    }
+
+    function parseAddr(text) {
+        try {
+            var arr = JSON.parse(text)
+            if (arr && arr.length > 0 && arr[0].addr_info && arr[0].addr_info.length > 0) {
+                return String(arr[0].addr_info[0].local || "")
+            }
+        } catch (e) {}
+        return ""
+    }
+
+    function parseDnsLines(text) {
+        var out = []
+        var lines = text.split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            var s = lines[i].trim()
+            if (s === "") continue
+            var idx = s.lastIndexOf(":")
+            var val = idx >= 0 ? s.substring(idx + 1).trim() : s
+            if (val !== "" && out.indexOf(val) < 0) out.push(val)
+        }
+        return out
+    }
+
+    function parseIwLink(text) {
+        var ssid = ""
+        var sig = -1
+        var freq = ""
+        var lines = text.split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            var l = lines[i]
+            var mSsid = l.match(/^\s*SSID:\s*(.+)$/)
+            if (mSsid) ssid = mSsid[1].trim()
+            var mSig = l.match(/^\s*signal:\s*(-?\d+(?:\.\d+)?)/)
+            if (mSig) sig = parseFloat(mSig[1])
+            var mFreq = l.match(/^\s*freq:\s*([\d.]+)/)
+            if (mFreq) freq = mFreq[1] + " MHz"
+        }
+        root._ssid = ssid
+        root._sig = sig
+        root._freq = freq
+    }
+
+    function qualityFromRssi(rssi) {
+        // -110 dBm = 0 %, -40 dBm = 100 %
+        var q = Math.round((rssi + 110) * 100 / 70)
+        return Math.max(0, Math.min(100, q))
+    }
+
+    function applyDisconnected() {
+        isConnected = false
+        connectionType = "none"
+        connectionName = ""
+        interfaceName = ""
+        ipAddress = ""
+        signalStrength = 0
+        frequency = ""
+        linkSpeed = ""
+        dnsServers = []
+    }
+
+    function applyConnected() {
+        var isWifi = root._ssid !== "" || root._sig > -200 && root._freq !== ""
+        isConnected = true
+        interfaceName = root._iface
+        ipAddress = root._ip
+        connectionName = root._conn !== "" ? root._conn : (isWifi ? root._ssid : root._iface)
+        dnsServers = root._dns
+        parseDnsProvider()
+        if (isWifi) {
+            connectionType = "wifi"
+            signalStrength = root._sig > -200 ? qualityFromRssi(root._sig) : 0
+            frequency = root._freq
+            linkSpeed = ""
+        } else {
+            connectionType = "ethernet"
+            var sp = parseInt(root._speed) || 0
+            linkSpeed = sp > 0
+                ? (sp >= 1000 ? (sp / 1000).toFixed(1).replace(/\.0$/, "") + " Gbit/s" : sp + " Mbit/s")
+                : ""
+            signalStrength = 100
+            frequency = ""
+        }
+    }
+
+    function parseDnsProvider() {
+        var list = root.dnsServers
+        if (list.length === 0) { dnsProvider = "dhcp"; return }
+        var str = list.join(" ")
+        if (str.indexOf("1.1.1.1") >= 0) dnsProvider = "cloudflare"
+        else if (str.indexOf("8.8.8.8") >= 0) dnsProvider = "google"
+        else if (list[0] !== "127.0.0.53") dnsProvider = "custom"
+        else dnsProvider = "dhcp"
+    }
+
+    // İlk yükleme + olay tabanlı izleme (nmcli monitor → olay, polling değil)
     Process {
         id: initProc
         command: ["nmcli", "-t", "-f", "TYPE,STATE,CONNECTION", "dev"]
         running: true
-        stdout: SplitParser {
-            splitMarker: "\n"
-            onRead: line => root.refreshDetails()
-        }
+        stdout: SplitParser { splitMarker: "\n"; onRead: line => root.refreshDetails() }
     }
 
     Process {
         id: monitorProc
         command: ["nmcli", "monitor"]
         running: true
-        stdout: SplitParser {
-            splitMarker: "\n"
-            onRead: line => root.refreshDetails()
-        }
+        stdout: SplitParser { splitMarker: "\n"; onRead: line => root.refreshDetails() }
     }
 
-    Process {
-        id: detailProc
-        command: ["bash", "-c",
-            "IFACE=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1); exit}}'); " +
-            "if [ -z \"$IFACE\" ]; then echo NONE; exit; fi; " +
-            "IPADDR=$(ip -o -4 addr show dev \"$IFACE\" 2>/dev/null | awk '{split($4,a,\"/\"); print a[1]; exit}'); " +
-            "CONN=$(nmcli -t -f NAME,DEVICE con show --active 2>/dev/null | grep \":$IFACE$\" | cut -d: -f1 | head -n1); " +
-            "SPEED=$(cat /sys/class/net/$IFACE/speed 2>/dev/null); " +
-            "DNS=$(nmcli dev show \"$IFACE\" 2>/dev/null | awk '/IP4.DNS/ {print $2}' | tr '\\n' ',' | sed 's/,$//'); " +
-            "if [ -d \"/sys/class/net/$IFACE/wireless\" ]; then " +
-            "  LINK=$(iw dev \"$IFACE\" link 2>/dev/null); " +
-            "  SSID=$(printf '%s\\n' \"$LINK\" | sed -n 's/^\\s*SSID: //p' | head -1); " +
-            "  SIG=$(printf '%s\\n' \"$LINK\" | awk '/signal:/ {print int($2); exit}'); " +
-            "  FRQ=$(printf '%s\\n' \"$LINK\" | awk '/freq:/ {print $2 \" MHz\"; exit}'); " +
-            "  QUAL=$(awk -v s=\"$SIG\" 'BEGIN{q=int((s+110)*100/70);if(q<0)q=0;if(q>100)q=100;print q}'); " +
-            "  printf 'WIFI\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\t%s\\n' \"$CONN\" \"$IFACE\" \"$IPADDR\" \"$SSID\" \"$QUAL\" \"$FRQ\" \"$DNS\"; " +
-            "else " +
-            "  printf 'ETHERNET\\t%s\\t%s\\t%s\\t%s\\t%s\\n' \"$CONN\" \"$IFACE\" \"$IPADDR\" \"$SPEED\" \"$DNS\"; " +
-            "fi"
-        ]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var raw = this.text.trim()
-                if (!raw || raw === "NONE") {
-                    root.isConnected = false
-                    root.connectionType = "none"
-                    root.connectionName = ""
-                    root.interfaceName = ""
-                    root.ipAddress = ""
-                    root.signalStrength = 0
-                    root.frequency = ""
-                    root.linkSpeed = ""
-                    return
-                }
-
-                var parts = raw.split("\t")
-                root.isConnected = true
-                if (parts[0] === "WIFI") {
-                    root.connectionType = "wifi"
-                    root.connectionName = parts[1] || parts[4] || "Wi-Fi"
-                    root.interfaceName = parts[2] || ""
-                    root.ipAddress = parts[3] || ""
-                    root.signalStrength = parseInt(parts[5]) || 0
-                    root.frequency = parts[6] || ""
-                    root.linkSpeed = ""
-                    root.parseDns(parts[7] || "")
-                } else if (parts[0] === "ETHERNET") {
-                    root.connectionType = "ethernet"
-                    root.connectionName = parts[1] || "Ethernet"
-                    root.interfaceName = parts[2] || ""
-                    root.ipAddress = parts[3] || ""
-                    var sp = parseInt(parts[4]) || 0
-                    root.linkSpeed = sp > 0 ? (sp >= 1000 ? (sp / 1000).toFixed(1).replace(/\.0$/, "") + " Gbit/s" : sp + " Mbit/s") : ""
-                    root.signalStrength = 100
-                    root.frequency = ""
-                    root.parseDns(parts[5] || "")
-                }
-            }
-        }
+    // ── Trafik: /proc/net/dev (fork YOK) ─────────────────────────────
+    FileView {
+        id: netDevFile
+        path: "/proc/net/dev"
+        printErrors: false
+        blockLoading: false
+        onLoaded: root.parseNetDev(netDevFile.text())
     }
 
-    function parseDns(dnsStr) {
-        if (!dnsStr) {
-            root.dnsServers = []
-            root.dnsProvider = "dhcp"
+    function parseNetDev(text) {
+        if (!root.interfaceName) return
+        var lines = String(text || "").split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            var idx = lines[i].indexOf(":")
+            if (idx < 0) continue
+            var name = lines[i].substring(0, idx).trim()
+            if (name !== root.interfaceName) continue
+            var f = lines[i].substring(idx + 1).trim().split(/\s+/)
+            if (f.length < 9) return
+            root.updateSpeeds(parseFloat(f[0]) || 0, parseFloat(f[8]) || 0, Date.now())
             return
         }
-        var list = dnsStr.split(",").filter(function(s) { return s.trim().length > 0 })
-        root.dnsServers = list
-        var str = list.join(" ")
-        if (str.indexOf("1.1.1.1") >= 0) {
-            root.dnsProvider = "cloudflare"
-        } else if (str.indexOf("8.8.8.8") >= 0) {
-            root.dnsProvider = "google"
-        } else if (list.length > 0 && list[0] !== "192.168.122.1" && list[0] !== "127.0.0.53") {
-            root.dnsProvider = "custom"
-        } else {
-            root.dnsProvider = "dhcp"
-        }
     }
 
-    // Periyodik trafik sorgulama (2 saniye)
     Timer {
-        id: trafficTimer
         interval: 2000
         running: root.isConnected
         repeat: true
-        onTriggered: {
-            trafficProc.running = false
-            trafficProc.running = true
-        }
+        onTriggered: netDevFile.reload()
     }
 
-    Process {
-        id: trafficProc
-        command: ["bash", "-c",
-            "IFACE=$(ip route get 1.1.1.1 2>/dev/null | awk '{for(i=1;i<=NF;i++) if($i==\"dev\"){print $(i+1); exit}}'); " +
-            "[ -n \"$IFACE\" ] && awk -v i=\"$IFACE:\" '$1==i{print $2 \"\\t\" $10}' /proc/net/dev"
-        ]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var line = this.text.trim()
-                if (!line) return
-                var parts = line.split("\t")
-                if (parts.length >= 2) {
-                    var rx = parseFloat(parts[0]) || 0
-                    var tx = parseFloat(parts[1]) || 0
-                    root.updateSpeeds(rx, tx, Date.now())
-                }
-            }
+    // ── DNS değiştirme (P0) ──────────────────────────────────────────
+    readonly property var ipv4Pattern: /^(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)(\.(25[0-5]|2[0-4]\d|1\d\d|[1-9]?\d)){3}$/
+
+    function sanitizeServers(list) {
+        var out = []
+        if (!list) return out
+        for (var i = 0; i < list.length && out.length < 3; i++) {
+            var s = String(list[i]).trim()
+            if (root.ipv4Pattern.test(s)) out.push(s)
         }
+        return out
     }
 
-    // DNS Değiştirme
     function setDnsProvider(provider, customServers) {
-        if (dnsBusy || !connectionName) return
+        if (dnsBusy) return
+        if (!connectionName) { dnsError = "Aktif bağlantı yok"; return }
+
+        var servers = []
+        if (provider === "cloudflare") servers = ["1.1.1.1", "1.0.0.1"]
+        else if (provider === "google") servers = ["8.8.8.8", "8.8.4.4"]
+        else if (provider === "custom") {
+            servers = root.sanitizeServers(customServers)
+            if (servers.length === 0) { dnsError = "Geçersiz DNS adresi"; return }
+        }
+
         dnsBusy = true
         dnsError = ""
-        dnsProvider = provider
 
-        var dnsArgs = ""
-        var ignoreAuto = "no"
-        if (provider === "cloudflare") {
-            dnsArgs = "'1.1.1.1 1.0.0.1'"
-            ignoreAuto = "yes"
-        } else if (provider === "google") {
-            dnsArgs = "'8.8.8.8 8.8.4.4'"
-            ignoreAuto = "yes"
-        } else if (provider === "custom" && customServers && customServers.length > 0) {
-            dnsArgs = "'" + customServers.join(" ") + "'"
-            ignoreAuto = "yes"
+        // Argüman dizisi: bağlantı adı tek bir argüman, IP'ler tek bir argüman.
+        var args = ["con", "mod", connectionName]
+        if (servers.length === 0) {
+            args = args.concat(["ipv4.dns", "", "ipv4.ignore-auto-dns", "no"])
         } else {
-            dnsArgs = "''"
-            ignoreAuto = "no"
+            args = args.concat(["ipv4.dns", servers.join(" "), "ipv4.ignore-auto-dns", "yes"])
         }
-
-        var cmd = "nmcli con mod '" + connectionName + "' ipv4.dns " + dnsArgs + " ipv4.ignore-auto-dns " + ignoreAuto + " && nmcli con up '" + connectionName + "'"
-        dnsProc.command = ["bash", "-c", cmd]
-        dnsProc.running = false
-        dnsProc.running = true
+        dnsProc.exec(["nmcli"].concat(args))
     }
 
     Process {
         id: dnsProc
         running: false
-        onExited: (exitCode, exitStatus) => {
+        stderr: StdioCollector { id: dnsErrOut }
+        onExited: (code, status) => {
             root.dnsBusy = false
-            if (exitCode === 0) {
+            if (code === 0) {
+                root.dnsError = ""
+                // NOT: `nmcli con up` bilinçli olarak çağrılmıyor — aktif
+                // bağlantıyı düşürüp kullanıcıya haber vermeden kesinti
+                // yaratıyordu. Yeni DNS bir sonraki bağlanmada etkin olur;
+                // kullanıcı isterse panelden "Yeniden bağlan" aksiyonu alır.
                 root.refreshDetails()
             } else {
-                root.dnsError = "DNS değiştirilemedi"
+                var msg = (dnsErrOut.text || "").trim()
+                root.dnsError = msg !== "" ? msg.split("\n")[0] : ("DNS değiştirilemedi (kod " + code + ")")
             }
         }
     }
 
-    // Ağ Ayarlarını Aç
+    function reconnect() {
+        if (!connectionName) return
+        dnsBusy = true
+        reconnectProc.exec(["nmcli", "con", "up", connectionName])
+    }
+
+    Process {
+        id: reconnectProc
+        running: false
+        onExited: (code) => { root.dnsBusy = false; root.refreshDetails() }
+    }
+
+    // ── Ağ ayarları ──────────────────────────────────────────────────
     function openSettings() {
-        settingsProc.running = false
-        settingsProc.running = true
+        // nm-connection-editor yoksa nmtui'ye düş: `sh -c` yerine sıralı deneme.
+        settingsProc.exec(["nm-connection-editor"])
     }
 
     Process {
         id: settingsProc
-        command: ["bash", "-c", "which nm-connection-editor >/dev/null 2>&1 && nm-connection-editor || foot -e nmtui || kitty -e nmtui"]
         running: false
+        onExited: (code) => {
+            if (code !== 0) Quickshell.execDetached(["foot", "-e", "nmtui"])
+        }
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // Cloudflare Hız Testi Motoru (Saf JavaScript / XMLHttpRequest)
-    // ─────────────────────────────────────────────────────────────
-    property string speedPhase: "idle" // "idle", "latency", "download", "upload", "success", "error", "cancelled", "offline"
+    // ─────────────────────────────────────────────────────────────────
+    // Cloudflare hız testi (saf JS/XMLHttpRequest — değişmedi)
+    // ─────────────────────────────────────────────────────────────────
+    property string speedPhase: "idle"
     readonly property bool speedRunning: speedPhase === "latency" || speedPhase === "download" || speedPhase === "upload"
     property real speedPingMs: 0
     property real speedDownloadMbps: 0
@@ -434,10 +558,7 @@ Singleton {
 
     function startSpeedTest() {
         if (speedRunning) return
-        if (!isConnected) {
-            speedPhase = "offline"
-            return
-        }
+        if (!isConnected) { speedPhase = "offline"; return }
 
         ++runGeneration
         speedEdgeCode = ""
@@ -471,16 +592,14 @@ Singleton {
             captureLocation(result)
             if (latencyStep > 0) {
                 var elapsed = result.headersAt - result.startedAt
-                if (elapsed > 0 && isFinite(elapsed))
-                    latencySamples.push(elapsed)
+                if (elapsed > 0 && isFinite(elapsed)) latencySamples.push(elapsed)
             }
-
             if (latencyStep < 6) {
                 ++latencyStep
                 runLatencyRequest()
             } else {
                 speedPingMs = median(latencySamples)
-                startDownload()
+                startDownloadTest()
             }
         }, 0)
     }
@@ -499,7 +618,7 @@ Singleton {
         }, 0)
     }
 
-    function startDownload() {
+    function startDownloadTest() {
         speedPhase = "download"
         downloadIndex = 0
         downloadSamples = []
@@ -524,7 +643,7 @@ Singleton {
     function runDownloadRepeat() {
         if (downloadRepeats === 0) {
             speedDownloadMbps = median(downloadSamples)
-            startUpload()
+            startUploadTest()
             return
         }
         measureDownload(selectedDownloadBytes, function(value) {
@@ -550,7 +669,7 @@ Singleton {
         }, 0)
     }
 
-    function startUpload() {
+    function startUploadTest() {
         speedPhase = "upload"
         uploadIndex = 0
         uploadSamples = []
@@ -605,6 +724,7 @@ Singleton {
         function toggle(): void { root.toggle() }
         function open(): void { root.open() }
         function close(): void { root.close() }
+        function refresh(): void { root.refreshDetails() }
         function speedtest(): void { root.startSpeedTest() }
         function setdns(provider: string): void { root.setDnsProvider(provider, []) }
     }

@@ -3,30 +3,38 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 
+/**
+ * PerformanceState — CPU / RAM / GPU telemetrisi.
+ *
+ * P1 "SIFIR POLLING" DÜZELTMESİ:
+ *   Eski kod panel kapalıyken bile 3 sn'de bir `bash -c awk …; ps …; ls -d …`
+ *   çalıştırıyordu → günde ~28.800 process.
+ *
+ *   Yeni tasarım:
+ *   • Bar göstergeleri (CPU %, RAM %, load) → /proc dosyaları FileView ile
+ *     okunur: fork YOK, sadece dosya okuma (2 sn).
+ *   • Ağır işler (`ps` ile top process, GPU sysfs, `lspci`) yalnızca panel
+ *     açıkken çalışır (`isOpen` kapısı) → günde birkaç yüz process.
+ *   • Statik bilgi (kernel, CPU/GPU modeli) açılışta TEK kez.
+ *
+ *   `drives`/GPU verisi panel kapalıyken donar; bu bilinçli bir tercih:
+ *   bar yalnızca CPU/RAM gösterir, panel açıldığında tazelenir.
+ */
 Singleton {
     id: root
 
-    // Pop-up Paneli Durumu
     property bool isOpen: false
 
-    function toggle(): void {
-        root.isOpen = !root.isOpen
-    }
-
-    function open(): void {
-        root.isOpen = true
-    }
-
-    function close(): void {
-        root.isOpen = false
-    }
+    function toggle(): void { root.isOpen = !root.isOpen; if (root.isOpen) root.refreshHeavy() }
+    function open(): void { root.isOpen = true; root.refreshHeavy() }
+    function close(): void { root.isOpen = false }
 
     function openBtop(): void {
         root.close()
         Quickshell.execDetached(["foot", "btop"])
     }
 
-    // CPU Metrikleri
+    // ── Metrikler ───────────────────────────────────────────────────
     property int cpuPercent: 0
     property string cpuModel: "İşlemci"
     property int cpuCores: 0
@@ -36,138 +44,225 @@ Singleton {
     property string load15: "0.00"
     property var topProcesses: []
 
-    // RAM Metrikleri
     property int memPercent: 0
     property real memUsedGiB: 0.0
     property real memAvailGiB: 0.0
     property real memTotalGiB: 0.0
 
-    // GPU & VRAM Metrikleri
     property int gpuPercent: 0
     property string gpuModel: "Ekran Kartı"
     property int vramPercent: 0
     property real vramUsedGiB: 0.0
     property real vramTotalGiB: 0.0
 
-    // Dahili CPU zaman damgası takibi
     property real _prevTotal: 0
     property real _prevIdle: 0
 
-    // Statik sistem bilgilerini al (İşlemci Modeli, Çekirdek, Kernel, Ekran Kartı Modeli)
+    // ── Statik sistem bilgisi: açılışta 1 kez ───────────────────────
     Process {
         id: staticInfoProc
-        command: ["bash", "-c", "uname -r && awk -F: '/model name/ {m=$2; gsub(/^[ \t]+/, \"\", m); if (!found) {name=m; found=1}} /processor/ {cores++} END {printf \"%s|%d\\n\", name, cores}' /proc/cpuinfo && (lspci 2>/dev/null | awk -F: '/VGA|3D/ {gsub(/^[ \t]+/, \"\", $3); print $3; exit}' || echo \"Ekran Kartı\")"]
+        command: ["uname", "-r"]
         running: true
         stdout: StdioCollector {
-            onStreamFinished: {
-                var lines = this.text.trim().split("\n")
-                if (lines.length >= 2) {
-                    root.kernel = lines[0].trim()
-                    var parts = lines[1].split("|")
-                    if (parts.length >= 2) {
-                        root.cpuModel = parts[0].trim()
-                        root.cpuCores = parseInt(parts[1]) || 0
-                    }
-                }
-                if (lines.length >= 3) {
-                    var rawGpu = lines[2].trim()
-                    if (rawGpu.indexOf("[") !== -1 && rawGpu.indexOf("]") !== -1) {
-                        var matches = rawGpu.match(/\[([^\]]+)\]/g)
-                        if (matches && matches.length > 0) {
-                            root.gpuModel = matches[matches.length - 1].replace(/[\[\]]/g, "")
-                        } else {
-                            root.gpuModel = rawGpu
-                        }
-                    } else {
-                        root.gpuModel = rawGpu.replace(/\(rev .*\)/, "").trim()
-                    }
-                }
-            }
+            onStreamFinished: root.kernel = this.text.trim()
         }
     }
 
-    // Telemetri Process: CPU tick, Meminfo, Loadavg, En çok tüketen işlemler, GPU ve VRAM
-    Process {
-        id: telemetryProc
-        command: ["bash", "-c", "LC_ALL=C awk 'BEGIN { while ((getline < \"/proc/stat\") > 0) { if ($1 == \"cpu\") { printf \"%d|%d|\", $2+$3+$4+$5+$6+$7+$8+$9, $5+$6; break } } close(\"/proc/stat\"); getline < \"/proc/loadavg\"; load1=$1; load5=$2; load15=$3; close(\"/proc/loadavg\"); while ((getline < \"/proc/meminfo\") > 0) { if ($1 == \"MemTotal:\") total=$2; else if ($1 == \"MemAvailable:\") avail=$2 } close(\"/proc/meminfo\"); used = total - avail; pct = (total > 0) ? int((used * 100) / total) : 0; printf \"%d|%.1f|%.1f|%.1f|%s|%s|%s\\n\", pct, used/1048576, avail/1048576, total/1048576, load1, load5, load15 }'; ps -eo comm,%cpu --sort=-%cpu --no-headers 2>/dev/null | head -n 3 | awk '{printf \"%s|%s;\", $1, $2}'; echo \"\"; dev=$(ls -d /sys/class/drm/card[1-9]/device 2>/dev/null | head -n1); [ -z \"$dev\" ] && dev=$(ls -d /sys/class/drm/card0/device 2>/dev/null | head -n1); gpu=$(cat \"$dev/gpu_busy_percent\" 2>/dev/null || echo 0); u=$(cat \"$dev/mem_info_vram_used\" 2>/dev/null || echo 0); t=$(cat \"$dev/mem_info_vram_total\" 2>/dev/null || echo 0); awk -v g=\"$gpu\" -v u=\"$u\" -v t=\"$t\" 'BEGIN { if (t > 0) printf \"%d|%d|%.1f|%.1f\\n\", g, (u/t)*100, u/1073741824, t/1073741824; else printf \"%d|0|0.0|0.0\\n\", g }'"]
-        running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                var raw = this.text.trim()
-                if (!raw) return
-                var lines = raw.split("\n")
-                if (lines.length >= 1) {
-                    var parts = lines[0].split("|")
-                    if (parts.length >= 9) {
-                        var tot = parseFloat(parts[0])
-                        var idl = parseFloat(parts[1])
-                        if (root._prevTotal > 0 && tot > root._prevTotal) {
-                            var dTot = tot - root._prevTotal
-                            var dIdl = idl - root._prevIdle
-                            var pct = Math.max(0, Math.min(100, Math.round(((dTot - dIdl) * 100) / dTot)))
-                            root.cpuPercent = pct
-                        }
-                        root._prevTotal = tot
-                        root._prevIdle = idl
+    FileView {
+        id: cpuInfoFile
+        path: "/proc/cpuinfo"
+        printErrors: false
+        onLoaded: root.parseCpuInfo(cpuInfoFile.text())
+    }
 
-                        root.memPercent = parseInt(parts[2]) || 0
-                        root.memUsedGiB = parseFloat(parts[3]) || 0.0
-                        root.memAvailGiB = parseFloat(parts[4]) || 0.0
-                        root.memTotalGiB = parseFloat(parts[5]) || 0.0
-                        root.load1 = parts[6] || "0.00"
-                        root.load5 = parts[7] || "0.00"
-                        root.load15 = parts[8] || "0.00"
-                    }
-                }
-                if (lines.length >= 2) {
-                    var procEntries = lines[1].split(";")
-                    var list = []
-                    for (var i = 0; i < procEntries.length; i++) {
-                        var pe = procEntries[i].trim()
-                        if (!pe) continue
-                        var pParts = pe.split("|")
-                        if (pParts.length >= 2) {
-                            list.push({
-                                name: pParts[0],
-                                cpu: pParts[1] + "%"
-                            })
-                        }
-                    }
-                    root.topProcesses = list
-                }
-                if (lines.length >= 3) {
-                    var gpuParts = lines[2].split("|")
-                    if (gpuParts.length >= 4) {
-                        root.gpuPercent = parseInt(gpuParts[0]) || 0
-                        root.vramPercent = parseInt(gpuParts[1]) || 0
-                        root.vramUsedGiB = parseFloat(gpuParts[2]) || 0.0
-                        root.vramTotalGiB = parseFloat(gpuParts[3]) || 0.0
-                    }
-                }
+    function parseCpuInfo(text) {
+        var lines = String(text || "").split("\n")
+        var model = ""
+        var cores = 0
+        for (var i = 0; i < lines.length; i++) {
+            if (lines[i].indexOf("model name") === 0 || lines[i].indexOf("model name\t") === 0) {
+                var idx = lines[i].indexOf(":")
+                if (idx > 0 && model === "") model = lines[i].substring(idx + 1).trim()
+            } else if (lines[i].indexOf("processor") === 0) {
+                cores++
             }
+        }
+        if (model !== "") root.cpuModel = model
+        if (cores > 0) root.cpuCores = cores
+    }
+
+    // ── CPU / RAM: /proc (fork yok) ─────────────────────────────────
+    FileView {
+        id: statFile
+        path: "/proc/stat"
+        printErrors: false
+        onLoaded: root.parseStat(statFile.text())
+    }
+
+    FileView {
+        id: memFile
+        path: "/proc/meminfo"
+        printErrors: false
+        onLoaded: root.parseMem(memFile.text())
+    }
+
+    FileView {
+        id: loadFile
+        path: "/proc/loadavg"
+        printErrors: false
+        onLoaded: root.parseLoad(loadFile.text())
+    }
+
+    function parseStat(text) {
+        var first = String(text || "").split("\n")[0]
+        if (!first || first.indexOf("cpu") !== 0) return
+        var f = first.trim().split(/\s+/)
+        if (f.length < 8) return
+        var total = 0
+        for (var i = 1; i < 8; i++) total += parseFloat(f[i]) || 0
+        var idle = (parseFloat(f[4]) || 0) + (parseFloat(f[5]) || 0)
+        if (root._prevTotal > 0 && total > root._prevTotal) {
+            var dTot = total - root._prevTotal
+            var dIdl = idle - root._prevIdle
+            if (dTot > 0)
+                root.cpuPercent = Math.max(0, Math.min(100, Math.round(((dTot - dIdl) * 100) / dTot)))
+        }
+        root._prevTotal = total
+        root._prevIdle = idle
+    }
+
+    function parseMem(text) {
+        var lines = String(text || "").split("\n")
+        var total = 0
+        var avail = 0
+        for (var i = 0; i < lines.length; i++) {
+            var m
+            if ((m = lines[i].match(/^MemTotal:\s+(\d+)/))) total = parseFloat(m[1])
+            else if ((m = lines[i].match(/^MemAvailable:\s+(\d+)/))) avail = parseFloat(m[1])
+        }
+        if (total <= 0) return
+        var used = total - avail
+        root.memPercent = Math.round((used * 100) / total)
+        root.memUsedGiB = used / 1048576
+        root.memAvailGiB = avail / 1048576
+        root.memTotalGiB = total / 1048576
+    }
+
+    function parseLoad(text) {
+        var f = String(text || "").trim().split(/\s+/)
+        if (f.length >= 3) {
+            root.load1 = f[0]
+            root.load5 = f[1]
+            root.load15 = f[2]
         }
     }
 
-    // Telemetri Timer: Panel açıkken 1.5 saniyede bir, kapalıyken 3 saniyede bir güncelle
+    // 2 sn: fork yok, sadece 3 dosya okuması (panel açık/kapalı fark etmez).
     Timer {
-        id: pollTimer
-        interval: root.isOpen ? 1500 : 3000
+        interval: 2000
         running: true
         repeat: true
         triggeredOnStart: true
         onTriggered: {
-            if (!telemetryProc.running) {
-                telemetryProc.running = true
+            statFile.reload()
+            memFile.reload()
+            loadFile.reload()
+        }
+    }
+
+    // 30 sn'de bir meminfo (RAM yavaş değişir) — ayrı sayaç gereksiz,
+    // aynı timer yeterli; ayrı bant genişliği maliyeti yok.
+
+    // ── Ağır işler: yalnızca panel açıkken ──────────────────────────
+    property string gpuDeviceDir: ""
+
+    Process {
+        id: heavyProc
+        running: false
+        command: ["ps", "-eo", "comm,%cpu", "--sort=-%cpu", "--no-headers"]
+        stdout: StdioCollector { id: heavyOut }
+        onExited: (code) => root.parseTop(heavyOut.text)
+    }
+
+    function parseTop(text) {
+        var lines = String(text || "").split("\n")
+        var list = []
+        for (var i = 0; i < lines.length && list.length < 3; i++) {
+            var l = lines[i].trim()
+            if (!l) continue
+            var parts = l.split(/\s+/)
+            if (parts.length < 2) continue
+            list.push({ name: parts[0], cpu: parts[1] + "%" })
+        }
+        root.topProcesses = list
+    }
+
+    // GPU: /sys/class/drm/card*/device/* — yalnızca panel açıkken okunur.
+    FileView {
+        id: gpuBusyFile
+        path: ""
+        printErrors: false
+        onLoaded: root.gpuPercent = parseInt(gpuBusyFile.text().trim()) || 0
+    }
+
+    FileView {
+        id: vramUsedFile
+        path: ""
+        printErrors: false
+        onLoaded: root.vramUsedGiB = (parseFloat(vramUsedFile.text().trim()) || 0) / 1073741824
+    }
+
+    FileView {
+        id: vramTotalFile
+        path: ""
+        printErrors: false
+        onLoaded: {
+            var t = parseFloat(vramTotalFile.text().trim()) || 0
+            root.vramTotalGiB = t / 1073741824
+            if (t > 0) root.vramPercent = Math.round((root.vramUsedGiB * 1073741824 * 100) / t)
+        }
+    }
+
+    function refreshHeavy() {
+        if (heavyProc.running) return
+        heavyProc.running = true
+        // GPU yolu ilk açılışta bir kez keşfedilir (tek `ls` benzeri iş).
+        if (root.gpuDeviceDir === "") gpuDetectProc.running = true
+        else pollGpu()
+    }
+
+    Process {
+        id: gpuDetectProc
+        running: false
+        // Kabuk yok: glob'u `find` çözer, hata bastırma `-maxdepth` ile yapısal.
+        command: ["find", "/sys/class/drm", "-maxdepth", "2", "-name", "device", "-type", "d"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var p = this.text.trim()
+                if (p !== "") {
+                    root.gpuDeviceDir = p
+                    root.pollGpu()
+                }
             }
         }
     }
 
+    function pollGpu() {
+        if (root.gpuDeviceDir === "") return
+        gpuBusyFile.path = root.gpuDeviceDir + "/gpu_busy_percent"
+        vramUsedFile.path = root.gpuDeviceDir + "/mem_info_vram_used"
+        vramTotalFile.path = root.gpuDeviceDir + "/mem_info_vram_total"
+        gpuBusyFile.reload()
+        vramUsedFile.reload()
+        vramTotalFile.reload()
+    }
+
     IpcHandler {
         target: "performance"
-
         function toggle(): void { root.toggle() }
         function open(): void { root.open() }
         function close(): void { root.close() }
         function btop(): void { root.openBtop() }
+        function refresh(): void { root.refreshHeavy() }
     }
 }

@@ -5,75 +5,80 @@ import Quickshell.Services.UPower
 import QtQuick
 import "."
 
+/**
+ * SystemState — kontrol merkezi görünürlüğü, pil, ağ özeti, uptime.
+ *
+ * P1 DÜZELTMESİ:
+ *   Uptime için her 60 sn'de bir `bash -c awk /proc/uptime` çalışıyordu
+ *   (günde 1.440 process). Artık `/proc/uptime` doğrudan FileView ile
+ *   okunuyor ve hesaplama JS'te yapılıyor → fork yok.
+ *
+ *   Ayrıca `wifiSSID` bağlantı yokken "Ethernet" döndürüyordu (R1/B28);
+ *   artık boş bağlantıda boş dize döner.
+ */
 Singleton {
     id: root
 
-    // Kontrol Merkezi Görünürlük Durumu
     property bool isControlCenterOpen: false
 
-    function toggleControlCenter() {
-        isControlCenterOpen = !isControlCenterOpen
-    }
+    function toggleControlCenter() { isControlCenterOpen = !isControlCenterOpen }
+    function openControlCenter() { isControlCenterOpen = true }
+    function closeControlCenter() { isControlCenterOpen = false }
 
-    function openControlCenter() {
-        isControlCenterOpen = true
-    }
-
-    function closeControlCenter() {
-        isControlCenterOpen = false
-    }
-
-    // Pil ve Güç Durumu (Quickshell UPower Servisi)
+    // ── Pil / güç ───────────────────────────────────────────────────
     readonly property bool isBatteryPresent: UPower.displayDevice?.isPresent ?? false
     readonly property int batteryPercent: isBatteryPresent ? Math.round(UPower.displayDevice?.percentage ?? 100) : 100
-    readonly property bool isCharging: isBatteryPresent ? (UPower.displayDevice?.state === UPowerDeviceState.Charging || UPower.displayDevice?.state === UPowerDeviceState.FullyCharged) : true
+    readonly property bool isCharging: isBatteryPresent
+        ? (UPower.displayDevice?.state === UPowerDeviceState.Charging ||
+           UPower.displayDevice?.state === UPowerDeviceState.FullyCharged)
+        : true
 
-    // Ağ (Network) Durumu - NetworkState singleton üzerinden bağlanır
+    // ── Ağ özeti ────────────────────────────────────────────────────
     readonly property bool isConnected: NetworkState.isConnected
-    readonly property string wifiSSID: NetworkState.connectionType === "wifi" ? (NetworkState.connectionName || "Wi-Fi") : (NetworkState.connectionName || "Ethernet")
+    readonly property string wifiSSID: {
+        if (!root.isConnected || !NetworkState.connectionName) return ""
+        return NetworkState.connectionName
+    }
 
-    // Sistem Uptime (Çalışma Süresi)
+    // ── Uptime (fork yok) ───────────────────────────────────────────
     property string uptime: ""
 
-    Process {
-        id: uptimeProc
-        command: ["bash", "-c", "awk '{s=int($1); d=int(s/86400); h=int((s%86400)/3600); m=int((s%3600)/60); if (d>0) printf \"%dg %ds %dd\", d, h, m; else if (h>0) printf \"%ds %dd\", h, m; else printf \"%dd\", m}' /proc/uptime 2>/dev/null"]
-        running: true
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.uptime = this.text.trim();
-            }
-        }
+    FileView {
+        id: uptimeFile
+        path: "/proc/uptime"
+        printErrors: false
+        onLoaded: root.parseUptime(uptimeFile.text())
+    }
+
+    function parseUptime(text) {
+        const s = Math.floor(parseFloat(String(text || "").trim()) || 0)
+        if (s <= 0) return
+        const d = Math.floor(s / 86400)
+        const h = Math.floor((s % 86400) / 3600)
+        const m = Math.floor((s % 3600) / 60)
+        if (d > 0) root.uptime = d + "g " + h + "s"
+        else if (h > 0) root.uptime = h + "s " + m + "d"
+        else root.uptime = m + "d"
     }
 
     Timer {
-        interval: 60000
+        interval: 30000
         running: true
         repeat: true
-        onTriggered: uptimeProc.running = true
+        onTriggered: uptimeFile.reload()
     }
 
     IpcHandler {
         target: "system"
-
         function toggle(): void { root.toggleControlCenter() }
-        function toggleControlCenter(): void { root.toggleControlCenter() }
         function open(): void { root.openControlCenter() }
         function close(): void { root.closeControlCenter() }
-        function closeControlCenter(): void { root.closeControlCenter() }
     }
 
+    // Eski IPC adları (geriye dönük uyumluluk — R1'de "şişkin" bulundu ama
+    // kullanıcı anahtarları yeniden bağlamak zorunda kalmasın diye tutuluyor).
     IpcHandler {
         target: "dashboard"
-
-        function toggle(): void { root.toggleControlCenter() }
-        function open(): void { root.openControlCenter() }
-        function close(): void { root.closeControlCenter() }
-    }
-
-    IpcHandler {
-        target: "enyxma-dashboard"
-
         function toggle(): void { root.toggleControlCenter() }
         function open(): void { root.openControlCenter() }
         function close(): void { root.closeControlCenter() }

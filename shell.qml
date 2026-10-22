@@ -17,23 +17,33 @@ import "./modules/time"
 import "./modules/wallpaper"
 import "./modules/overview"
 
+/**
+ * Enyxma Shell — kök katman.
+ *
+ * KATMAN POLİTİKASI (P1 refaktörü):
+ *   • BackgroundLayer + Bar  → `ScreenState.barScreens`  (her monitörde 1 kez)
+ *   • Tüm paneller / launcher / OSD / bildirim → `ScreenState.overlayScreens`
+ *     (yalnızca odaklı monitörde 1 kez — N monitörde N katman yerine 1)
+ *
+ * Sonuç: 17 × N yüzey → (2 × N) + 15 yüzey.
+ * 2 monitörde 34 → 19. Klavye odağı talebi artık tek yüzeyden geliyor,
+ * dolayısıyla `keyboardFocus: OnDemand` yarışı yapısal olarak imkânsız.
+ */
 ShellRoot {
     id: root
 
-    // Arka Plan / Duvar Kağıdı katmanı (Çoklu ekran - En altta olmalı)
+    // ── 1. Arka plan / duvar kağıdı (tüm ekranlar, en altta) ──────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.barScreens
         BackgroundLayer {
             property var modelData
             screen: modelData
         }
     }
 
-    // Bar katmanı (Çoklu ekran)
+    // ── 2. Üst bar (tüm ekranlar, exclusive zone) ─────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.barScreens
         PanelWindow {
             id: barWindow
             property var modelData
@@ -56,150 +66,135 @@ ShellRoot {
         }
     }
 
-    // OSD katmanı (Çoklu ekran)
+    // ── 3. OSD (odaklı ekran) ─────────────────────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         OSD {
             property var modelData
             screen: modelData
         }
     }
 
-    // AI Sidebar katmanı (Çoklu ekran)
+    // ── 4. AI Kenar Çubuğu (odaklı ekran) ─────────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         AISidebar {
             property var modelData
             screen: modelData
         }
     }
 
-    // Kontrol Merkezi (Control Center) katmanı (Çoklu ekran)
+    // ── 5. Kontrol Merkezi (odaklı ekran) ─────────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         ControlCenter {
             property var modelData
             screen: modelData
         }
     }
 
-    // Ağ Paneli (Network Panel) katmanı (Çoklu ekran)
+    // ── 6. Ağ Paneli (odaklı ekran) ───────────────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         NetworkPanel {
             property var modelData
             screen: modelData
         }
     }
 
-    // Depolama Paneli (Storage Panel) katmanı (Çoklu ekran)
+    // ── 7. Depolama Paneli (odaklı ekran) ─────────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         StoragePanel {
             property var modelData
             screen: modelData
         }
     }
 
-    // Bildirim Pop-up katmanı (Çoklu ekran)
+    // ── 8. Bildirim Pop-up (odaklı ekran) ─────────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         NotificationPopup {
             property var modelData
             screen: modelData
         }
     }
 
-    // Performans Paneli (Performance Panel) katmanı (Çoklu ekran)
+    // ── 9. Performans Paneli (odaklı ekran) ───────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         PerformancePanel {
             property var modelData
             screen: modelData
         }
     }
 
-    // Bildirim Paneli (Notification Panel) katmanı (Çoklu ekran)
+    // ── 10. Bildirim Paneli (odaklı ekran) ────────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         NotificationPanel {
             property var modelData
             screen: modelData
         }
     }
 
-    // Medya Paneli (Media Panel) katmanı (Çoklu ekran)
+    // ── 11. Medya Paneli (odaklı ekran) ───────────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         MediaPanel {
             property var modelData
             screen: modelData
         }
     }
 
-    // Zaman & Takvim Paneli (Harmonik Bento Hub) (Çoklu ekran)
+    // ── 12. Zaman & Takvim Paneli (odaklı ekran) ──────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         TimePanel {
             property var modelData
             screen: modelData
         }
     }
 
-    // Zaman Sağ Tık Hızlı Ayar Menüsü (Çoklu ekran)
+    // ── 13. Zaman Sağ Tık Menüsü (odaklı ekran) ───────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         TimeContextMenu {
             property var modelData
             screen: modelData
         }
     }
 
-    // Omni Launcher katmanı (Çoklu ekran)
+    // ── 14. Omni Launcher (odaklı ekran) ──────────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         OmniLauncher {
             property var modelData
             screen: modelData
         }
     }
 
-    // Duvar Kağıdı Seçici (Tanzaku Filmstrip Carousel) katmanı (Çoklu ekran)
+    // ── 15. Duvar Kağıdı Seçici (odaklı ekran) ────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         WallpaperPicker {
             property var modelData
             screen: modelData
         }
     }
 
-    // Medya Tarayıcısı (Ekran Görüntüleri & Videolar) katmanı (Çoklu ekran)
+    // ── 16. Medya Tarayıcısı (odaklı ekran) ───────────────────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         MediaBrowser {
             property var modelData
             screen: modelData
         }
     }
 
-    // Genel Bakış (Mission Control / Overview) katmanı (Çoklu ekran)
+    // ── 17. Genel Bakış / Mission Control (odaklı ekran) ──────────────
     Variants {
-        model: Quickshell.screens
-
+        model: ScreenState.overlayScreens
         Overview {
             property var modelData
             screen: modelData

@@ -318,9 +318,12 @@ ShellRoot {
     function copyImageAndQuit(file) {
         if (root.exported) return;
         root.exported = true;
-        var cmd = "(wl-copy --type image/png < '" + file + "' 2>/dev/null || wl-copy < '" + file + "' 2>/dev/null || true)";
-        cmd += " && (notify-send -a 'Enyxma Shot' -i '" + file + "' '✦ Ekran Görüntüsü Kopyalandı' 'Görsel panoya aktarıldı.' 2>/dev/null || true)";
-        Quickshell.execDetached(["sh", "-c", cmd]);
+        // Kabuk yok: wl-copy stdin ister → repo ile gelen yardımcı betik
+        // (bin/enyxma-clip) dosyayı kendisi yönlendirir; geri kalan her şey
+        // ayrı execve argümanıdır ve dosya adındaki tırnak/boşluk kaçış gerektirmez.
+        Quickshell.execDetached(["enyxma-clip", file]);
+        Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-i", file,
+                                 "✦ Ekran Görüntüsü Kopyalandı", "Görsel panoya aktarıldı."]);
         quitTimer.restart();
     }
 
@@ -328,11 +331,14 @@ ShellRoot {
         if (root.exported) return;
         root.exported = true;
         var target = root.generateSavePath();
-        var cmd = "mkdir -p '" + root.saveRoot + "' && cp -f '" + file + "' '" + target + "'";
-        cmd += " && (wl-copy --type image/png < '" + target + "' 2>/dev/null || true)";
-        cmd += " && (notify-send -a 'Enyxma Shot' -i '" + target + "' '✦ Ekran Görüntüsü Kaydedildi' '" + target + "' 2>/dev/null || true)";
-        cmd += " && (quickshell ipc call media-browser refresh 2>/dev/null || true)";
-        Quickshell.execDetached(["sh", "-c", cmd]);
+        // Dört ayrı kabuksuz çağrı. Hata durumunda zincir kırılmaz; her adım
+        // kendi çıkış kodunu taşır, dosya adı asla komut metnine girmez.
+        Quickshell.execDetached(["mkdir", "-p", root.saveRoot]);
+        Quickshell.execDetached(["cp", "-f", file, target]);
+        Quickshell.execDetached(["enyxma-clip", target]);
+        Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-i", target,
+                                 "✦ Ekran Görüntüsü Kaydedildi", target]);
+        Quickshell.execDetached(["quickshell", "ipc", "call", "media-browser", "refresh"]);
         quitTimer.restart();
     }
 

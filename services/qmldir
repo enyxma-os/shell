@@ -1,6 +1,7 @@
 module services
 singleton Theme 1.0 Theme.qml
 singleton GeneratedColors 1.0 GeneratedColors.qml
+singleton ScreenState 1.0 ScreenState.qml
 singleton HyprlandState 1.0 HyprlandState.qml
 singleton AudioState 1.0 AudioState.qml
 singleton BrightnessState 1.0 BrightnessState.qml
@@ -19,3 +20,5 @@ singleton MediaBrowserState 1.0 MediaBrowserState.qml
 singleton OverviewState 1.0 OverviewState.qml
 singleton ScreenTimeState 1.0 ScreenTimeState.qml
 singleton ToolsState 1.0 ToolsState.qml
+singleton ThornhillState 1.0 ThornhillState.qml
+singleton BluetoothState 1.0 BluetoothState.qml

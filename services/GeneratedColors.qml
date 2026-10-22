@@ -1,37 +1,39 @@
-// Default Enyxma Design Tokens (Tokyo Cyber Neon)
-// When Matugen runs, this file will be updated with dynamic palette values.
+// Enyxma Live Theming — VARSAYILAN M3 koyu palet.
+//
+// Bu dosya matugen tarafından ÜZERİNE YAZILIR (templates/GeneratedColors.qml.in).
+// Repoda bulunmasının nedeni: `services/qmldir` bu singleton'ı ilan ediyor ve
+// matugen hiç çalışmamışsa (temiz kurulum, paketli sistem) dosya yoksa
+// `import "./services"` aşaması çöker ve TÜM kabuk açılmazdı.
+// Theme.qml ayrıca `hasGen` guard'ı ile bozuk içeriğe karşı korumalıdır.
 pragma Singleton
+import Quickshell
 import QtQuick
 
-QtObject {
+Singleton {
     id: root
 
-    // Primary Accents
-    property color primary: "#38BDF8"
-    property color primaryFg: "#0B0F17"
-    property color primaryContainer: "#0369A1"
-    property color primaryContainerFg: "#E0F2FE"
+    // Primary / Accent
+    property color primary: "#38bdf8"
+    property color primaryFg: "#00344a"
+    property color secondary: "#818cf8"
+    property color secondaryFg: "#0b0f17"
+    property color tertiary: "#c4b5fd"
+    property color tertiaryFg: "#1a1033"
 
-    // Secondary & Tertiary
-    property color secondary: "#818CF8"
-    property color secondaryFg: "#0B0F17"
-    property color tertiary: "#C084FC"
-    property color tertiaryFg: "#0B0F17"
+    // Surface seti (M3 tonal)
+    property color background: "#0b0f17"
+    property color backgroundFg: "#e6e9f0"
+    property color surface: "#0f1420"
+    property color surfaceFg: "#e6e9f0"
+    property color surfaceContainer: "#151b28"
+    property color surfaceContainerHigh: "#1c2333"
+    property color surfaceVariantFg: "#a7b0c0"
 
-    // Surfaces & Containers
-    property color background: "#0B0F17"
-    property color backgroundFg: "#F2F4F8"
-    property color surface: "#0B0F17"
-    property color surfaceFg: "#F2F4F8"
-    property color surfaceContainer: "#131822"
-    property color surfaceContainerHigh: "#1E2536"
-    property color surfaceVariantFg: "#94A3B8"
+    // Outline
+    property color outline: "#3a4356"
+    property color outlineVariant: "#242c3b"
 
-    // Outlines & Borders
-    property color outline: "#334155"
-    property color outlineVariant: "#1E293B"
-
-    // State & Status
-    property color danger: "#F43F5E"
-    property color dangerFg: "#FFFFFF"
+    // Durum
+    property color danger: "#f43f5e"
+    property color dangerFg: "#3d0011"
 }

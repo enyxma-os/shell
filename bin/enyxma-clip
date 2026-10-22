@@ -1,0 +1,27 @@
+#!/bin/sh
+# enyxma-clip — panoya görsel kopyalama yardımcısı.
+#
+# Neden ayrı bir betik:
+#   `wl-copy --type image/png < DOSYA` stdin yönlendirmesi gerektirir; QML
+#   tarafından `bash -c "... < '$file'"` yazmak dosya adını komut metnine
+#   gömmek demekti (tırnak içeren bir ekran görüntüsü adı = enjeksiyon).
+#   Bu betik QML'den YALNIZCA argüman olarak çağrılır:
+#       enyxma-clip /path/to/image.png
+#   Dosya adı hiçbir zaman bir kabuk tarafından yeniden ayrıştırılmaz.
+#
+# Davranış: önce MIME türü belirtilerek kopyalar, başarısız olursa düz
+# wl-copy'ye düşer. Her iki yol da başarısızsa çıkış kodu 1 döner.
+set -u
+
+[ "$#" -ge 1 ] || { echo "kullanım: enyxma-clip <dosya>" >&2; exit 2; }
+file=$1
+[ -r "$file" ] || { echo "okunamıyor: $file" >&2; exit 2; }
+
+if wl-copy --type image/png <"$file" 2>/dev/null; then
+    exit 0
+fi
+if wl-copy <"$file" 2>/dev/null; then
+    exit 0
+fi
+echo "panoya kopyalanamadı: $file" >&2
+exit 1

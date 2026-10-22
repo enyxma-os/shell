@@ -50,16 +50,20 @@ PanelWindow {
 
     function toggleNightLight() {
         root.nightLightActive = !root.nightLightActive
-        var cmd = root.nightLightActive
-            ? "(hyprsunset -t 4500 >/dev/null 2>&1 &)"
-            : "pkill -f hyprsunset >/dev/null 2>&1 || true"
-        nightLightProc.command = ["bash", "-c", cmd]
-        nightLightProc.running = false
-        nightLightProc.running = true
+        if (root.nightLightActive) {
+            // execDetached + argüman dizisi: kabuk yok, hyprsunset kendi
+            // sürecinde arka planda kalır (eski `(cmd &)` alt-kabuğu gereksizdi).
+            Quickshell.execDetached(["hyprsunset", "-t", "4500"])
+        } else {
+            // `-x` tam ad eşleşmesi: desen yorumlaması ve `-f` tam komut
+            // satırı eşleşmesi (yanlış süreç öldürme) riski yok.
+            nightLightProc.exec(["pkill", "-x", "hyprsunset"])
+        }
     }
 
     // ── Rahatsız Etme (DND / Sessiz Mod) ──
-    property bool dndActive: false
+    // Artık yerel bir bayrak DEĞİL: NotificationState.dnd'ye bağlı.
+    readonly property bool dndActive: NotificationState.dnd
 
     Rectangle {
         id: mainCard
@@ -222,7 +226,9 @@ PanelWindow {
                     Layout.fillWidth: true
                     implicitHeight: 46
                     radius: Theme.radiusWidget
-                    color: btMa.containsMouse ? Theme.surfaceHover : Theme.surface1
+                    color: BluetoothState.enabled
+                        ? (btMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive)
+                        : (btMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
                     border.color: Theme.borderSubtle
                     border.width: Theme.borderWidth
 
@@ -231,6 +237,10 @@ PanelWindow {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            // R1/B2: ölü karo idi. Artık BlueZ gerçek durumu.
+                            BluetoothState.togglePower()
+                        }
                     }
 
                     RowLayout {
@@ -241,7 +251,7 @@ PanelWindow {
 
                         Text {
                             text: "󰂯"
-                            color: Theme.textSecondary
+                            color: BluetoothState.enabled ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: 16
                         }
@@ -260,8 +270,9 @@ PanelWindow {
                             }
 
                             Text {
-                                text: "Hazır"
-                                color: Theme.textSecondary
+                                // R1/B2: sabit "Hazır" yerine gerçek BlueZ durumu
+                                text: BluetoothState.busy ? "…" : BluetoothState.statusText
+                                color: BluetoothState.enabled ? Theme.accent : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: 9
                                 elide: Text.ElideRight
@@ -344,7 +355,7 @@ PanelWindow {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: root.dndActive = !root.dndActive
+                        onClicked: NotificationState.toggleDnd()
                     }
 
                     RowLayout {
@@ -354,7 +365,7 @@ PanelWindow {
                         spacing: Theme.spacingSmall
 
                         Text {
-                            text: root.dndActive ? "󰂛" : "󰂚"
+                            text: NotificationState.dnd ? "󰂛" : "󰂚"
                             color: root.dndActive ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: 16
@@ -374,7 +385,7 @@ PanelWindow {
                             }
 
                             Text {
-                                text: root.dndActive ? "Sessiz" : "Açık"
+                                text: NotificationState.dnd ? "Sessiz" : "Açık"
                                 color: root.dndActive ? Theme.accent : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: 9
@@ -389,6 +400,57 @@ PanelWindow {
                 Layout.fillWidth: true
                 implicitHeight: 1
                 color: Theme.borderSubtle
+            }
+
+            // ── 2b. BİLİŞSEL ÇEKİRDEK (Thornhill / RFC-001) ──
+            Rectangle {
+                Layout.fillWidth: true
+                implicitHeight: 40
+                radius: Theme.radiusWidget
+                color: thMa.containsMouse ? Theme.surfaceHover : Theme.surface1
+                border.color: ThornhillState.running ? Theme.accent : Theme.borderSubtle
+                border.width: Theme.borderWidth
+
+                MouseArea {
+                    id: thMa
+                    anchors.fill: parent
+                    hoverEnabled: true
+                    cursorShape: Qt.PointingHandCursor
+                    onClicked: ThornhillState.toggle()
+                }
+
+                RowLayout {
+                    anchors.fill: parent
+                    anchors.leftMargin: Theme.spacingSmall
+                    anchors.rightMargin: Theme.spacingSmall
+                    spacing: Theme.spacingSmall
+
+                    Text {
+                        text: "👁"
+                        color: ThornhillState.color
+                        font.family: Theme.fontMono
+                        font.pixelSize: 15
+                        opacity: ThornhillState.running ? 1.0 : 0.55
+                    }
+
+                    Text {
+                        text: "THORNHILL"
+                        color: Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 10
+                        font.bold: true
+                        font.letterSpacing: 1
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    Text {
+                        text: ThornhillState.busy ? "…" : ThornhillState.label
+                        color: ThornhillState.color
+                        font.family: Theme.fontMono
+                        font.pixelSize: 9
+                    }
+                }
             }
 
             // ── 3. SES KONTROLÜ (MİNİMALİST ÇUBUK) ──
@@ -705,7 +767,8 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             SystemState.closeControlCenter()
-                            Quickshell.execDetached(["sh", "-c", "pidof hyprlock || hyprlock"])
+                            // hyprlock tek örnekli çalışır; `pidof || ...` kabuğuna gerek yok.
+                            Quickshell.execDetached(["hyprlock"])
                         }
                     }
                 }
@@ -734,7 +797,7 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             SystemState.closeControlCenter()
-                            Quickshell.execDetached(["sh", "-c", "systemctl suspend || sudo -n systemctl suspend"])
+                            Quickshell.execDetached(["systemctl", "suspend"])
                         }
                     }
                 }
@@ -763,7 +826,7 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             SystemState.closeControlCenter()
-                            Quickshell.execDetached(["sh", "-c", "systemctl reboot || sudo -n systemctl reboot"])
+                            Quickshell.execDetached(["systemctl", "reboot"])
                         }
                     }
                 }
@@ -793,7 +856,7 @@ PanelWindow {
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
                             SystemState.closeControlCenter()
-                            Quickshell.execDetached(["sh", "-c", "systemctl poweroff || sudo -n systemctl poweroff"])
+                            Quickshell.execDetached(["systemctl", "poweroff"])
                         }
                     }
                 }

@@ -3,6 +3,20 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 
+/**
+ * WallpaperState — duvar kağıdı, karartma ve matugen tema zinciri.
+ *
+ * P0 DÜZELTMELERİ:
+ *  1. `dimLevel` ARTIK DİSKE YAZILMIYOR. Eski kod launcher/AI açıkken
+ *     dimLevel=0.3'ü kaydediyordu; shell o anda çökerse sonraki oturum
+ *     ekranı %30 siyah örtüyle açıyordu. Yeni oturum daima 0.0 ile başlar.
+ *  2. `generateThemeFromImage/Color`: `bash -c` kaldırıldı → argüman dizisi.
+ *     matugen yolu `ENYXMA_SHELL_DIR` (paket) veya geliştirme yolu.
+ *  3. `scanWallpapers`: `bash -c` + brace expansion yerine `find` dizisi.
+ *  4. Durum yükleme tek noktadan (`onLoaded`), çift yükleme yarışı yok.
+ *  5. İlk bulunan duvar kağıdı artık körlemesine uygulanmıyor; yalnızca
+ *     kullanıcı seçtiğinde tema üretilir (kurulumda gereksiz matugen yok).
+ */
 Singleton {
     id: root
 
@@ -11,32 +25,34 @@ Singleton {
     property bool pickerVisible: false
     property var wallpapers: []
     property bool isScanning: false
+    property bool stateLoaded: false
+
+    readonly property string home: Quickshell.env("HOME") || ""
+
+    // Paketlenmiş kurulumda assets $out/share/enyxma-shell altındadır.
+    readonly property string shellDir: {
+        const env = Quickshell.env("ENYXMA_SHELL_DIR")
+        if (env && env.length > 0) return env
+        return root.home + "/.config/quickshell"
+    }
+
+    readonly property string matugenConfig: root.shellDir + "/matugen.toml"
 
     function togglePicker() {
-        pickerVisible = !pickerVisible
-        if (pickerVisible && wallpapers.length === 0) {
-            scanWallpapers()
-        }
+        if (pickerVisible) { pickerVisible = false; return }
+        openPicker()
     }
-
     function openPicker() {
         pickerVisible = true
-        if (wallpapers.length === 0) {
-            scanWallpapers()
-        }
+        if (wallpapers.length === 0) scanWallpapers()
     }
-
-    function closePicker() {
-        pickerVisible = false
-    }
+    function closePicker() { pickerVisible = false }
 
     function formatLabel(fileName) {
         if (!fileName) return ""
         var name = String(fileName).replace(/\.[^/.]+$/, "")
         name = name.replace(/^enyxma[-_]/i, "")
-        return name.replace(/[-_]+/g, " ").replace(/\b\w/g, function(m) {
-            return m.toUpperCase()
-        })
+        return name.replace(/[-_]+/g, " ").replace(/\b\w/g, function(m) { return m.toUpperCase() })
     }
 
     function setWallpaper(path) {
@@ -46,43 +62,62 @@ Singleton {
             return
         }
         var p = String(path).trim()
-        if (!p.startsWith("file://") && !p.startsWith("http://") && !p.startsWith("https://") && !p.startsWith("qrc:/")) {
+        if (!p.startsWith("file://") && !p.startsWith("http://") &&
+            !p.startsWith("https://") && !p.startsWith("qrc:/")) {
             p = "file://" + p
         }
         currentWallpaper = p
         saveState()
-
-        // Canlı Tema Ekosistemi (Matugen M3) tetikle
-        var raw = p.replace(/^file:\/\//, "")
-        generateThemeFromImage(raw)
+        generateThemeFromImage(p.replace(/^file:\/\//, ""))
     }
 
     function setDim(level) {
         dimLevel = Math.max(0.0, Math.min(1.0, level))
     }
 
-    // Dinamik Matugen Süreci
+    // ── Matugen (kabuksuz) ───────────────────────────────────────────
     Process {
         id: matugenProc
         running: false
+        onExited: (code) => {
+            if (code === 0) {
+                // Yeni GeneratedColors.qml'i yükle: yumuşak reload.
+                // (watchFiles açıksa bu gereksizdir, kapalıysa tek yol.)
+                root.reloadTheme()
+            } else {
+                console.warn("WallpaperState: matugen başarısız (kod " + code + ")")
+            }
+        }
     }
 
     function generateThemeFromImage(rawPath) {
         if (!rawPath || rawPath.length === 0) return
-        var cmd = "matugen -c \"$HOME/.config/quickshell/matugen.toml\" --source-color-index 0 image \"" + rawPath + "\" >/dev/null 2>&1 || true"
-        matugenProc.command = ["bash", "-c", cmd]
-        matugenProc.running = false
-        matugenProc.running = true
+        matugenProc.exec([
+            "matugen", "-c", root.matugenConfig,
+            "--source-color-index", "0",
+            "image", rawPath
+        ])
     }
 
     function generateThemeFromColor(hexColor) {
         if (!hexColor || hexColor.length === 0) return
-        var cmd = "matugen -c \"$HOME/.config/quickshell/matugen.toml\" color hex \"" + hexColor + "\" >/dev/null 2>&1 || true"
-        matugenProc.command = ["bash", "-c", cmd]
-        matugenProc.running = false
-        matugenProc.running = true
+        var hex = String(hexColor).trim()
+        if (!/^#?[0-9a-fA-F]{6}$/.test(hex)) return
+        matugenProc.exec(["matugen", "-c", root.matugenConfig, "color", "hex", hex])
     }
 
+    Timer {
+        id: reloadTimer
+        interval: 120
+        repeat: false
+        onTriggered: Quickshell.reload(false)
+    }
+
+    function reloadTheme() {
+        reloadTimer.restart()
+    }
+
+    // ── Kalıcı durum (yalnızca duvar kağıdı) ─────────────────────────
     FileView {
         id: stateFile
         path: Quickshell.statePath("wallpaper.json")
@@ -91,135 +126,92 @@ Singleton {
     }
 
     function loadState() {
+        if (root.stateLoaded) return
+        root.stateLoaded = true
         try {
             var raw = stateFile.text()
             if (raw && raw.trim().length > 0) {
                 var data = JSON.parse(raw)
-                if (data && typeof data === "object") {
-                    if (typeof data.wallpaper === "string" && data.wallpaper.trim().length > 0) {
-                        root.currentWallpaper = data.wallpaper.trim()
-                    }
-                    if (typeof data.dimLevel === "number") {
-                        root.dimLevel = Math.max(0.0, Math.min(1.0, data.dimLevel))
-                    }
+                if (data && typeof data === "object" &&
+                    typeof data.wallpaper === "string" && data.wallpaper.trim().length > 0) {
+                    root.currentWallpaper = data.wallpaper.trim()
                 }
             }
         } catch (e) {
-            console.warn("WallpaperState: Durum yüklenirken hata oluştu:", e)
+            console.warn("WallpaperState: Durum yüklenemedi:", e)
         }
+        // dimLevel bilinçli olarak YÜKLENMİYOR (kara ekran koruması).
+        root.dimLevel = 0.0
     }
 
     function saveState() {
         try {
-            stateFile.setText(JSON.stringify({
-                wallpaper: root.currentWallpaper,
-                dimLevel: root.dimLevel
-            }, null, 2))
+            stateFile.setText(JSON.stringify({ wallpaper: root.currentWallpaper }, null, 2))
         } catch (e) {
-            console.warn("WallpaperState: Durum kaydedilirken hata oluştu:", e)
+            console.warn("WallpaperState: Durum kaydedilemedi:", e)
         }
     }
 
-    // Duvar kağıtlarını sistemden tarayan süreç
+    // ── Tarama (kabuksuz find) ───────────────────────────────────────
     Process {
         id: scanProc
-        command: [
-            "bash", "-c",
-            "shopt -s nullglob nocaseglob; " +
-            "DIRS=(\"$HOME/.config/quickshell/assets/wallpapers\" \"$HOME/Pictures/Wallpapers\" \"$HOME/.local/share/wallpapers\"); " +
-            "for d in \"${DIRS[@]}\"; do " +
-            "  [ -d \"$d\" ] || continue; " +
-            "  for f in \"$d\"/*.{jpg,jpeg,png,webp}; do " +
-            "    [ -f \"$f\" ] && echo \"$f\"; " +
-            "  done; " +
-            "done | sort -u"
-        ]
+        command: []
         running: false
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.isScanning = false
-                var lines = this.text.split("\n")
-                var list = []
-                var seen = {}
-                for (var i = 0; i < lines.length; i++) {
-                    var p = lines[i].trim()
-                    if (!p) continue
-                    var fileName = p.substring(p.lastIndexOf("/") + 1)
-                    if (seen[fileName]) continue
-                    seen[fileName] = true
-                    list.push({
-                        filePath: "file://" + p,
-                        rawPath: p,
-                        fileName: fileName,
-                        label: root.formatLabel(fileName)
-                    })
-                }
-                root.wallpapers = list
-                // Eğer kayıtlı bir duvar kağıdı yoksa ilk bulunanı varsayılan yap
-                if ((!root.currentWallpaper || root.currentWallpaper.length === 0) && list.length > 0) {
-                    root.setWallpaper(list[0].filePath)
-                }
-            }
+        stdout: StdioCollector { id: scanOut }
+        onExited: (code) => {
+            root.isScanning = false
+            root.consumeScan(scanOut.text)
         }
+    }
+
+    function consumeScan(text) {
+        var lines = String(text || "").split("\n")
+        var list = []
+        var seen = {}
+        for (var i = 0; i < lines.length; i++) {
+            var p = lines[i].trim()
+            if (!p) continue
+            var fileName = p.substring(p.lastIndexOf("/") + 1)
+            if (seen[fileName]) continue
+            seen[fileName] = true
+            list.push({
+                filePath: "file://" + p,
+                rawPath: p,
+                fileName: fileName,
+                label: root.formatLabel(fileName)
+            })
+        }
+        root.wallpapers = list
     }
 
     function scanWallpapers() {
         if (isScanning) return
         isScanning = true
-        scanProc.running = false
-        scanProc.running = true
+        var dirs = [
+            root.shellDir + "/assets/wallpapers",
+            root.home + "/Pictures/Wallpapers",
+            root.home + "/.local/share/wallpapers"
+        ]
+        scanProc.exec(["find"].concat(dirs).concat([
+            "-maxdepth", "1", "-type", "f", "(",
+            "-iname", "*.jpg", "-o", "-iname", "*.jpeg", "-o",
+            "-iname", "*.png", "-o", "-iname", "*.webp", ")",
+            "-printf", "%p\n"
+        ]))
     }
 
     IpcHandler {
         target: "wallpaper"
-
-        function set(path: string): void {
-            root.setWallpaper(path)
-        }
-
-        function dim(level: real): void {
-            root.setDim(level)
-        }
-
-        function toggle(): void {
-            root.togglePicker()
-        }
-
-        function picker(): void {
-            root.togglePicker()
-        }
-
-        function color(hex: string): void {
-            root.generateThemeFromColor(hex)
-        }
-    }
-
-    IpcHandler {
-        target: "enyxma-wallpaper"
-
-        function set(path: string): void {
-            root.setWallpaper(path)
-        }
-
-        function dim(level: real): void {
-            root.setDim(level)
-        }
-
-        function toggle(): void {
-            root.togglePicker()
-        }
-
-        function picker(): void {
-            root.togglePicker()
-        }
-
-        function color(hex: string): void {
-            root.generateThemeFromColor(hex)
-        }
+        function set(path: string): void { root.setWallpaper(path) }
+        function dim(level: real): void { root.setDim(level) }
+        function toggle(): void { root.togglePicker() }
+        function picker(): void { root.togglePicker() }
+        function color(hex: string): void { root.generateThemeFromColor(hex) }
+        function refresh(): void { root.scanWallpapers() }
     }
 
     Component.onCompleted: {
-        root.loadState()
+        // Yalnızca duvar kağıdı listesini hazırla; tema üretme.
         root.scanWallpapers()
     }
 }
