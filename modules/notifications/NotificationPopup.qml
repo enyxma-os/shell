@@ -1,10 +1,22 @@
 import Quickshell
 import Quickshell.Wayland
+import Quickshell.Services.Notifications
 import QtQuick
 import QtQuick.Layouts
 import "../../services"
 import "../../widgets"
 
+/**
+ * NotificationPopup — anlık bildirim kartı.
+ *
+ * DÜZELTMELER:
+ *  • Kuyruk: `NotificationState` sıralar; burada ezme yok (R1/B6).
+ *  • Otomatik kapanma artık servis tarafında (urgency + expireTimeout).
+ *    Kartta sadece hover ile duraklatma var. `critical` bildirim kapanmaz.
+ *  • `image` alanı gösterilir (sunucu imageSupported ilan ediyordu ama
+ *    hiçbir yerde okunmuyordu — R1/B12).
+ *  • Gövde `PlainText` (bodyMarkupSupported: false ile tutarlı).
+ */
 PanelWindow {
     id: root
 
@@ -33,26 +45,11 @@ PanelWindow {
 
     Behavior on margins.top {
         enabled: !Theme.reduceMotion
-        NumberAnimation {
-            duration: Theme.animNormal
-            easing.type: Easing.OutQuint
-        }
+        NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutQuint }
     }
 
-    Timer {
-        id: dismissTimer
-        interval: 5000
-        running: false
-        repeat: false
-        onTriggered: NotificationState.dismissPopup()
-    }
-
-    Connections {
-        target: NotificationState
-        function onPopupTriggered() {
-            dismissTimer.restart()
-        }
-    }
+    readonly property var popup: NotificationState.activePopup
+    readonly property bool isCritical: !!popup && popup.urgency === NotificationUrgency.Critical
 
     Rectangle {
         id: card
@@ -60,28 +57,22 @@ PanelWindow {
         implicitHeight: contentCol.implicitHeight + Theme.spacingMedium * 2
         color: Theme.bgGlass
         radius: Theme.radiusPanel
-        border.color: Theme.borderSubtle
-        border.width: Theme.borderWidth
+        border.color: root.isCritical ? Theme.danger : Theme.borderSubtle
+        border.width: root.isCritical ? 2 : Theme.borderWidth
 
         opacity: NotificationState.hasActivePopup ? 1.0 : 0.0
 
         Behavior on opacity {
             enabled: !Theme.reduceMotion
-            NumberAnimation {
-                duration: Theme.animNormal
-                easing.type: Easing.OutQuint
-            }
+            NumberAnimation { duration: Theme.animNormal; easing.type: Easing.OutQuint }
         }
 
         MouseArea {
             anchors.fill: parent
             hoverEnabled: true
-            onEntered: dismissTimer.stop()
-            onExited: {
-                if (NotificationState.hasActivePopup) {
-                    dismissTimer.restart()
-                }
-            }
+            // Hover: zamanlayıcıyı durdur (kullanıcı okuyor).
+            onEntered: NotificationState.pauseAutoDismiss()
+            onExited: NotificationState.resumeAutoDismiss()
         }
 
         ColumnLayout {
@@ -94,20 +85,30 @@ PanelWindow {
             }
             spacing: Theme.spacingSmall
 
-            // Başlık Satırı: İkon / Uygulama Adı + Zaman + Kapat Butonu
+            // Başlık: uygulama ikonu / adı / saat / kapat
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Theme.spacingSmall
 
+                Image {
+                    Layout.alignment: Qt.AlignVCenter
+                    visible: !!root.popup && (root.popup.appIcon || "").length > 0
+                    source: root.popup ? (root.popup.appIcon || "") : ""
+                    sourceSize.width: 16
+                    sourceSize.height: 16
+                    fillMode: Image.PreserveAspectFit
+                }
+
                 Text {
-                    text: "󰂚"
-                    color: Theme.accent
+                    visible: !root.popup || (root.popup.appIcon || "").length === 0
+                    text: root.isCritical ? "󰀨" : "󰂚"
+                    color: root.isCritical ? Theme.danger : Theme.accent
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeNormal
                 }
 
                 Text {
-                    text: NotificationState.activePopup ? NotificationState.activePopup.appName : ""
+                    text: root.popup ? root.popup.appName : ""
                     color: Theme.textSecondary
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -117,7 +118,7 @@ PanelWindow {
                 }
 
                 Text {
-                    text: NotificationState.activePopup ? NotificationState.activePopup.time : ""
+                    text: root.popup ? root.popup.time : ""
                     color: Theme.textMuted
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
@@ -137,11 +138,11 @@ PanelWindow {
                 }
             }
 
-            // Asıl Bildirim Başlığı (Summary)
             Text {
                 Layout.fillWidth: true
-                text: NotificationState.activePopup ? NotificationState.activePopup.summary : ""
+                text: root.popup ? root.popup.summary : ""
                 color: Theme.textPrimary
+                textFormat: Text.PlainText
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeNormal
                 font.bold: true
@@ -151,11 +152,11 @@ PanelWindow {
                 visible: text.length > 0
             }
 
-            // Bildirim Gövdesi (Body)
             Text {
                 Layout.fillWidth: true
-                text: NotificationState.activePopup ? NotificationState.activePopup.body : ""
+                text: root.popup ? root.popup.body : ""
                 color: Theme.textSecondary
+                textFormat: Text.PlainText
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
                 wrapMode: Text.Wrap
@@ -164,22 +165,31 @@ PanelWindow {
                 visible: text.length > 0
             }
 
-            // Eylem Butonları (Actions)
+            // image hint'i (imageSupported: true ilan edilmişti)
+            Image {
+                Layout.fillWidth: true
+                Layout.preferredHeight: 120
+                visible: !!root.popup && (root.popup.image || "").length > 0
+                source: root.popup ? (root.popup.image || "") : ""
+                fillMode: Image.PreserveAspectCrop
+                asynchronous: true
+                cache: true
+            }
+
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Theme.spacingSmall
-                visible: NotificationState.activePopup && NotificationState.activePopup.actions && NotificationState.activePopup.actions.length > 0
+                visible: !!root.popup && root.popup.actions && root.popup.actions.length > 0
 
                 Repeater {
-                    model: NotificationState.activePopup ? NotificationState.activePopup.actions : []
+                    model: root.popup ? root.popup.actions : []
                     delegate: EnyxmaPill {
                         required property var modelData
                         implicitHeight: 24
 
                         onClicked: {
-                            if (NotificationState.activePopup) {
-                                NotificationState.invokeAction(NotificationState.activePopup.id, modelData.identifier)
-                            }
+                            if (root.popup)
+                                NotificationState.invokeAction(root.popup.id, modelData.identifier)
                         }
 
                         Text {

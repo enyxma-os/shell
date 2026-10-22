@@ -3,14 +3,31 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 
+/**
+ * MediaBrowserState — ekran görüntüsü / video tarayıcısı.
+ *
+ * P0 DÜZELTMELERİ:
+ *  1. `scanMedia()`: `bash -c` + dizi döngüsü yerine doğrudan `find`
+ *     (çoklu başlangıç dizini destekler; kabuk yok).
+ *  2. `deleteItem()`: `rm -f` fallback'i KALDIRILDI. Önce `gio trash`,
+ *     başarısızsa `trash-put`; ikisi de başarısızsa kullanıcıya hata.
+ *     Eski kod çıkış kodunu yok sayıp her durumda "Dosya silindi 🗑️"
+ *     diyordu (silinemeyen dosya için sahte başarı).
+ *  3. `copyItem()`: dosya yolu stdin ile `wl-copy`'ye yazılır (kabuk yok).
+ *     Görsel *piksel* kopyası bu repoda desteklenmiyor — .jpg'yi
+ *     `--type image/png` ile kopyalamak bozuk panoya yol açıyordu.
+ *  4. `openInMockupStudio()`: `sh -c` kaldırıldı, env objesiyle execDetached.
+ */
 Singleton {
     id: root
 
     property bool isOpen: false
-    property string mode: "screenshots" // "screenshots" or "videos"
+    property string mode: "screenshots"
     property var items: []
     property bool isScanning: false
     property string toastText: ""
+
+    readonly property string home: Quickshell.env("HOME") || ""
 
     Timer {
         id: toastTimer
@@ -26,10 +43,7 @@ Singleton {
 
     function toggle(targetMode) {
         var m = targetMode || "screenshots"
-        if (isOpen && mode === m) {
-            isOpen = false
-            return
-        }
+        if (isOpen && mode === m) { isOpen = false; return }
         mode = m
         isOpen = true
         scanMedia()
@@ -41,89 +55,77 @@ Singleton {
         scanMedia()
     }
 
-    function close() {
-        isOpen = false
-    }
+    function close() { isOpen = false }
 
     function formatLabel(path) {
         if (!path) return ""
         var name = String(path).split("/").pop().replace(/\.[^.]+$/, "")
-        // 2026_10_18_11_30_42_screenshot veya 20261018_113042 formatlarını yakala
         var m1 = name.match(/(\d{4})_(\d{2})_(\d{2})_(\d{2})_(\d{2})_(\d{2})/)
-        if (m1) {
-            return m1[1] + "-" + m1[2] + "-" + m1[3] + "  " + m1[4] + ":" + m1[5] + ":" + m1[6]
-        }
+        if (m1) return m1[1] + "-" + m1[2] + "-" + m1[3] + "  " + m1[4] + ":" + m1[5] + ":" + m1[6]
         var m2 = name.match(/(\d{4})(\d{2})(\d{2})_(\d{2})(\d{2})(\d{2})/)
-        if (m2) {
-            return m2[1] + "-" + m2[2] + "-" + m2[3] + "  " + m2[4] + ":" + m2[5] + ":" + m2[6]
-        }
+        if (m2) return m2[1] + "-" + m2[2] + "-" + m2[3] + "  " + m2[4] + ":" + m2[5] + ":" + m2[6]
         return name
     }
 
-    // Taramayı gerçekleştiren süreç
     Process {
         id: scanProc
         command: []
         running: false
-        onExited: function(code) {
+        stdout: StdioCollector { id: scanOut }
+        onExited: (code) => {
             root.isScanning = false
+            // `find` eksik dizinde 1 döner ama stdout yine geçerlidir.
+            root.consumeScan(scanOut.text)
         }
-        stdout: StdioCollector {
-            onStreamFinished: {
-                root.isScanning = false
-                var lines = this.text.split("\n")
-                var res = []
-                var seen = {}
-                for (var i = 0; i < lines.length; i++) {
-                    var p = lines[i].trim()
-                    if (!p) continue
-                    var fn = p.substring(p.lastIndexOf("/") + 1)
-                    if (seen[p]) continue
-                    seen[p] = true
-                    res.push({
-                        filePath: "file://" + p,
-                        rawPath: p,
-                        fileName: fn,
-                        label: root.formatLabel(p),
-                        isVideo: root.mode === "videos"
-                    })
-                }
-                root.items = res
-            }
+    }
+
+    function consumeScan(text) {
+        var lines = String(text || "").split("\n")
+        var res = []
+        var seen = {}
+        for (var i = 0; i < lines.length && res.length < 100; i++) {
+            var line = lines[i]
+            if (!line) continue
+            var tab = line.indexOf("\t")
+            var p = tab >= 0 ? line.substring(tab + 1) : line
+            if (!p) continue
+            if (seen[p]) continue
+            seen[p] = true
+            var fn = p.substring(p.lastIndexOf("/") + 1)
+            res.push({
+                filePath: "file://" + p,
+                rawPath: p,
+                fileName: fn,
+                label: root.formatLabel(p),
+                isVideo: root.mode === "videos"
+            })
         }
+        root.items = res
     }
 
     function scanMedia() {
         if (isScanning) return
         isScanning = true
-        if (mode === "videos") {
-            scanProc.command = [
-                "bash", "-c",
-                "DIRS=(\"$HOME/Videos/Recordings\" \"$HOME/Videos\"); " +
-                "for d in \"${DIRS[@]}\"; do " +
-                "  [ -d \"$d\" ] || continue; " +
-                "  find \"$d\" -maxdepth 1 -type f " +
-                "  \\( -iname \x27*.mp4\x27 -o -iname \x27*.mkv\x27 -o -iname \x27*.webm\x27 -o -iname \x27*.mov\x27 \\) " +
-                "  -printf \x27%T@\\t%p\\n\x27 2>/dev/null; " +
-                "done | sort -rn | head -100 | cut -f2-"
-            ]
+        var args = []
+        var dirs = []
+        if (root.mode === "videos") {
+            dirs = [root.home + "/Videos/Recordings", root.home + "/Videos"]
+            args = ["find"].concat(dirs)
+                .concat(["-maxdepth", "1", "-type", "f", "(",
+                         "-iname", "*.mp4", "-o", "-iname", "*.mkv", "-o",
+                         "-iname", "*.webm", "-o", "-iname", "*.mov", ")",
+                         "-printf", "%T@\t%p\n"])
         } else {
-            scanProc.command = [
-                "bash", "-c",
-                "DIRS=(\"$HOME/Pictures/Screenshots\" \"$HOME/Pictures\"); " +
-                "for d in \"${DIRS[@]}\"; do " +
-                "  [ -d \"$d\" ] || continue; " +
-                "  find \"$d\" -maxdepth 1 -type f " +
-                "  \\( -iname \x27*.png\x27 -o -iname \x27*.jpg\x27 -o -iname \x27*.jpeg\x27 -o -iname \x27*.webp\x27 \\) " +
-                "  -printf \x27%T@\\t%p\\n\x27 2>/dev/null; " +
-                "done | sort -rn | head -100 | cut -f2-"
-            ]
+            dirs = [root.home + "/Pictures/Screenshots", root.home + "/Pictures"]
+            args = ["find"].concat(dirs)
+                .concat(["-maxdepth", "1", "-type", "f", "(",
+                         "-iname", "*.png", "-o", "-iname", "*.jpg", "-o",
+                         "-iname", "*.jpeg", "-o", "-iname", "*.webp", ")",
+                         "-printf", "%T@\t%p\n"])
         }
-        scanProc.running = false
-        scanProc.running = true
+        scanProc.exec(args)
     }
 
-    // Dosyayı sistemin varsayılan uygulamasıyla aç
     Process {
         id: openProc
         command: []
@@ -131,107 +133,101 @@ Singleton {
     function openItem(path) {
         if (!path) return
         var p = String(path).replace(/^file:\/\//, "")
-        openProc.command = ["xdg-open", p]
-        openProc.running = false
-        openProc.running = true
+        openProc.exec(["xdg-open", p])
         root.close()
     }
 
-    // Mockup Stüdyosunda Aç
     function openInMockupStudio(path) {
         if (!path) return
         var p = String(path).replace(/^file:\/\//, "")
-        var scriptPath = Quickshell.env("HOME") + "/.config/quickshell/modules/screenshot/shell.qml"
-        Quickshell.execDetached(["sh", "-c", "ENYXMA_SHOT_OPEN='" + p + "' quickshell -p '" + scriptPath + "' 2>/dev/null || true"])
+        var shellDir = Quickshell.env("ENYXMA_SHELL_DIR")
+        var base = (shellDir && shellDir.length > 0)
+            ? shellDir
+            : (Quickshell.env("HOME") + "/.config/quickshell")
+        Quickshell.execDetached({
+            command: ["quickshell", "-p", base + "/modules/screenshot/shell.qml"],
+            environment: ({ ENYXMA_SHOT_OPEN: p })
+        })
         root.close()
     }
 
-    // Panoya kopyalama
+    // ── Panoya kopyalama (kabuk yok) ─────────────────────────────────
     Process {
         id: copyProc
-        command: []
-        onExited: function(code) {
-            if (code === 0) {
-                root.showToast("Panoya kopyalandı! 📋")
-            } else {
-                root.showToast("Kopyalanamadı (wl-copy gerekli)")
-            }
+        running: false
+        stdinEnabled: true
+        onExited: (code) => {
+            if (code === 0) root.showToast("Dosya yolu panoya kopyalandı 📋")
+            else root.showToast("Kopyalanamadı (wl-copy gerekli)")
         }
     }
+
     function copyItem(path, isVideo) {
         if (!path) return
         var p = String(path).replace(/^file:\/\//, "")
-        if (isVideo) {
-            copyProc.command = ["bash", "-c", "printf \x27%s\x27 \x22" + p + "\x22 | wl-copy"]
-        } else {
-            copyProc.command = ["bash", "-c", "wl-copy --type image/png < \x22" + p + "\x22"]
-        }
-        copyProc.running = false
-        copyProc.running = true
+        copyProc.exec(["wl-copy"])
+        copyProc.write(p + "\n")
+        copyProc.stdinEnabled = false
     }
 
-    // Çöp kutusuna taşıma
+    // ── Çöp kutusu (P0: sessiz rm YOK) ───────────────────────────────
     Process {
-        id: deleteProc
-        command: []
-        onExited: function(code) {
-            root.showToast("Dosya silindi 🗑️")
-            root.scanMedia()
+        id: trashProc
+        running: false
+        stderr: StdioCollector { id: trashErr }
+        onExited: (code) => {
+            if (code === 0) {
+                root.showToast("Çöp kutusuna taşındı 🗑️")
+                root.scanMedia()
+            } else {
+                // gio yok/başarısız → trash-put dene
+                trashFallback.exec(["trash-put", "--", root.pendingPath])
+            }
         }
     }
+
+    Process {
+        id: trashFallback
+        running: false
+        stderr: StdioCollector { id: fallbackErr }
+        onExited: (code) => {
+            if (code === 0) {
+                root.showToast("Çöp kutusuna taşındı 🗑️")
+                root.scanMedia()
+            } else {
+                // Niyetli olarak `rm -f` YOK: geri alınamaz silme yapılmaz.
+                var msg = (fallbackErr.text || "").trim().split("\n")[0]
+                root.showToast("Silinemedi: " + (msg !== "" ? msg : "çöp kutusu aracı bulunamadı"))
+            }
+        }
+    }
+
+    property string pendingPath: ""
+
     function deleteItem(path) {
         if (!path) return
         var p = String(path).replace(/^file:\/\//, "")
-        deleteProc.command = ["bash", "-c", "gio trash -- \x22" + p + "\x22 2>/dev/null || trash-put -- \x22" + p + "\x22 2>/dev/null || rm -f -- \x22" + p + "\x22"]
-        deleteProc.running = false
-        deleteProc.running = true
+        root.pendingPath = p
+        trashProc.exec(["gio", "trash", "--", p])
     }
 
     IpcHandler {
         target: "media-browser"
-
-        function screenshots(): void {
-            root.open("screenshots")
-        }
-
-        function videos(): void {
-            root.open("videos")
-        }
-
-        function toggle(): void {
-            root.toggle(root.mode)
-        }
-
-        function close(): void {
-            root.close()
-        }
-
-        function refresh(): void {
-            root.scanMedia()
-        }
-
-        function scan(): void {
-            root.scanMedia()
-        }
+        function screenshots(): void { root.open("screenshots") }
+        function videos(): void { root.open("videos") }
+        function toggle(): void { root.toggle(root.mode) }
+        function close(): void { root.close() }
+        function refresh(): void { root.scanMedia() }
     }
 
     IpcHandler {
         target: "screenshots"
-
-        function open(): void {
-            root.open("screenshots")
-        }
-
-        function toggle(): void {
-            root.toggle("screenshots")
-        }
-
-        function refresh(): void {
-            root.scanMedia()
-        }
+        function open(): void { root.open("screenshots") }
+        function toggle(): void { root.toggle("screenshots") }
+        function refresh(): void { root.scanMedia() }
     }
 
-    Component.onCompleted: {
-        root.scanMedia()
-    }
+    // NOT: eski kod Component.onCompleted'de kapalı panel için de ~/Pictures
+    // taraması yapıyordu (her shell açılışında fazladan `find`). Artık tarama
+    // yalnızca panel gerçekten açıldığında çalışır (open() içinde).
 }

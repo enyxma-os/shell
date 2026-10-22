@@ -5,7 +5,13 @@ import QtQuick
 
 /**
  * ToolsState: Medya indirme, dönüştürme ve uygulama yönetimi servisi.
- * yt-dlp ve cobalt motorunu yönetir, video sıkıştırma ve uygulama yükleme işlemlerini koordine eder.
+ *
+ * GÜVENLİK SÖZLEŞMESİ (P0):
+ *   Bu dosyada `bash -c` / `sh -c` ile string komut birleştirme YASAKTIR.
+ *   Tüm harici çağrılar `Process.command: [...]` dizisi (execve, kabuk yok)
+ *   veya `Process.exec([...])` ile yapılır. Kullanıcı girdisi daima
+ *   argümanın kendisi olarak geçer, asla komut metnine gömülmez.
+ *   Yeni bir komut eklerken `"` + değişken + `"` deseni kullanmayın.
  */
 Singleton {
     id: root
@@ -18,73 +24,157 @@ Singleton {
     property string downloadStatus: ""
     property var recentDownloads: []
 
+    // ── URL doğrulama ────────────────────────────────────────────────
+    // Sadece http/https; boşluk, tırnak, ters bölü, $, ;, |, <, >, ` yasak.
+    // Bu karakter seti, bir gün yanlışlıkla kabuk kullanılsa bile enjeksiyonu
+    // engelleyen ikinci savunma hattıdır (defense in depth).
+    readonly property var urlPattern: /^https?:\/\/[^\s"'`$\\<>|;&{}()]+$/i
+
+    function isSafeUrl(u) {
+        if (typeof u !== "string") return false
+        if (u.length === 0 || u.length > 2048) return false
+        return root.urlPattern.test(u)
+    }
+
     function startDownload() {
         const u = root.urlText.trim()
-        if (u.length === 0 || root.isDownloading) return
+        if (root.isDownloading) return
+        if (!root.isSafeUrl(u)) {
+            root.downloadStatus = "Geçersiz URL — yalnızca http(s) adresleri kabul edilir"
+            return
+        }
 
         root.isDownloading = true
         root.downloadStatus = "İndiriliyor..."
 
-        let cmd = ""
+        // Argüman dizisi: her öğe ayrı bir execve argümanı.
+        const args = ["--no-playlist", "--no-mtime", "-P", root.downloadDir]
         if (root.dlMode === "audio") {
-            cmd = "yt-dlp -x --audio-format mp3 --no-playlist -P \"" + root.downloadDir + "\" \"" + u + "\""
+            args.push("-x", "--audio-format", "mp3")
         } else if (root.dlMode === "mute") {
-            cmd = "yt-dlp -f \"bestvideo\" --no-playlist -P \"" + root.downloadDir + "\" \"" + u + "\""
-        } else {
-            cmd = "yt-dlp --no-playlist -P \"" + root.downloadDir + "\" \"" + u + "\""
+            args.push("-f", "bestvideo")
         }
+        // "--" optparse'ı sonlandırır: sonraki her şey konumsal argüman.
+        args.push("--", u)
 
-        downloadProc.command = ["bash", "-c", cmd]
-        downloadProc.running = true
+        // Process.exec(...) = running=false → command → running=true tek çağrıda.
+        // (Eski `running=false; running=true` deseni asenkron kapanış yüzünden yarışıyordu.)
+        downloadProc.exec(["yt-dlp"].concat(args))
         root.urlText = ""
     }
 
     Process {
         id: downloadProc
         running: false
-        onExited: (code) => {
+        stdout: StdioCollector {
+            onStreamFinished: root.lastOutput = this.text
+        }
+        onExited: (code, status) => {
             root.isDownloading = false
             if (code === 0) {
                 root.downloadStatus = "Tamamlandı"
                 root.refreshRecent()
-                notifyProc.command = ["notify-send", "İndirme Tamamlandı", "Dosya İndirilenler klasörüne kaydedildi."]
-                notifyProc.running = true
+                root.notify("İndirme Tamamlandı", "Dosya İndirilenler klasörüne kaydedildi.")
             } else {
-                root.downloadStatus = "Hata oluştu"
-                notifyProc.command = ["notify-send", "İndirme Hatası", "Bağlantı indirilemedi."]
-                notifyProc.running = true
+                root.downloadStatus = "Hata oluştu (çıkış kodu " + code + ")"
+                root.notify("İndirme Hatası", "Bağlantı indirilemedi.")
             }
         }
     }
 
+    property string lastOutput: ""
+
+    function notify(title, body) {
+        Quickshell.execDetached(["notify-send", title, body])
+    }
+
+    // ── Video sıkıştırma ─────────────────────────────────────────────
+    // zenity ile dosya seç → ayrı Process ile ffmpeg (kabuk yok).
+    property string pendingVideo: ""
+
     Process {
-        id: notifyProc
+        id: pickVideoProc
         running: false
+        command: [
+            "zenity", "--file-selection",
+            "--title=Sıkıştırılacak Videoyu Seçin",
+            "--file-filter=Video | *.mp4 *.mkv *.webm *.mov *.avi"
+        ]
+        stdout: StdioCollector {
+            onStreamFinished: root.pendingVideo = this.text.trim()
+        }
+        onExited: (code) => {
+            if (code !== 0 || root.pendingVideo.length === 0) return
+            const src = root.pendingVideo
+            const dot = src.lastIndexOf(".")
+            const out = (dot > src.lastIndexOf("/") ? src.substring(0, dot) : src) + "_compressed.mp4"
+            root.notify("Video Sıkıştırma", "Başladı → " + out)
+            compressProc.exec([
+                "ffmpeg", "-y", "-i", src,
+                "-vcodec", "libx264", "-crf", "28",
+                "-pix_fmt", "yuv420p", out
+            ])
+        }
     }
 
-    // Video sıkıştırma işlevi: zenity ile video seçtirir ve ffmpeg ile crf 28 sıkıştırır
+    Process {
+        id: compressProc
+        running: false
+        onExited: (code) => {
+            if (code === 0) root.notify("Video Sıkıştırma", "Tamamlandı.")
+            else root.notify("Video Sıkıştırma", "Başarısız (çıkış kodu " + code + ")")
+        }
+    }
+
     function compressVideo() {
-        const helperCmd = "file=$(zenity --file-selection --title=\"Sıkıştırılacak Videoyu Seçin\" 2>/dev/null); " +
-                          "if [ -n \"$file\" ] && [ -f \"$file\" ]; then " +
-                          "  notify-send \"Video Sıkıştırma\" \"$(basename \"$file\") sıkıştırılıyor...\"; " +
-                          "  out=\"${file%.*}_compressed.mp4\"; " +
-                          "  ffmpeg -y -i \"$file\" -vcodec libx264 -crf 28 \"$out\" && " +
-                          "  notify-send \"Video Sıkıştırma\" \"Tamamlandı: $(basename \"$out\")\"; " +
-                          "fi"
-        Quickshell.execDetached(["bash", "-c", helperCmd])
+        root.pendingVideo = ""
+        pickVideoProc.running = true
     }
 
-    // Uygulama kurma işlevi: zenity ile AppImage / deb / paket seçtirir
+    // ── Uygulama kurma ───────────────────────────────────────────────
+    // Uzantı JS'te ayrıştırılır; her dal kendi argüman dizisini kullanır.
+    property string pendingPackage: ""
+
+    Process {
+        id: pickPkgProc
+        running: false
+        command: [
+            "zenity", "--file-selection",
+            "--title=Kurulacak Paketi Seçin",
+            "--file-filter=Paket | *.AppImage *.deb *.rpm *.tar.gz *.tar.xz"
+        ]
+        stdout: StdioCollector {
+            onStreamFinished: root.pendingPackage = this.text.trim()
+        }
+        onExited: (code) => {
+            if (code !== 0 || root.pendingPackage.length === 0) return
+            root.installPath(root.pendingPackage)
+        }
+    }
+
     function installApp() {
-        const helperCmd = "file=$(zenity --file-selection --title=\"Kurulacak Paketi Seçin\" 2>/dev/null); " +
-                          "if [ -n \"$file\" ] && [ -f \"$file\" ]; then " +
-                          "  case \"$file\" in " +
-                          "    *.AppImage) chmod +x \"$file\" && notify-send \"AppImage\" \"Çalıştırılıyor...\" && \"$file\" & ;; " +
-                          "    *.deb) kitty -e bash -c \"sudo dpkg -i '$file' || sudo apt-get install -f; read -p 'Bitti... Enter tuşuna basın'\" & ;; " +
-                          "    *) notify-send \"Seçilen Dosya\" \"$(basename \"$file\")\"; xdg-open \"$(dirname \"$file\")\" & ;; " +
-                          "  esac; " +
-                          "fi"
-        Quickshell.execDetached(["bash", "-c", helperCmd])
+        root.pendingPackage = ""
+        pickPkgProc.running = true
+    }
+
+    function installPath(p) {
+        const lower = p.toLowerCase()
+        if (lower.endsWith(".appimage")) {
+            chmodProc.exec(["chmod", "+x", p])
+            root.notify("AppImage", "Çalıştırılabilir yapıldı: " + p)
+        } else if (lower.endsWith(".deb") || lower.endsWith(".rpm")) {
+            // Enyxma OS = NixOS. Debian/RPM paketleri burada kurulamaz; sessizce
+            // dpkg çağırmak yerine dürüst hata ver (eski kod `sudo dpkg -i` deniyordu).
+            root.notify("Desteklenmeyen Paket",
+                        "NixOS üzerinde .deb/.rpm kurulamaz. Paketi Nix ifadesine dönüştürün.")
+        } else {
+            Quickshell.execDetached(["xdg-open", p.substring(0, p.lastIndexOf("/")) || p])
+        }
+    }
+
+    Process {
+        id: chmodProc
+        running: false
     }
 
     function openFile(path) {
@@ -96,23 +186,31 @@ Singleton {
         root.recentDownloads = root.recentDownloads.filter(f => f.path !== path)
     }
 
+    // ── Son indirilenler ─────────────────────────────────────────────
+    // `ls | while read` yerine `find -printf`: kabuk yok, dosya adındaki
+    // boşluk/tırnak/newline güvenli, sıralama JS tarafında yapılır.
     Process {
         id: recentProc
-        command: ["bash", "-c", "mkdir -p \"$HOME/Downloads\"; ls -t \"$HOME/Downloads\" 2>/dev/null | head -n 6 | while IFS= read -r f; do [ -f \"$HOME/Downloads/$f\" ] && printf \"%s\\t%s\\n\" \"$f\" \"$HOME/Downloads/$f\"; done"]
         running: false
-        stdout: SplitParser {
-            splitMarker: "\n"
-            onRead: (line) => {
-                const parts = line.split("\t")
-                if (parts.length >= 2 && parts[0].trim().length > 0) {
-                    const name = parts[0].trim()
-                    const path = parts[1].trim()
-                    const arr = root.recentDownloads.slice()
-                    if (!arr.some(item => item.path === path)) {
-                        arr.push({ name: name, path: path })
-                        root.recentDownloads = arr
-                    }
+        command: ["find", root.downloadDir, "-maxdepth", "1", "-type", "f",
+                  "-printf", "%T@\\t%p\\n"]
+        stdout: StdioCollector {
+            onStreamFinished: {
+                const lines = this.text.split("\n")
+                const entries = []
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i]
+                    if (!line) continue
+                    const tab = line.indexOf("\t")
+                    if (tab < 0) continue
+                    const mtime = parseFloat(line.substring(0, tab)) || 0
+                    const full = line.substring(tab + 1)
+                    if (!full) continue
+                    const name = full.substring(full.lastIndexOf("/") + 1)
+                    entries.push({ name: name, path: full, mtime: mtime })
                 }
+                entries.sort((a, b) => b.mtime - a.mtime)
+                root.recentDownloads = entries.slice(0, 6)
             }
         }
     }
@@ -122,7 +220,5 @@ Singleton {
         recentProc.running = true
     }
 
-    Component.onCompleted: {
-        root.refreshRecent()
-    }
+    Component.onCompleted: root.refreshRecent()
 }

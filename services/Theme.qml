@@ -3,11 +3,29 @@ import Quickshell
 import QtQuick
 import "."
 
+/**
+ * Theme — tek renk/ölçü kaynağı.
+ *
+ * P0 DÜZELTMESİ: GeneratedColors guard'ı.
+ *   Eski kod 20 yerde doğrudan `GeneratedColors.primary` okuyordu. matugen
+ *   dosyayı yarım yazdığında, kullanıcı sildiğinde veya şablon hiç
+ *   üretilmediğinde singleton çözümlenemiyor ve TÜM kabuk açılmıyordu.
+ *   Artık `gen` bir kez çözümlenir; null ise her token kendi sabit
+ *   semantik fallback'ine düşer. Tek bir tema dosyası oturumu düşüremez.
+ */
 Singleton {
     id: root
 
     // Dynamic Theming Control
     property bool dynamicColors: true
+
+    // Tema üreteci hâlâ çalışıyorsa false → UI fallback renklerle açılır,
+    // matugen bitince WallpaperState.reloadTheme() bu bayrağı true yapar.
+    property bool themeReady: true
+
+    // GeneratedColors'ın güvenli erişimi: yoksa null.
+    readonly property var gen: (typeof GeneratedColors !== "undefined" && GeneratedColors) ? GeneratedColors : null
+    readonly property bool hasGen: root.gen !== null && root.themeReady
 
     // Motion Control
     readonly property bool reduceMotion: false
@@ -15,32 +33,44 @@ Singleton {
     readonly property int animNormal: 240
     readonly property int animSlow: 350
 
-    // Surfaces & Backgrounds
-    readonly property color bgGlass: dynamicColors ? Qt.rgba(GeneratedColors.surface.r, GeneratedColors.surface.g, GeneratedColors.surface.b, 0.82) : Qt.rgba(0.07, 0.07, 0.10, 0.80)
-    readonly property color bgPanel: dynamicColors ? Qt.rgba(GeneratedColors.surfaceContainer.r, GeneratedColors.surfaceContainer.g, GeneratedColors.surfaceContainer.b, 0.95) : Qt.rgba(0.07, 0.08, 0.12, 0.95)
-    readonly property color bgDark: dynamicColors ? GeneratedColors.background : "#0B0F17"
-    readonly property color surface1: dynamicColors ? Qt.rgba(GeneratedColors.surfaceContainer.r, GeneratedColors.surfaceContainer.g, GeneratedColors.surfaceContainer.b, 0.50) : Qt.rgba(1, 1, 1, 0.05)
-    readonly property color surface2: dynamicColors ? Qt.rgba(GeneratedColors.surfaceContainerHigh.r, GeneratedColors.surfaceContainerHigh.g, GeneratedColors.surfaceContainerHigh.b, 0.70) : Qt.rgba(1, 1, 1, 0.08)
+    // ── Surfaces & Backgrounds ────────────────────────────────────────
+    readonly property color bgGlass: root.hasGen
+        ? Qt.rgba(root.gen.surface.r, root.gen.surface.g, root.gen.surface.b, 0.82)
+        : Qt.rgba(0.07, 0.07, 0.10, 0.80)
+    readonly property color bgPanel: root.hasGen
+        ? Qt.rgba(root.gen.surfaceContainer.r, root.gen.surfaceContainer.g, root.gen.surfaceContainer.b, 0.95)
+        : Qt.rgba(0.07, 0.08, 0.12, 0.95)
+    readonly property color bgDark: root.hasGen ? root.gen.background : "#0B0F17"
+    readonly property color surface1: root.hasGen
+        ? Qt.rgba(root.gen.surfaceContainer.r, root.gen.surfaceContainer.g, root.gen.surfaceContainer.b, 0.50)
+        : Qt.rgba(1, 1, 1, 0.05)
+    readonly property color surface2: root.hasGen
+        ? Qt.rgba(root.gen.surfaceContainerHigh.r, root.gen.surfaceContainerHigh.g, root.gen.surfaceContainerHigh.b, 0.70)
+        : Qt.rgba(1, 1, 1, 0.08)
     readonly property color surfaceHover: Qt.rgba(1, 1, 1, 0.10)
     readonly property color surfaceActive: Qt.rgba(1, 1, 1, 0.16)
     readonly property color scrim: Qt.rgba(0.0, 0.0, 0.0, 1.0)
 
-    // Borders
+    // ── Borders ───────────────────────────────────────────────────────
     readonly property int borderWidth: 1
-    readonly property color borderSubtle: dynamicColors ? Qt.rgba(GeneratedColors.outline.r, GeneratedColors.outline.g, GeneratedColors.outline.b, 0.20) : Qt.rgba(1, 1, 1, 0.08)
-    readonly property color borderFocus: dynamicColors ? Qt.rgba(GeneratedColors.primary.r, GeneratedColors.primary.g, GeneratedColors.primary.b, 0.60) : Qt.rgba(0.22, 0.74, 0.97, 0.45)
+    readonly property color borderSubtle: root.hasGen
+        ? Qt.rgba(root.gen.outline.r, root.gen.outline.g, root.gen.outline.b, 0.20)
+        : Qt.rgba(1, 1, 1, 0.08)
+    readonly property color borderFocus: root.hasGen
+        ? Qt.rgba(root.gen.primary.r, root.gen.primary.g, root.gen.primary.b, 0.60)
+        : Qt.rgba(0.22, 0.74, 0.97, 0.45)
 
-    // Text & Accents
-    readonly property color textPrimary: dynamicColors ? GeneratedColors.surfaceFg : "#F2F4F8"
-    readonly property color textSecondary: dynamicColors ? GeneratedColors.surfaceVariantFg : "#94A3B8"
+    // ── Text & Accents ────────────────────────────────────────────────
+    readonly property color textPrimary: root.hasGen ? root.gen.surfaceFg : "#F2F4F8"
+    readonly property color textSecondary: root.hasGen ? root.gen.surfaceVariantFg : "#94A3B8"
     readonly property color textMuted: "#475569"
-    readonly property color accent: dynamicColors ? GeneratedColors.primary : "#38BDF8"
-    readonly property color accentOn: dynamicColors ? GeneratedColors.primaryFg : "#0B0F17"
-    readonly property color secondary: dynamicColors ? GeneratedColors.secondary : "#818CF8"
-    readonly property color danger: dynamicColors ? GeneratedColors.danger : "#F43F5E"
+    readonly property color accent: root.hasGen ? root.gen.primary : "#38BDF8"
+    readonly property color accentOn: root.hasGen ? root.gen.primaryFg : "#0B0F17"
+    readonly property color secondary: root.hasGen ? root.gen.secondary : "#818CF8"
+    readonly property color danger: root.hasGen ? root.gen.danger : "#F43F5E"
     readonly property color success: "#10B981"
 
-    // Geometry & Spacing
+    // ── Geometry & Spacing ────────────────────────────────────────────
     readonly property int radiusPanel: 14
     readonly property int radiusWidget: 10
     readonly property int radiusButton: 8
@@ -50,14 +80,14 @@ Singleton {
     readonly property int spacingMedium: 12
     readonly property int spacingLarge: 18
 
-    // Typography
+    // ── Typography ────────────────────────────────────────────────────
     readonly property string fontFamily: "Inter"
     readonly property string fontMono: "JetBrainsMono Nerd Font"
     readonly property int fontSizeSmall: 11
     readonly property int fontSizeNormal: 13
     readonly property int fontSizeLarge: 16
 
-    // Screenshot & Mockup Tokens
+    // ── Screenshot & Mockup Tokens ────────────────────────────────────
     readonly property var mockupSwatches: [accent, "#ffffff", "#111111", "#e23b3b", "#f2c14e", "#5bbf73", "#4f8fe0", "#b06fe0"]
     readonly property color redactSolid: "#121216"
     readonly property var mockupPalette: [

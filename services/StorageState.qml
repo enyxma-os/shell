@@ -24,11 +24,16 @@ Singleton {
         isOpen = false
     }
 
+    // Panel açıldığında: hem kök kullanım hem sürücü envanteri.
     function refresh() {
-        telemetryProc.running = false
-        telemetryProc.running = true
-        inventoryProc.running = false
-        inventoryProc.running = true
+        telemetryProc.exec(["df", "-P", "-B1", "/"])
+        inventoryProc.exec(["lsblk", "-J", "-b", "-o",
+            "NAME,PATH,TYPE,SIZE,FSTYPE,FSUSED,FSAVAIL,FSUSE%,MOUNTPOINTS,MODEL,TRAN,ROTA,RM,HOTPLUG"])
+    }
+
+    // Panel kapalıyken (bar göstergesi için) yalnızca hafif df.
+    function refreshLight() {
+        telemetryProc.exec(["df", "-P", "-B1", "/"])
     }
 
     // Kök (Root) Dosya Sistemi Metrikleri
@@ -69,21 +74,24 @@ Singleton {
     // Kök dosya sistemi kullanımı sorgusu
     Process {
         id: telemetryProc
-        command: ["bash", "-c", "LC_ALL=C df -P -B1 / 2>/dev/null | awk 'NR == 2 { gsub(/%/, \"\", $5); printf \"%s|%s|%s\\n\", $5, $3, $2 }'"]
-        running: true
+        // Kabuksuz `df`: awk yerine JS ayrıştırma (fork başına 1 süreç).
+        command: ["df", "-P", "-B1", "/"]
+        running: false
         stdout: StdioCollector {
             onStreamFinished: {
-                var fields = this.text.trim().split("|")
-                if (fields.length >= 3) {
-                    var pct = parseInt(fields[0])
-                    var used = parseFloat(fields[1])
-                    var total = parseFloat(fields[2])
-                    if (!isNaN(pct) && !isNaN(used) && !isNaN(total) && total > 0) {
-                        root.rootPercent = Math.max(0, Math.min(100, pct))
-                        root.rootUsedBytes = Math.max(0, used)
-                        root.rootTotalBytes = Math.max(0, total)
-                        root.isAvailable = true
-                    }
+                var lines = this.text.trim().split("\n")
+                if (lines.length < 2) return
+                // df -P: Filesystem 1024-blocks Used Available Capacity Mounted-on
+                var f = lines[1].trim().split(/\s+/)
+                if (f.length < 5) return
+                var total = parseFloat(f[1])
+                var used = parseFloat(f[2])
+                var pct = parseInt(String(f[4]).replace("%", ""))
+                if (!isNaN(pct) && !isNaN(used) && !isNaN(total) && total > 0) {
+                    root.rootPercent = Math.max(0, Math.min(100, pct))
+                    root.rootUsedBytes = Math.max(0, used)
+                    root.rootTotalBytes = Math.max(0, total)
+                    root.isAvailable = true
                 }
             }
         }
@@ -93,7 +101,7 @@ Singleton {
     Process {
         id: inventoryProc
         command: ["lsblk", "-J", "-b", "-o", "NAME,PATH,TYPE,SIZE,FSTYPE,FSUSED,FSAVAIL,FSUSE%,MOUNTPOINTS,MODEL,TRAN,ROTA,RM,HOTPLUG"]
-        running: true
+        running: false   // yalnızca panel açıkken (refresh)
         stdout: StdioCollector {
             onStreamFinished: {
                 var raw = this.text.trim()
@@ -110,6 +118,15 @@ Singleton {
 
                 function textValue(val) {
                     return val === null || val === undefined ? "" : String(val).trim()
+                }
+
+                // R1/B20: lsblk bazı sürümlerde boolean alanları "0"/"1"
+                // veya "true"/"false" döndürür. Katı === true karşılaştırması
+                // SSD'leri HDD gösterebiliyordu.
+                function isTruthy(val) {
+                    if (val === true) return true
+                    var s = textValue(val).toLowerCase()
+                    return s === "1" || s === "true" || s === "yes"
                 }
 
                 function collectVolumes(node, target) {
@@ -180,11 +197,12 @@ Singleton {
                     }
 
                     var tran = textValue(dev.tran).toUpperCase()
-                    var removable = dev.rm === true || dev.hotplug === true || tran === "USB"
-                    var driveType = tran === "NVME" ? "nvme" : (dev.rota === true ? "hdd" : "ssd")
+                    var removable = isTruthy(dev.rm) || isTruthy(dev.hotplug) || tran === "USB"
+                    var rotational = isTruthy(dev.rota)
+                    var driveType = tran === "NVME" ? "nvme" : (rotational ? "hdd" : "ssd")
                     var media = removable ? "USB DRIVE"
                         : tran === "NVME" ? "NVME SSD"
-                        : dev.rota === true ? (tran !== "" ? tran + " HDD" : "HDD")
+                        : rotational ? (tran !== "" ? tran + " HDD" : "HDD")
                         : (tran !== "" ? tran + " SSD" : "SSD")
                     var state = primaryMount !== "" ? primaryMount
                         : (fsList.length > 0 ? "Bağlı değil" : "Dosya sistemi yok")
@@ -208,12 +226,17 @@ Singleton {
         }
     }
 
-    // 30 saniyelik hafif periyodik yenileme
+    // P1: kapalı panelde ağır `lsblk` YOK. Bar için 60 sn'de bir tek `df`.
+    // (Eski: 30 sn'de bir df + lsblk → günde ~5.760 process.)
     Timer {
-        interval: 30000
+        interval: 60000
         running: true
         repeat: true
-        onTriggered: root.refresh()
+        triggeredOnStart: true
+        onTriggered: {
+            if (root.isOpen) root.refresh()
+            else root.refreshLight()
+        }
     }
 
     IpcHandler {

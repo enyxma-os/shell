@@ -208,7 +208,9 @@ Item {
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: {
-                            Quickshell.execDetached(["kitty", "-e", "bash", "-c", "echo '=== Enyxma AI Kurulum Sihirbazı ==='; echo 'API anahtarınızı ~/.config/enyxma/ai.env içine ekleyebilirsiniz:'; echo 'OPENAI_API_KEY=... veya ANTHROPIC_API_KEY=... veya GEMINI_API_KEY=...'; read -p 'Devam etmek için Enter tuşuna basın...'"])
+                            // Kabuk yok: yapılandırma dizinini dosya yöneticisinde aç.
+                            // Anahtarın nereye yazılacağı zaten alt satırdaki metinde.
+                            Quickshell.execDetached(["xdg-open", Quickshell.env("HOME") + "/.config/enyxma"])
                         }
                     }
                 }

@@ -106,7 +106,7 @@ PanelWindow {
                         }
 
                         Text {
-                            text: MediaState.identity.length > 0 ? MediaState.identity : "Medya"
+                            text: MediaState.identity || "Medya"
                             color: Theme.textPrimary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeSmall

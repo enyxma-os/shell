@@ -2,12 +2,23 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import Quickshell.Hyprland
+import Quickshell.Services.Notifications
 import QtQuick
 
 /**
- * ScreenTimeState: Yerel ekran süresi ve uygulama kullanım takip servisi.
- * Aktif pencere sınıfını periyodik olarak okur ve günün istatistiklerine yazar.
- * Veriler ~/.local/state/quickshell/screentime.json içinde saklanır.
+ * ScreenTimeState — yerel ekran süresi takibi.
+ *
+ * P1 DÜZELTMESİ (R1/B9):
+ *   `seedDefaultData()` TAMAMEN SİLİNDİ. Eski kod, veri dosyası yokken
+ *   `Math.random()` ile uydurma 7 günlük kullanım geçmişi üretip diske
+ *   yazıyordu → panel sahte istatistik gösteriyordu ve sonradan gerçek
+ *   veriyle ayırt edilemiyordu. Boş geçmiş artık dürüstçe boş.
+ *
+ * Ayrıca:
+ *   • Yalnızca gerçek uygulama sınıfı olan aktif pencere sayılır.
+ *   • Bildirim (DND) ve boşta kalma bu sürümde AYRI ele alınmıyor:
+ *     boşta algılama için idle-notify bağlayıcısı kullanılmadı (doğrulanmadı);
+ *     bu yüzden "aktif pencere açıkken geçen süre" olarak belgeleniyor.
  */
 Singleton {
     id: root
@@ -20,29 +31,20 @@ Singleton {
     readonly property var todayEntry: root.days[root.today] || null
     readonly property int activeToday: root.todayEntry ? (root.todayEntry.total || 0) : 0
 
-    // Bugün en çok kullanılan uygulamalar (en çoktan aza)
     readonly property var topApps: {
         const e = root.todayEntry
         if (!e || !e.apps) return []
         const arr = []
-        for (const cls in e.apps) {
-            arr.push({ cls: cls, seconds: e.apps[cls] })
-        }
+        for (const cls in e.apps) arr.push({ cls: cls, seconds: e.apps[cls] })
         arr.sort((a, b) => b.seconds - a.seconds)
         return arr.slice(0, 5).map(function(item) {
             const resolved = root.lookupApp(item.cls)
-            return {
-                cls: item.cls,
-                seconds: item.seconds,
-                name: resolved.name,
-                icon: resolved.icon
-            }
+            return { cls: item.cls, seconds: item.seconds, name: resolved.name, icon: resolved.icon }
         })
     }
 
     readonly property int topSeconds: root.topApps.length > 0 ? root.topApps[0].seconds : 1
 
-    // Son 7 günün aktivite grafiği (Eskiden yeniye)
     readonly property var weekly: {
         const out = []
         const now = new Date()
@@ -63,9 +65,7 @@ Singleton {
 
     readonly property int weeklyMax: {
         let m = 1
-        for (let i = 0; i < root.weekly.length; i++) {
-            m = Math.max(m, root.weekly[i].total)
-        }
+        for (let i = 0; i < root.weekly.length; i++) m = Math.max(m, root.weekly[i].total)
         return m
     }
 
@@ -79,12 +79,8 @@ Singleton {
         sec = Math.max(0, Math.floor(sec))
         const h = Math.floor(sec / 3600)
         const m = Math.floor((sec % 3600) / 60)
-        if (h > 0) {
-            return h + "s " + m + "d"
-        }
-        if (m > 0) {
-            return m + "d"
-        }
+        if (h > 0) return h + "s " + m + "d"
+        if (m > 0) return m + "d"
         return sec + "sn"
     }
 
@@ -106,12 +102,10 @@ Singleton {
         }
         let pretty = cls.split('.').pop()
         pretty = pretty.charAt(0).toUpperCase() + pretty.slice(1)
-        return {
-            name: pretty,
-            icon: Quickshell.iconPath(lowerCls) || ""
-        }
+        return { name: pretty, icon: Quickshell.iconPath(lowerCls) || "" }
     }
 
+    // Quickshell'in kendi yüzeyleri (bar panelleri) kullanıcı uygulaması değildir.
     function isRealApp(c) {
         return !!c && !/^(enyxma|quickshell|org\.quickshell)/i.test(c)
     }
@@ -144,15 +138,12 @@ Singleton {
     }
 
     function load(text) {
+        root.days = ({})
         try {
             const j = JSON.parse(text || "{}")
-            if (j && j.days && Object.keys(j.days).length > 0) {
-                root.days = j.days
-            } else {
-                root.seedDefaultData()
-            }
+            if (j && j.days && typeof j.days === "object") root.days = j.days
         } catch (e) {
-            root.seedDefaultData()
+            console.warn("ScreenTimeState: Veri okunamadı, boş geçmişle başlanıyor:", e)
         }
 
         const key = root.dateKey(new Date())
@@ -164,41 +155,17 @@ Singleton {
         }
     }
 
-    function seedDefaultData() {
-        const now = new Date()
-        const initial = {}
-        for (let i = 6; i >= 1; i--) {
-            const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i)
-            const k = root.dateKey(d)
-            initial[k] = {
-                total: Math.floor(1800 + Math.random() * 3600),
-                apps: { "kitty": 1200, "chromium": 900, "files": 120 }
-            }
-        }
-        const todayK = root.dateKey(now)
-        initial[todayK] = {
-            total: 2640,
-            apps: {
-                "kitty": 1860,
-                "Chromium": 720,
-                "Files": 60
-            }
-        }
-        root.days = initial
-        root.today = todayK
-        root.dirty = true
-    }
-
     Timer {
         interval: root.sampleSec * 1000
         running: true
         repeat: true
         onTriggered: {
             const activeTop = Hyprland.activeToplevel
-            const cls = (activeTop && activeTop.initialClass) ? activeTop.initialClass : ""
-            if (cls) {
-                root.accrue(cls)
-            }
+            const cls = (activeTop && activeTop.wayland && activeTop.wayland.appId)
+                ? activeTop.wayland.appId
+                : ""
+            // Pencere yoksa (boş masaüstü) süre yazılmaz.
+            if (cls) root.accrue(cls)
         }
     }
 
@@ -214,7 +181,8 @@ Singleton {
         path: Quickshell.statePath("screentime.json")
         printErrors: false
         onLoaded: root.load(dataFile.text())
-        onLoadFailed: root.seedDefaultData()
+        // onLoadFailed: boş geçmiş — sahte veri ÜRETİLMEZ.
+        onLoadFailed: root.load("{}")
     }
 
     Component.onDestruction: root.persist()

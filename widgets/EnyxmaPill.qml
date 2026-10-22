@@ -9,6 +9,7 @@ Rectangle {
     property bool isActive: false
     signal clicked()
     signal rightClicked()
+    signal middleClicked()
 
     implicitHeight: 24
     implicitWidth: Math.max(containerLayout.implicitWidth + Theme.spacingMedium * 2, height)
@@ -47,10 +48,12 @@ Rectangle {
         anchors.fill: parent
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
         onClicked: (mouse) => {
             if (mouse.button === Qt.RightButton) {
                 root.rightClicked();
+            } else if (mouse.button === Qt.MiddleButton) {
+                root.middleClicked();
             } else {
                 root.clicked();
             }
