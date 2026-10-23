@@ -1,26 +1,11 @@
 [config]
 reload_apps = true
 
-# ─────────────────────────────────────────────────────────────────────
-# Enyxma Live Theming (matugen / Material 3)
-#
-# YOL POLİTİKASI (R1 tema bulgusu):
-#   • `input_path` paket içindeki şablonu okur (@SHELL_DIR@ derlemede
-#     flake.nix `substituteInPlace` ile gerçek yolla değiştirilir).
-#     Okuma-yalnız olduğu için /nix/store altında olması sorun değil.
-#   • `output_path` MUTLAKA yazılabilir bir dizin olmalı. Bu yüzden çıktı
-#     XDG state dizinine gider; `enyxma-shell` wrapper'ı ilk çalıştırmada
-#     kabuk ağacını `$XDG_DATA_HOME/enyxma-shell/<version>/` altına
-#     kopyalar ve oradan çalışır → matugen çıktısı QML import zincirine
-#     gerçekten düşer (store'a yazma denemesi sessizce başarısız oluyordu).
-#   • `post_hook`: UID sabit DEĞİL; `$XDG_RUNTIME_DIR` kullanılır.
-# ─────────────────────────────────────────────────────────────────────
-
 [templates.quickshell]
-input_path = "@SHELL_DIR@/templates/GeneratedColors.qml.in"
-output_path = "@SHELL_DIR@/services/GeneratedColors.qml"
+input_path = "templates/GeneratedColors.qml.in"
+output_path = "services/GeneratedColors.qml"
 
 [templates.hyprland]
-input_path = "@SHELL_DIR@/templates/colors.lua.in"
+input_path = "templates/colors.lua.in"
 output_path = "~/.config/hypr/colors.lua"
 post_hook = "sh -c 'hyprctl reload 2>/dev/null || true'"

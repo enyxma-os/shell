@@ -93,9 +93,8 @@ Singleton {
     function generateThemeFromImage(rawPath) {
         if (!rawPath || rawPath.length === 0) return
         matugenProc.exec([
-            "matugen", "-c", root.matugenConfig,
-            "--source-color-index", "0",
-            "image", rawPath
+            "sh", "-c",
+            "cd " + root.shellDir + " && matugen -c " + root.shellDir + "/matugen.toml --source-color-index 0 image " + rawPath
         ])
     }
 
@@ -103,7 +102,10 @@ Singleton {
         if (!hexColor || hexColor.length === 0) return
         var hex = String(hexColor).trim()
         if (!/^#?[0-9a-fA-F]{6}$/.test(hex)) return
-        matugenProc.exec(["matugen", "-c", root.matugenConfig, "color", "hex", hex])
+        matugenProc.exec([
+            "sh", "-c",
+            "cd " + root.shellDir + " && matugen -c " + root.shellDir + "/matugen.toml color hex " + hex
+        ])
     }
 
     Timer {
