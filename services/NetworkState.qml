@@ -132,11 +132,19 @@ Singleton {
             return
         case 4: // link speed
             root._speed = t
+            // Eğer arayüz ethernet ise (wl* değilse veya iw yoksa) iw çalıştırma
+            if (!root._iface.startsWith("wl")) {
+                root._ssid = ""
+                root._sig = -1
+                root._freq = ""
+                root.applyConnected()
+                return
+            }
             root._step = 5
             pipeProc.command = ["iw", "dev", root._iface, "link"]
             pipeProc.running = true
             return
-        case 5: // wifi link (boşsa ethernet)
+        case 5: // wifi link
             parseIwLink(t)
             root.applyConnected()
             return

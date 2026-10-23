@@ -136,10 +136,7 @@ Rectangle {
             }
         }
 
-        // 11. Thornhill Bilişsel Çekirdek Durumu
-        ThornhillWidget {
-            id: thornhillWidget
-        }
+
 
         // 12. Bildirim Merkezi & Rozet
         NotificationWidget {
