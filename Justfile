@@ -1,4 +1,4 @@
-set shell := ["bash", "-uc"]
+set shell := ["bash", "-e", "-o", "pipefail", "-c"]
 
 # Varsayılan: tüm statik doğrulamalar
 default: verify
