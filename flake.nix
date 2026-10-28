@@ -62,7 +62,6 @@
               date -u +%FT%TZ > "$RUNTIME/.stamp"
             fi
             # matugen şablon yolları: store değil, yazılabilir çalışma ağacı.
-            sed -i "s|@SHELL_DIR@|$RUNTIME|g" "$RUNTIME/matugen.toml"
             export ENYXMA_SHELL_DIR="$RUNTIME"
           '';
 
@@ -100,11 +99,6 @@
                     $out/share/enyxma-shell/
               echo "${placeholder "version"}" > $out/share/enyxma-shell/VERSION
 
-              # matugen.toml'daki yer tutucu store yoluna çevrilir (paket içi
-              # kopya için); çalışma zamanı kopyası bunu kendi yoluyla
-              # yeniden yazar.
-              substituteInPlace $out/share/enyxma-shell/matugen.toml \
-                --replace-fail '@SHELL_DIR@' "$out/share/enyxma-shell"
 
               mkdir -p $out/bin
               install -m755 ${launcher} $out/bin/enyxma-shell
@@ -143,6 +137,39 @@
           '';
         };
       });
+
+      nixosModules.default = { config, lib, pkgs, ... }:
+        let
+          cfg = config.enyxma.shell;
+          pkg = self.packages.${pkgs.stdenv.hostPlatform.system}.default;
+        in
+        {
+          options.enyxma.shell = {
+            enable = lib.mkEnableOption "Enyxma Quickshell Desktop Environment";
+            package = lib.mkOption {
+              type = lib.types.package;
+              default = pkg;
+              description = "Kullanılacak enyxma-shell paketi.";
+            };
+          };
+
+          config = lib.mkIf cfg.enable {
+            environment.systemPackages = [ cfg.package ];
+
+            systemd.user.services.enyxma-shell = {
+              description = "Enyxma OS Desktop Shell";
+              after = [ "graphical-session.target" ];
+              wants = [ "graphical-session.target" ];
+              partOf = [ "graphical-session.target" ];
+              serviceConfig = {
+                ExecStart = "${cfg.package}/bin/enyxma-shell";
+                Restart = "always";
+                RestartSec = "2s";
+              };
+              wantedBy = [ "graphical-session.target" ];
+            };
+          };
+        };
 
       homeManagerModules.default = { config, lib, pkgs, ... }:
         let
