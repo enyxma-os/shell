@@ -18,6 +18,7 @@ Rectangle {
     color: isActive ? Theme.surfaceHover : (mouseArea.containsMouse ? Theme.surfaceHover : Theme.surface1)
     border.color: isActive ? Theme.accent : Theme.borderSubtle
     border.width: Theme.borderWidth
+    clip: true
 
     default property alias content: containerLayout.data
 
