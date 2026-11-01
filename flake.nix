@@ -98,7 +98,7 @@
               mkdir -p $out/share/enyxma-shell
               cp -r shell.qml services modules widgets assets templates matugen.toml \
                     $out/share/enyxma-shell/
-              echo "${placeholder "version"}" > $out/share/enyxma-shell/VERSION
+              cp VERSION $out/share/enyxma-shell/VERSION
 
 
               mkdir -p $out/bin

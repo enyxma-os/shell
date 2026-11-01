@@ -48,6 +48,7 @@ ShellRoot {
             id: barWindow
             property var modelData
             screen: modelData
+            visible: SystemState.isBarVisible
 
             WlrLayershell.namespace: "enyxma-bar"
             WlrLayershell.layer: WlrLayer.Top

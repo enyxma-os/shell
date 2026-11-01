@@ -161,4 +161,14 @@ Singleton {
         function prev(): void { root.prev() }
         function activate(): void { root.activateSelected() }
     }
+
+    IpcHandler {
+        target: "enyxma-overview"
+        function toggle(): void { root.toggle() }
+        function open(): void { root.open() }
+        function close(): void { root.close() }
+        function next(): void { root.next() }
+        function prev(): void { root.prev() }
+        function activate(): void { root.activateSelected() }
+    }
 }
