@@ -67,13 +67,13 @@
 
           launcher = pkgs.writeShellScript "enyxma-shell-launcher" (''
             set -euo pipefail
-          '' + builtins.replaceStrings [ "@src@" ] [ "${placeholder "src"}" ] bootstrap + ''
+          '' + bootstrap + ''
             exec ${qsPkg}/bin/quickshell -p "$RUNTIME/shell.qml" "$@"
           '');
 
           shotLauncher = pkgs.writeShellScript "enyxma-shot-launcher" (''
             set -euo pipefail
-          '' + builtins.replaceStrings [ "@src@" ] [ "${placeholder "src"}" ] bootstrap + ''
+          '' + bootstrap + ''
             # Kilit: XDG_RUNTIME_DIR (çok kullanıcılı /tmp symlink riski yok).
             lock="''${XDG_RUNTIME_DIR:-/tmp}/enyxma-shot.lock"
             exec flock -n "$lock" ${qsPkg}/bin/quickshell \
@@ -101,8 +101,10 @@
 
 
               mkdir -p $out/bin
-              install -m755 ${launcher} $out/bin/enyxma-shell
-              install -m755 ${shotLauncher} $out/bin/enyxma-shot
+              substitute ${launcher} $out/bin/enyxma-shell --replace-fail "@src@" "$out/share/enyxma-shell"
+              chmod +x $out/bin/enyxma-shell
+              substitute ${shotLauncher} $out/bin/enyxma-shot --replace-fail "@src@" "$out/share/enyxma-shell"
+              chmod +x $out/bin/enyxma-shot
 
               wrapProgram $out/bin/enyxma-shell --prefix PATH : ${binPath}
               wrapProgram $out/bin/enyxma-shot --prefix PATH : ${binPath}
