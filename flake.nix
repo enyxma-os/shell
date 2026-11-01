@@ -68,7 +68,8 @@
           launcher = pkgs.writeShellScript "enyxma-shell-launcher" (''
             set -euo pipefail
           '' + bootstrap + ''
-            exec ${qsPkg}/bin/quickshell -p "$RUNTIME/shell.qml" "$@"
+            lock="''${XDG_RUNTIME_DIR:-/tmp}/enyxma-shell.lock"
+            exec flock -n "$lock" ${qsPkg}/bin/quickshell -p "$RUNTIME/shell.qml" "$@"
           '');
 
           shotLauncher = pkgs.writeShellScript "enyxma-shot-launcher" (''
