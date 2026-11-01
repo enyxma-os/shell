@@ -20,6 +20,9 @@ Singleton {
     id: root
 
     property bool isControlCenterOpen: false
+    property bool isBarVisible: true
+
+    function toggleBar() { isBarVisible = !isBarVisible }
 
     function toggleControlCenter() { isControlCenterOpen = !isControlCenterOpen }
     function openControlCenter() { isControlCenterOpen = true }
@@ -82,5 +85,26 @@ Singleton {
         function toggle(): void { root.toggleControlCenter() }
         function open(): void { root.openControlCenter() }
         function close(): void { root.closeControlCenter() }
+    }
+
+    IpcHandler {
+        target: "enyxma-dashboard"
+        function toggle(): void { root.toggleControlCenter() }
+        function open(): void { root.openControlCenter() }
+        function close(): void { root.closeControlCenter() }
+    }
+
+    IpcHandler {
+        target: "bar"
+        function toggle(): void { root.toggleBar() }
+        function show(): void { root.isBarVisible = true }
+        function hide(): void { root.isBarVisible = false }
+    }
+
+    IpcHandler {
+        target: "enyxma-bar"
+        function toggle(): void { root.toggleBar() }
+        function show(): void { root.isBarVisible = true }
+        function hide(): void { root.isBarVisible = false }
     }
 }
