@@ -5,4 +5,4 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 SHELL_DIR="$(dirname "$SCRIPT_DIR")"
 
-exec flock -n -o /tmp/enyxma-shot.lock quickshell -p "$SHELL_DIR/modules/screenshot/shell.qml" "$@"
+exec flock -n -o "${XDG_RUNTIME_DIR:-/tmp}/enyxma-shot.lock" quickshell -p "$SHELL_DIR/modules/screenshot/shell.qml" "$@"
