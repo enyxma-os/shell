@@ -1,31 +1,14 @@
-# Nix / Flakes
-.direnv/
+# Nix Derleme ve Ortam Ciktilari
 result
 result-*
+.cache/
+.direnv/
 
-# Quickshell & Qt / QML caches
+# Quickshell ve Qt Derleme Onbellegi
 *.qmlc
 *.jsc
 *.qslog
 .qt/
-.cache/
 
-# Logs & Temporary files
-*.log
-*.tmp
-*~
-*.swp
-*.swo
-
-# IDEs & Editors
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# Runtime dynamic theme cache
+# Calisma Zamani Dinamik Tema Ciktisi
 services/GeneratedColors.qml
