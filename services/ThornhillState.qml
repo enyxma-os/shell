@@ -3,27 +3,9 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 
-/**
- * ThornhillState — Enyxma OS "Bilişsel Çekirdek" köprüsü (RFC-001).
- *
- * Tasarım kararları:
- *  1. POLLING YOK. Durum yalnızca:
- *       • shell açılışında bir kez,
- *       • panel/widget görünür olduğunda (onVisibleChanged → refresh),
- *       • kullanıcı toggle/refresh istediğinde
- *     sorgulanır. `systemctl --user` çağrısı başına ~2 ms; sürekli timer yok.
- *  2. Kabuk yok: `systemctl` argüman dizisiyle çağrılır.
- *  3. Toggle asenkron: `start`/`stop` sonrası 250 ms gecikmeli tek doğrulama,
- *     sonsuz yeniden deneme yok.
- *  4. UDS (thornhill.sock) dinleyicisi BİLİNÇLİ OLARAK STUB'DIR.
- *     Soket protokolü (JSON şeması) bu repoda tanımlı değil; uydurulmuş bir
- *     ayrıştırıcı yazmak yerine arayüz hazır bırakıldı. `ingestActionChip()`
- *     tek giriş noktasıdır; protokol netleşince burası doldurulur.
- */
 Singleton {
     id: root
 
-    // "unknown" | "active" | "inactive" | "failed" | "activating" | "deactivating" | "absent"
     property string state: "unknown"
     property string subState: ""
     property bool busy: false
@@ -50,20 +32,104 @@ Singleton {
         return Theme.textSecondary
     }
 
-    // ── Action Chip gelen kutusu (STUB) ──────────────────────────────
-    // Beklenen zarf (thornhilld ile mutabakat sonrası kesinleşecek):
-    //   { id, kind, severity, title, detail, actions[], ts }
+    // Action Chip koleksiyonu ve sayaç
     property var actionChips: []
     property int unreadChips: 0
+    property bool socketConnected: false
+
+    readonly property string runtimeDir: Quickshell.env("XDG_RUNTIME_DIR") || "/run/user/1000"
+    readonly property string socketPath: Quickshell.env("THORNHILL_SOCK") || (runtimeDir + "/thornhill/thornhill.sock")
+
+    property bool shouldConnect: true
+    property int backoffMs: 1000
+
+    property Socket _socket: Socket {
+        path: root.socketPath
+        connected: root.shouldConnect
+
+        parser: SplitParser {
+            splitMarker: "\n"
+            onRead: data => root._onLine(data)
+        }
+
+        onConnectedChanged: {
+            root.socketConnected = connected
+            if (connected) {
+                root.backoffMs = 1000
+                root._handshake()
+            } else {
+                root._scheduleReconnect()
+            }
+        }
+    }
+
+    function _send(line) {
+        if (!root.socketConnected) return
+        root._socket.write(line + "\n")
+        root._socket.flush()
+    }
+
+    function _handshake() {
+        root._send(JSON.stringify({
+            op: "hello", req: "ui-hello", client: "enyxma-shell", v: 1
+        }))
+        root._send(JSON.stringify({
+            op: "sub", req: "ui-sub", filter: { kinds: [], srcs: [], chips: true }
+        }))
+    }
+
+    function _onLine(data) {
+        let msg
+        try {
+            msg = JSON.parse(data)
+        } catch (e) {
+            return
+        }
+
+        if (msg.op === "chip.push" && msg.chip) {
+            const c = msg.chip
+            const entry = {
+                id: c.id,
+                title: c.title || "",
+                why: c.why || "",
+                trigger: c.trigger || "",
+                labels: c.labels || [],
+                actions: c.actions || [],
+                ttlMs: c.ttl_ms || 60000,
+                conf: c.conf !== undefined ? c.conf : 1.0,
+                deadline: Date.now() + (c.ttl_ms || 60000),
+                execCmd: (c.actions || []).filter(a => a.action_type === "exec")
+                            .map(a => a.payload && a.payload.cmd ? a.payload.cmd : "").join("")
+            }
+            root.ingestActionChip(entry)
+        }
+    }
 
     function ingestActionChip(chip) {
         if (!chip || !chip.id) return
         if (root.actionChips.some(c => c.id === chip.id)) return
         const list = root.actionChips.slice()
         list.unshift(chip)
-        // Bellek tavanı: en yeni 20 çip tutulur.
         root.actionChips = list.slice(0, 20)
         root.unreadChips = root.unreadChips + 1
+    }
+
+    function act(chipId, actionLabel, confirm) {
+        const msg = {
+            op: "chip.act",
+            req: "ui-" + Date.now(),
+            chip_id: chipId,
+            action_label: actionLabel,
+            confirm: confirm
+        }
+        root._send(JSON.stringify(msg))
+        if (confirm) {
+            root.dismissChip(chipId)
+        }
+    }
+
+    function dismissChip(chipId) {
+        root.actionChips = root.actionChips.filter(c => c.id !== chipId)
     }
 
     function clearChips() {
@@ -75,7 +141,40 @@ Singleton {
         root.unreadChips = 0
     }
 
-    // ── Durum sorgusu ────────────────────────────────────────────────
+    // TTL süresi dolan çipleri temizleyen zamanlayıcı
+    Timer {
+        interval: 1000
+        running: true
+        repeat: true
+        onTriggered: {
+            const now = Date.now()
+            const filtered = root.actionChips.filter(c => !c.deadline || c.deadline > now)
+            if (filtered.length !== root.actionChips.length) {
+                root.actionChips = filtered
+            }
+        }
+    }
+
+    // Soket yeniden bağlanma zamanlayıcısı
+    Timer {
+        id: reconnectTimer
+        interval: 1000
+        repeat: false
+        onTriggered: {
+            if (!root.socketConnected && root.shouldConnect) {
+                root._socket.connected = true
+            }
+        }
+    }
+
+    function _scheduleReconnect() {
+        const wait = root.backoffMs
+        root.backoffMs = Math.min(root.backoffMs * 2, 30000)
+        reconnectTimer.interval = wait
+        reconnectTimer.restart()
+    }
+
+    // Durum sorgusu
     Process {
         id: probeProc
         running: false
@@ -110,7 +209,7 @@ Singleton {
         onExited: (code) => {
             if (code !== 0 && root.state === "unknown") {
                 root.state = "absent"
-                root.lastError = "thornhilld birimi bulunamadı (çıkış kodu " + code + ")"
+                root.lastError = "thornhilld birimi bulunamadı, çıkış kodu: " + code
             }
             root.busy = false
         }
@@ -121,7 +220,6 @@ Singleton {
         probeProc.running = true
     }
 
-    // Toggle sonrası tek doğrulama (polling değil, tek atış).
     Timer {
         id: verifyTimer
         interval: 250
@@ -137,7 +235,7 @@ Singleton {
         }
         root.busy = true
         const verb = root.running ? "stop" : "start"
-        root.state = root.running ? "deactivating" : "activating" // iyimser ara durum
+        root.state = root.running ? "deactivating" : "activating"
         controlProc.exec(["systemctl", "--user", verb, "thornhilld", "--no-block"])
         verifyTimer.restart()
     }
@@ -148,16 +246,16 @@ Singleton {
         onExited: (code) => {
             if (code !== 0) {
                 root.lastError = "systemctl " + (root.running ? "stop" : "start") +
-                                 " başarısız (çıkış kodu " + code + ")"
+                                 " başarısız, çıkış kodu: " + code
                 root.busy = false
                 root.refresh()
             }
         }
     }
 
-    // ── Yerel konsol (:9099) ────────────────────────────────────────
+    // Yerel konsol bağlantısı ve otomatik token aktarımı
     function openConsole() {
-        Quickshell.execDetached(["xdg-open", "http://127.0.0.1:9099"])
+        Quickshell.execDetached(["bash", "-c", "t=$(cat \"$XDG_RUNTIME_DIR/thornhill/http.token\" 2>/dev/null); if [ -n \"$t\" ]; then xdg-open \"http://127.0.0.1:9099/?token=$t\"; else xdg-open \"http://127.0.0.1:9099\"; fi"])
     }
 
     IpcHandler {
