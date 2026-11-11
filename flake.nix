@@ -18,6 +18,7 @@
       runtimeDeps = pkgs: with pkgs; [
         coreutils procps findutils gnugrep gnused gawk
         wl-clipboard libnotify
+        bluez
         matugen
         imagemagick
         networkmanager iw iproute2
@@ -53,15 +54,16 @@
             VER="$(cat "$SRC/VERSION")"
             ROOT="''${XDG_DATA_HOME:-$HOME/.local/share}/enyxma-shell"
             RUNTIME="$ROOT/$VER"
-            if [ ! -f "$RUNTIME/.stamp" ]; then
+            if [ ! -f "$RUNTIME/.store-source" ] || [ "$(cat "$RUNTIME/.store-source" 2>/dev/null)" != "$SRC" ]; then
               mkdir -p "$RUNTIME"
               find "$ROOT" -mindepth 1 -maxdepth 1 -type d ! -name "$VER" \
                 -exec rm -rf {} + 2>/dev/null || true
               cp -r "$SRC"/. "$RUNTIME"/
               chmod -R u+w "$RUNTIME"
+              echo "$SRC" > "$RUNTIME/.store-source"
               date -u +%FT%TZ > "$RUNTIME/.stamp"
             fi
-            # matugen şablon yolları: store değil, yazılabilir çalışma ağacı.
+            # matugen sablon yollari: store degil yazilabilir calisma agaci
             export ENYXMA_SHELL_DIR="$RUNTIME"
           '';
 
