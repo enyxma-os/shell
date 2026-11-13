@@ -16,7 +16,7 @@
       # Shell'in ÇALIŞMA ANINDA exec ettiği tüm ikili dosyalar.
       # Eksik her giriş, temiz bir NixOS kurulumunda "command not found"tu.
       runtimeDeps = pkgs: with pkgs; [
-        coreutils procps findutils gnugrep gnused gawk
+        bash coreutils procps findutils gnugrep gnused gawk
         wl-clipboard libnotify
         bluez
         matugen
@@ -81,6 +81,79 @@
             exec flock -n "$lock" ${qsPkg}/bin/quickshell \
               -p "$RUNTIME/modules/screenshot/shell.qml" "$@"
           '');
+
+          themeApply = pkgs.writeShellScript "enyxma-theme-apply" ''
+            set -euo pipefail
+            MODE="''${1:-image}"
+            TARGET="''${2:-}"
+            if [ -z "$TARGET" ]; then
+              exit 1
+            fi
+
+            SHELL_DIR="''${ENYXMA_SHELL_DIR:-$HOME/.local/share/enyxma-shell/runtime}"
+            CFG="$SHELL_DIR/matugen.toml"
+
+            extract_vibrant_hex() {
+              ffmpeg -v error -i "$1" -vf "scale=64:64" -f rawvideo -pix_fmt rgb24 - | od -An -tu1 -w3 -v | awk '
+              NF == 3 {
+                r = $1 / 255.0; g = $2 / 255.0; b = $3 / 255.0;
+                max = r; if (g > max) max = g; if (b > max) max = b;
+                min = r; if (g < min) min = g; if (b < min) min = b;
+                d = max - min;
+                s = (max == 0) ? 0 : d / max;
+                v = max;
+                if (s > 0.25 && v > 0.32 && v < 0.98) {
+                  if (max == r) h = (g - b) / d + (g < b ? 6 : 0);
+                  else if (max == g) h = (b - r) / d + 2;
+                  else h = (r - g) / d + 4;
+                  h = h / 6.0;
+                  bucket = int(h * 12) % 12;
+                  w = (s * s * s) * (v * v);
+                  bw[bucket] += w;
+                  br[bucket] += $1 * w;
+                  bg[bucket] += $2 * w;
+                  bb[bucket] += $3 * w;
+                }
+              }
+              END {
+                best = -1; maxw = 0;
+                for (i = 0; i < 12; i++) {
+                  if (bw[i] > maxw) { maxw = bw[i]; best = i; }
+                }
+                if (best >= 0 && maxw > 0) {
+                  printf "#%02x%02x%02x\n", int(br[best]/maxw), int(bg[best]/maxw), int(bb[best]/maxw);
+                } else {
+                  print "#38bdf8";
+                }
+              }'
+            }
+
+            cd "$SHELL_DIR"
+            if [ "$MODE" = "image" ]; then
+              HEX=$(extract_vibrant_hex "$TARGET")
+              matugen -c "$CFG" -t scheme-vibrant color hex "$HEX"
+            else
+              matugen -c "$CFG" -t scheme-vibrant color hex "$TARGET"
+            fi
+
+            if [ -z "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && [ -d "/run/user/$(id -u)/hypr" ]; then
+              export HYPRLAND_INSTANCE_SIGNATURE=$(ls -1 "/run/user/$(id -u)/hypr" 2>/dev/null | head -n 1 || true)
+            fi
+
+            if [ -f "$HOME/.config/hypr/colors.lua" ] && command -v hyprctl >/dev/null 2>&1; then
+              ACT_A=$(sed -n 's/.*accent = "\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              ACT_B=$(sed -n 's/.*accent_secondary = "\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              INACT=$(sed -n 's/.*outline = "\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              if [ -n "$ACT_A" ] && [ -n "$ACT_B" ]; then
+                hyprctl keyword general:col.active_border "$ACT_A $ACT_B 45deg" >/dev/null 2>&1 || true
+              fi
+              if [ -n "$INACT" ]; then
+                hyprctl keyword general:col.inactive_border "$INACT" >/dev/null 2>&1 || true
+              fi
+            fi
+
+            pkill -USR1 -x kitty >/dev/null 2>&1 || true
+          '';
         in
         {
           default = pkgs.stdenv.mkDerivation {
@@ -107,9 +180,12 @@
               chmod +x $out/bin/enyxma-shell
               substitute ${shotLauncher} $out/bin/enyxma-shot --replace-fail "@src@" "$out/share/enyxma-shell"
               chmod +x $out/bin/enyxma-shot
+              cp ${themeApply} $out/bin/enyxma-theme-apply
+              chmod +x $out/bin/enyxma-theme-apply
 
               wrapProgram $out/bin/enyxma-shell --prefix PATH : ${binPath}
               wrapProgram $out/bin/enyxma-shot --prefix PATH : ${binPath}
+              wrapProgram $out/bin/enyxma-theme-apply --prefix PATH : ${binPath}
             '';
 
             meta = with pkgs.lib; {

@@ -8,7 +8,7 @@ output_path = "services/GeneratedColors.qml"
 [templates.hyprland]
 input_path = "templates/colors.lua.in"
 output_path = "~/.config/hypr/colors.lua"
-post_hook = "sh -c 'hyprctl reload 2>/dev/null || true'"
+post_hook = "hyprctl keyword general:col.active_border 'rgba({{colors.primary.default.hex_stripped}}ee) rgba({{colors.tertiary.default.hex_stripped}}ee) 45deg' >/dev/null 2>&1; hyprctl keyword general:col.inactive_border 'rgba({{colors.outline_variant.default.hex_stripped}}aa)' >/dev/null 2>&1 || true"
 
 [templates.kitty]
 input_path = "templates/kitty.conf.in"
