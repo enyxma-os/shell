@@ -37,6 +37,7 @@ Singleton {
     }
 
     readonly property string matugenConfig: root.shellDir + "/matugen.toml"
+    readonly property string defaultWallpaper: "file://" + root.shellDir + "/assets/wallpapers/enyxma-obsidian-monolith.jpg"
 
     function togglePicker() {
         if (pickerVisible) { pickerVisible = false; return }
@@ -75,17 +76,16 @@ Singleton {
         dimLevel = Math.max(0.0, Math.min(1.0, level))
     }
 
-    // ── Matugen (kabuksuz) ───────────────────────────────────────────
+    // Matugen kabuksuz doğrudan süreç çağrısı
     Process {
         id: matugenProc
+        workingDirectory: root.shellDir
         running: false
         onExited: (code) => {
             if (code === 0) {
-                // Yeni GeneratedColors.qml'i yükle: yumuşak reload.
-                // (watchFiles açıksa bu gereksizdir, kapalıysa tek yol.)
                 root.reloadTheme()
             } else {
-                console.warn("WallpaperState: matugen başarısız (kod " + code + ")")
+                console.warn("WallpaperState: matugen başarısız, çıkış kodu: " + code)
             }
         }
     }
@@ -93,8 +93,7 @@ Singleton {
     function generateThemeFromImage(rawPath) {
         if (!rawPath || rawPath.length === 0) return
         matugenProc.exec([
-            "sh", "-c",
-            "cd " + root.shellDir + " && matugen -c " + root.shellDir + "/matugen.toml --source-color-index 0 image " + rawPath
+            "matugen", "-c", root.matugenConfig, "--source-color-index", "0", "image", rawPath
         ])
     }
 
@@ -103,8 +102,7 @@ Singleton {
         var hex = String(hexColor).trim()
         if (!/^#?[0-9a-fA-F]{6}$/.test(hex)) return
         matugenProc.exec([
-            "sh", "-c",
-            "cd " + root.shellDir + " && matugen -c " + root.shellDir + "/matugen.toml color hex " + hex
+            "matugen", "-c", root.matugenConfig, "color", "hex", hex
         ])
     }
 
@@ -119,30 +117,48 @@ Singleton {
         reloadTimer.restart()
     }
 
-    // ── Kalıcı durum (yalnızca duvar kağıdı) ─────────────────────────
+    // ── Kalıcı durum: yalnızca duvar kağıdı ──────────────────────────
     FileView {
         id: stateFile
         path: Quickshell.statePath("wallpaper.json")
         printErrors: false
         onLoaded: root.loadState()
+        onLoadFailed: root.loadState()
     }
 
     function loadState() {
         if (root.stateLoaded) return
         root.stateLoaded = true
+        var migrated = false
         try {
             var raw = stateFile.text()
             if (raw && raw.trim().length > 0) {
                 var data = JSON.parse(raw)
                 if (data && typeof data === "object" &&
                     typeof data.wallpaper === "string" && data.wallpaper.trim().length > 0) {
-                    root.currentWallpaper = data.wallpaper.trim()
+                    var saved = data.wallpaper.trim()
+                    var marker = "/assets/wallpapers/"
+                    var markerIdx = saved.indexOf(marker)
+                    if (saved.indexOf("/enyxma-shell/") !== -1 && markerIdx !== -1) {
+                        var fileName = saved.substring(markerIdx + marker.length)
+                        var target = "file://" + root.shellDir + marker + fileName
+                        if (target !== saved) {
+                            saved = target
+                            migrated = true
+                        }
+                    }
+                    root.currentWallpaper = saved
                 }
             }
         } catch (e) {
             console.warn("WallpaperState: Durum yüklenemedi:", e)
         }
-        // dimLevel bilinçli olarak YÜKLENMİYOR (kara ekran koruması).
+        if (!root.currentWallpaper || root.currentWallpaper.length === 0) {
+            root.currentWallpaper = root.defaultWallpaper
+        } else if (migrated) {
+            root.saveState()
+        }
+        // dimLevel bilinçli olarak yüklenmez, kara ekran korumasıdır.
         root.dimLevel = 0.0
     }
 

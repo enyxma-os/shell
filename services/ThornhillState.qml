@@ -37,7 +37,7 @@ Singleton {
     property int unreadChips: 0
     property bool socketConnected: false
 
-    readonly property string runtimeDir: Quickshell.env("XDG_RUNTIME_DIR") || "/run/user/1000"
+    readonly property string runtimeDir: Quickshell.env("XDG_RUNTIME_DIR") || "/tmp"
     readonly property string socketPath: Quickshell.env("THORNHILL_SOCK") || (runtimeDir + "/thornhill/thornhill.sock")
 
     property bool shouldConnect: true
@@ -253,9 +253,27 @@ Singleton {
         }
     }
 
+    property bool _pendingOpenConsole: false
+
+    FileView {
+        id: tokenFile
+        path: root.runtimeDir + "/thornhill/http.token"
+        printErrors: false
+        onLoaded: if (root._pendingOpenConsole) root._launchConsole(tokenFile.text())
+        onLoadFailed: if (root._pendingOpenConsole) root._launchConsole("")
+    }
+
+    function _launchConsole(rawToken) {
+        root._pendingOpenConsole = false
+        var t = String(rawToken || "").trim()
+        var url = t.length > 0 ? ("http://127.0.0.1:9099/?token=" + t) : "http://127.0.0.1:9099"
+        Quickshell.execDetached(["xdg-open", url])
+    }
+
     // Yerel konsol bağlantısı ve otomatik token aktarımı
     function openConsole() {
-        Quickshell.execDetached(["bash", "-c", "t=$(cat \"$XDG_RUNTIME_DIR/thornhill/http.token\" 2>/dev/null); if [ -n \"$t\" ]; then xdg-open \"http://127.0.0.1:9099/?token=$t\"; else xdg-open \"http://127.0.0.1:9099\"; fi"])
+        root._pendingOpenConsole = true
+        tokenFile.reload()
     }
 
     IpcHandler {
