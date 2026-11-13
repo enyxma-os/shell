@@ -93,7 +93,7 @@ Singleton {
     function generateThemeFromImage(rawPath) {
         if (!rawPath || rawPath.length === 0) return
         matugenProc.exec([
-            "matugen", "-c", root.matugenConfig, "--source-color-index", "0", "image", rawPath
+            "enyxma-theme-apply", "image", rawPath
         ])
     }
 
@@ -102,7 +102,7 @@ Singleton {
         var hex = String(hexColor).trim()
         if (!/^#?[0-9a-fA-F]{6}$/.test(hex)) return
         matugenProc.exec([
-            "matugen", "-c", root.matugenConfig, "color", "hex", hex
+            "enyxma-theme-apply", "color", hex
         ])
     }
 
