@@ -1,0 +1,78 @@
+# Enyxma OS — Matugen Tarafından Otomatik Üretilen Hyprlock Yapılandırması
+# DOĞRUDAN DÜZENLEMEYİN. Şablon: templates/hyprlock.conf.in
+
+general {
+    disable_loading_bar = true
+    hide_cursor = true
+    grace = 0
+    no_fade_in = false
+}
+
+background {
+    monitor =
+    path = screenshot
+    color = rgba({{colors.background.default.hex_stripped}}ff)
+    blur_passes = 3
+    blur_size = 7
+    noise = 0.0117
+    contrast = 0.8916
+    brightness = 0.75
+    vibrancy = 0.1696
+    vibrancy_darkness = 0.0
+}
+
+input-field {
+    monitor =
+    size = 280, 56
+    outline_thickness = 2
+    dots_size = 0.25
+    dots_spacing = 0.2
+    dots_center = true
+    outer_color = rgba({{colors.primary.default.hex_stripped}}cc) rgba({{colors.secondary.default.hex_stripped}}cc) 45deg
+    inner_color = rgba({{colors.surface.default.hex_stripped}}d9)
+    font_color = rgba({{colors.on_surface.default.hex_stripped}}ff)
+    fade_on_empty = false
+    font_family = JetBrainsMono Nerd Font
+    placeholder_text = <i><span foreground="##{{colors.on_surface_variant.default.hex_stripped}}">Parola...</span></i>
+    hide_input = false
+    check_color = rgba({{colors.tertiary.default.hex_stripped}}ff)
+    fail_color = rgba({{colors.error.default.hex_stripped}}ff)
+    fail_text = <i>$FAIL <b>($ATTEMPTS)</b></i>
+    capslock_color = rgba({{colors.tertiary.default.hex_stripped}}ff)
+    position = 0, -80
+    halign = center
+    valign = center
+}
+
+label {
+    monitor =
+    text = cmd[update:1000] echo "$(date +"%H:%M")"
+    color = rgba({{colors.on_surface.default.hex_stripped}}ff)
+    font_size = 84
+    font_family = JetBrainsMono Nerd Font Bold
+    position = 0, 120
+    halign = center
+    valign = center
+}
+
+label {
+    monitor =
+    text = cmd[update:60000] echo "$(date +"%d %B %Y, %A")"
+    color = rgba({{colors.primary.default.hex_stripped}}ff)
+    font_size = 18
+    font_family = JetBrainsMono Nerd Font
+    position = 0, 35
+    halign = center
+    valign = center
+}
+
+label {
+    monitor =
+    text =   $USER
+    color = rgba({{colors.on_surface_variant.default.hex_stripped}}ff)
+    font_size = 15
+    font_family = JetBrainsMono Nerd Font
+    position = 0, -20
+    halign = center
+    valign = center
+}

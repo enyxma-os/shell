@@ -9,3 +9,28 @@ output_path = "services/GeneratedColors.qml"
 input_path = "templates/colors.lua.in"
 output_path = "~/.config/hypr/colors.lua"
 post_hook = "sh -c 'hyprctl reload 2>/dev/null || true'"
+
+[templates.kitty]
+input_path = "templates/kitty.conf.in"
+output_path = "~/.config/kitty/kitty.conf"
+post_hook = "pkill -USR1 -x kitty || true"
+
+[templates.foot]
+input_path = "templates/foot.ini.in"
+output_path = "~/.config/foot/foot.ini"
+
+[templates.yazi]
+input_path = "templates/yazi-theme.toml.in"
+output_path = "~/.config/yazi/theme.toml"
+
+[templates.gtk3]
+input_path = "templates/gtk.css.in"
+output_path = "~/.config/gtk-3.0/gtk.css"
+
+[templates.gtk4]
+input_path = "templates/gtk.css.in"
+output_path = "~/.config/gtk-4.0/gtk.css"
+
+[templates.hyprlock]
+input_path = "templates/hyprlock.conf.in"
+output_path = "~/.config/hypr/hyprlock.conf"
