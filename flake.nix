@@ -51,12 +51,11 @@
           # kopyalanır ve shell oradan çalışır.
           bootstrap = ''
             SRC="@src@"
-            VER="$(cat "$SRC/VERSION")"
             ROOT="''${XDG_DATA_HOME:-$HOME/.local/share}/enyxma-shell"
-            RUNTIME="$ROOT/$VER"
+            RUNTIME="$ROOT/runtime"
             if [ ! -f "$RUNTIME/.store-source" ] || [ "$(cat "$RUNTIME/.store-source" 2>/dev/null)" != "$SRC" ]; then
               mkdir -p "$RUNTIME"
-              find "$ROOT" -mindepth 1 -maxdepth 1 -type d ! -name "$VER" \
+              find "$ROOT" -mindepth 1 -maxdepth 1 -type d ! -name "runtime" \
                 -exec rm -rf {} + 2>/dev/null || true
               cp -r "$SRC"/. "$RUNTIME"/
               chmod -R u+w "$RUNTIME"
@@ -86,7 +85,7 @@
         {
           default = pkgs.stdenv.mkDerivation {
             pname = "enyxma-shell";
-            version = "0.2.0";
+            version = pkgs.lib.strings.trim (builtins.readFile ./VERSION);
             src = ./.;
 
             nativeBuildInputs = [ pkgs.makeWrapper ];
