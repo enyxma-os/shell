@@ -15,7 +15,7 @@ RowLayout {
             property int wsId: modelData?.id ?? 0
             readonly property bool isFocused: wsId === HyprlandState.focusedWorkspaceId
 
-            implicitWidth: isFocused ? (Theme.isGotham ? 32 : 28) : 10
+            implicitWidth: isFocused ? (Theme.isGotham ? 26 : 28) : 10
             implicitHeight: Theme.isGotham ? 16 : 10
             radius: Theme.isGotham ? 1 : (height / 2)
 
@@ -26,9 +26,11 @@ RowLayout {
             Text {
                 visible: Theme.isGotham && wsItem.isFocused
                 anchors.centerIn: parent
-                text: "🦇"
+                text: wsItem.wsId < 10 ? ("0" + wsItem.wsId) : ("" + wsItem.wsId)
                 color: Theme.accentOn
+                font.family: Theme.fontMono
                 font.pixelSize: 9
+                font.bold: true
             }
 
             Behavior on implicitWidth {

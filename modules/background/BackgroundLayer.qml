@@ -41,7 +41,7 @@ PanelWindow {
 
         function activateSlot(useA: bool) {
             activeSlotA = useA
-            if (initialized && !Theme.reduceMotion) {
+            if (initialized && !Theme.reduceMotion && !Theme.isGotham) {
                 flashAnim.restart()
             }
             initialized = true
@@ -57,7 +57,7 @@ PanelWindow {
             opacity: (bufferContainer.activeSlotA && source.toString().length > 0) ? 1.0 : 0.0
             scale: (bufferContainer.activeSlotA && source.toString().length > 0)
                 ? 1.0
-                : (bufferContainer.initialized ? 1.07 : 1.04)
+                : (bufferContainer.initialized ? (Theme.isGotham ? 1.02 : 1.07) : 1.02)
 
             Behavior on opacity {
                 enabled: !Theme.reduceMotion
@@ -92,7 +92,7 @@ PanelWindow {
             opacity: (!bufferContainer.activeSlotA && source.toString().length > 0) ? 1.0 : 0.0
             scale: (!bufferContainer.activeSlotA && source.toString().length > 0)
                 ? 1.0
-                : (bufferContainer.initialized ? 1.07 : 1.04)
+                : (bufferContainer.initialized ? (Theme.isGotham ? 1.02 : 1.07) : 1.02)
 
             Behavior on opacity {
                 enabled: !Theme.reduceMotion
@@ -120,6 +120,7 @@ PanelWindow {
         // Geçiş anında kısa sinematik vurgu parıltısı
         Rectangle {
             id: transitionFlash
+            visible: !Theme.isGotham
             anchors.fill: parent
             z: 5
             opacity: 0.0

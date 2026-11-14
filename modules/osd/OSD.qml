@@ -76,6 +76,18 @@ PanelWindow {
         border.width: Theme.borderWidth
         opacity: 0.0
 
+        // Gotham 2.0 ust vurgu hatti
+        Rectangle {
+            visible: Theme.isGotham
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+            }
+            height: 1
+            color: Theme.accent
+        }
+
         Behavior on opacity {
             enabled: !Theme.reduceMotion
             NumberAnimation {
@@ -103,8 +115,8 @@ PanelWindow {
 
             Rectangle {
                 Layout.fillWidth: true
-                height: 6
-                radius: height / 2
+                height: Theme.isGotham ? 4 : 6
+                radius: Theme.isGotham ? Theme.radiusSmall : height / 2
                 color: Theme.surface1
 
                 Rectangle {
@@ -114,7 +126,7 @@ PanelWindow {
                             ? Math.max(0.0, Math.min(1.0, BrightnessState.level))
                             : (AudioState.muted ? 0.0 : Math.max(0.0, Math.min(1.0, AudioState.volume)))
                     )
-                    radius: height / 2
+                    radius: Theme.isGotham ? Theme.radiusSmall : height / 2
                     color: root.osdMode === "brightness"
                         ? Theme.accent
                         : (AudioState.muted ? Theme.danger : Theme.accent)

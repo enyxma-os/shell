@@ -49,6 +49,18 @@ PanelWindow {
         border.color: Theme.borderSubtle
         border.width: Theme.borderWidth
 
+        // Gotham 2.0 ust vurgu hatti
+        Rectangle {
+            visible: Theme.isGotham
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+            }
+            height: 1
+            color: Theme.accent
+        }
+
         opacity: NotificationState.isPanelOpen ? 1.0 : 0.0
 
         Behavior on opacity {
@@ -76,7 +88,7 @@ PanelWindow {
                 Text {
                     text: "BİLDİRİMLER"
                     color: Theme.textPrimary
-                    font.family: Theme.fontMono
+                    font.family: Theme.fontDisplay
                     font.pixelSize: Theme.fontSizeNormal
                     font.bold: true
                     font.letterSpacing: 2

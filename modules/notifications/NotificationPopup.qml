@@ -33,7 +33,7 @@ PanelWindow {
     }
 
     margins {
-        top: NotificationState.hasActivePopup ? 48 : 20
+        top: NotificationState.hasActivePopup ? (Theme.isGotham ? 42 : 48) : 20
         right: 12
     }
 
@@ -59,6 +59,18 @@ PanelWindow {
         radius: Theme.radiusPanel
         border.color: root.isCritical ? Theme.danger : Theme.borderSubtle
         border.width: root.isCritical ? 2 : Theme.borderWidth
+
+        // Gotham 2.0 ust vurgu hatti
+        Rectangle {
+            visible: Theme.isGotham
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+            }
+            height: 1
+            color: root.isCritical ? Theme.danger : Theme.accent
+        }
 
         opacity: NotificationState.hasActivePopup ? 1.0 : 0.0
 

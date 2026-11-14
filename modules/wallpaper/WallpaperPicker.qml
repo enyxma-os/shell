@@ -227,8 +227,8 @@ PanelWindow {
 
             Repeater {
                 model: [
-                    { id: "dynamic", label: "✦ DİNAMİK" },
-                    { id: "gotham",  label: "🦇 GOTHAM" }
+                    { id: "dynamic", label: Theme.isGotham ? "DİNAMİK" : "✦ DİNAMİK" },
+                    { id: "gotham",  label: Theme.isGotham ? "GOTHAM" : "🦇 GOTHAM" }
                 ]
 
                 delegate: Rectangle {
@@ -283,9 +283,9 @@ PanelWindow {
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: Theme.isGotham ? "🦇 GOTHAM KARA ŞÖVALYE KOLEKSİYONU" : "✦ ENYXMA DİNAMİK DUVAR KAĞITLARI"
+                text: Theme.isGotham ? "GOTHAM MİMARİ KOLEKSİYONU" : "✦ ENYXMA DİNAMİK DUVAR KAĞITLARI"
                 color: Theme.textSecondary
-                font.family: Theme.fontMono
+                font.family: Theme.fontDisplay
                 font.pixelSize: Theme.fontSizeSmall
                 font.letterSpacing: 2
                 font.weight: Font.Medium

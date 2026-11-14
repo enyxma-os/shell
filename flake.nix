@@ -162,7 +162,7 @@
               mkdir -p "$SHELL_DIR/services" "$HOME/.config/hypr" "$HOME/.config/kitty" "$HOME/.config/foot" "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"
 
               cat > "$SHELL_DIR/services/GeneratedColors.qml" << 'EOF'
-// Enyxma OS — Gotham Kara Sovalye Sabit Paleti
+// Enyxma OS — Gotham 2.0 Brutalist Sabit Paleti
 pragma Singleton
 import QtQuick
 
@@ -171,30 +171,30 @@ QtObject {
 
     property string preset: "gotham"
 
-    // Primary Accents
-    property color primary: "#f5c518"
+    // Primary Accents (Kontrollu endustriyel kehribar)
+    property color primary: "#f0b429"
     property color primaryFg: "#07080b"
-    property color primaryContainer: "#2b240a"
-    property color primaryContainerFg: "#fde047"
+    property color primaryContainer: "#241e0a"
+    property color primaryContainerFg: "#fcd34d"
 
-    // Secondary & Tertiary
+    // Secondary & Tertiary (Soguk arduvaz ve grafit)
     property color secondary: "#64748b"
     property color secondaryFg: "#07080b"
     property color tertiary: "#94a3b8"
     property color tertiaryFg: "#07080b"
 
-    // Surfaces & Containers
+    // Surfaces & Containers (Obsidyen ve bazalt katmanlari)
     property color background: "#07080b"
     property color backgroundFg: "#e2e8f0"
     property color surface: "#0b0d12"
     property color surfaceFg: "#e2e8f0"
-    property color surfaceContainer: "#12151d"
-    property color surfaceContainerHigh: "#181c26"
+    property color surfaceContainer: "#11141c"
+    property color surfaceContainerHigh: "#171b26"
     property color surfaceVariantFg: "#94a3b8"
 
-    // Outlines & Borders
-    property color outline: "#475569"
-    property color outlineVariant: "#262c3a"
+    // Outlines & Borders (Soguk grafit ve arduvaz)
+    property color outline: "#333c4d"
+    property color outlineVariant: "#222834"
 
     // State & Status
     property color danger: "#e11d48"
@@ -203,7 +203,7 @@ QtObject {
 EOF
 
               cat > "$HOME/.config/hypr/colors.lua" << 'EOF'
--- Enyxma OS Gotham Kara Sovalye Hyprland Paleti
+-- Enyxma OS Gotham 2.0 Hyprland Paleti
 return {
     preset = "gotham",
     rounding = 0,
@@ -212,17 +212,17 @@ return {
     gaps_out = 8,
     cursor_theme = "Bibata-Modern-Classic",
     cursor_size = 24,
-    accent = "rgba(f5c518ee)",
-    accent_secondary = "rgba(64748bee)",
-    accent_solid = "#f5c518",
+    accent = "rgba(f0b429ee)",
+    accent_secondary = "rgba(f0b429ee)",
+    accent_solid = "#f0b429",
     surface = "rgba(0b0d12ee)",
-    surface_container = "rgba(12151dee)",
-    outline = "rgba(262c3aaa)",
+    surface_container = "rgba(11141cee)",
+    outline = "rgba(222834cc)",
 }
 EOF
 
               cat > "$HOME/.config/kitty/kitty.conf" << 'EOF'
-# Enyxma OS — Gotham Kara Sovalye Kitty Yapilandirmasi
+# Enyxma OS — Gotham 2.0 Kitty Yapilandirmasi
 font_family      JetBrainsMono Nerd Font
 bold_font        auto
 italic_font      auto
@@ -239,39 +239,39 @@ cursor_blink_interval 0.5
 
 background            #07080b
 foreground            #e2e8f0
-selection_background  #2b240a
-selection_foreground  #fde047
-url_color             #f5c518
-cursor                #f5c518
+selection_background  #241e0a
+selection_foreground  #fcd34d
+url_color             #f0b429
+cursor                #f0b429
 cursor_text_color     #07080b
 
-active_border_color   #f5c518
-inactive_border_color #262c3a
-active_tab_background   #f5c518
+active_border_color   #f0b429
+inactive_border_color #222834
+active_tab_background   #f0b429
 active_tab_foreground   #07080b
-inactive_tab_background #12151d
+inactive_tab_background #11141c
 inactive_tab_foreground #94a3b8
 
 color0  #050608
-color8  #475569
+color8  #333c4d
 color1  #e11d48
 color9  #e11d48
-color2  #f5c518
-color10 #f5c518
+color2  #f0b429
+color10 #f0b429
 color3  #94a3b8
 color11 #94a3b8
 color4  #64748b
 color12 #64748b
 color5  #cbd5e1
 color13 #94a3b8
-color6  #fde047
-color14 #f5c518
+color6  #fcd34d
+color14 #f0b429
 color7  #94a3b8
 color15 #e2e8f0
 EOF
 
               cat > "$HOME/.config/foot/foot.ini" << 'EOF'
-# Enyxma OS — Gotham Kara Sovalye Foot Yapilandirmasi
+# Enyxma OS — Gotham 2.0 Foot Yapilandirmasi
 [main]
 font=JetBrainsMono Nerd Font:size=11
 pad=12x12
@@ -288,53 +288,53 @@ lines=10000
 alpha=0.92
 background=07080b
 foreground=e2e8f0
-cursor=07080b f5c518
-selection-foreground=fde047
-selection-background=2b240a
+cursor=07080b f0b429
+selection-foreground=fcd34d
+selection-background=241e0a
 
 regular0=050608
 regular1=e11d48
-regular2=f5c518
+regular2=f0b429
 regular3=94a3b8
 regular4=64748b
 regular5=cbd5e1
-regular6=fde047
+regular6=fcd34d
 regular7=94a3b8
 
-bright0=475569
+bright0=333c4d
 bright1=e11d48
-bright2=f5c518
+bright2=f0b429
 bright3=94a3b8
 bright4=64748b
 bright5=94a3b8
-bright6=f5c518
+bright6=f0b429
 bright7=e2e8f0
 EOF
 
               for gtk_dir in "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"; do
                 cat > "$gtk_dir/gtk.css" << 'EOF'
-/* Enyxma OS — Gotham Kara Sovalye GTK 3 ve GTK 4 Renkleri */
-@define-color accent_color #f5c518;
-@define-color accent_bg_color #f5c518;
+/* Enyxma OS — Gotham 2.0 GTK 3 ve GTK 4 Renkleri */
+@define-color accent_color #f0b429;
+@define-color accent_bg_color #f0b429;
 @define-color accent_fg_color #07080b;
 @define-color destructive_color #e11d48;
 @define-color destructive_bg_color #4c0519;
 @define-color destructive_fg_color #fda4af;
-@define-color success_color #f5c518;
+@define-color success_color #f0b429;
 @define-color warning_color #94a3b8;
 @define-color error_color #e11d48;
 @define-color window_bg_color #07080b;
 @define-color window_fg_color #e2e8f0;
 @define-color view_bg_color #0b0d12;
 @define-color view_fg_color #e2e8f0;
-@define-color headerbar_bg_color #12151d;
+@define-color headerbar_bg_color #11141c;
 @define-color headerbar_fg_color #e2e8f0;
-@define-color headerbar_border_color #262c3a;
-@define-color card_bg_color #12151d;
+@define-color headerbar_border_color #222834;
+@define-color card_bg_color #11141c;
 @define-color card_fg_color #e2e8f0;
-@define-color dialog_bg_color #181c26;
+@define-color dialog_bg_color #171b26;
 @define-color dialog_fg_color #e2e8f0;
-@define-color popover_bg_color #181c26;
+@define-color popover_bg_color #171b26;
 @define-color popover_fg_color #e2e8f0;
 @define-color sidebar_bg_color #090b0f;
 @define-color sidebar_fg_color #e2e8f0;
@@ -342,7 +342,7 @@ EOF
               done
 
               cat > "$HOME/.config/hypr/hyprlock.conf" << 'EOF'
-# Enyxma OS — Gotham Kara Sovalye Hyprlock Yapilandirmasi
+# Enyxma OS — Gotham 2.0 Hyprlock Yapilandirmasi
 general {
     disable_loading_bar = true
     hide_cursor = true
@@ -370,17 +370,17 @@ input-field {
     dots_size = 0.25
     dots_spacing = 0.2
     dots_center = true
-    outer_color = rgba(f5c518cc) rgba(64748bcc) 45deg
+    outer_color = rgba(f0b429cc) rgba(f0b429cc) 45deg
     inner_color = rgba(0b0d12d9)
     font_color = rgba(e2e8f0ff)
     fade_on_empty = false
     font_family = Orbitron
     placeholder_text = <i><span foreground="##94a3b8">Parola...</span></i>
     hide_input = false
-    check_color = rgba(f5c518ff)
+    check_color = rgba(f0b429ff)
     fail_color = rgba(e11d48ff)
     fail_text = <i>$FAIL <b>($ATTEMPTS)</b></i>
-    capslock_color = rgba(f5c518ff)
+    capslock_color = rgba(f0b429ff)
     position = 0, -80
     halign = center
     valign = center

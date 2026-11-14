@@ -13,10 +13,10 @@ EnyxmaPill {
     onRightClicked: WallpaperState.cycleTheme()
 
     Text {
-        text: Theme.isGotham ? "🦇" : "󰏘"
-        color: (WallpaperState.pickerVisible || Theme.isGotham) ? Theme.accent : Theme.textPrimary
+        text: "󰏘"
+        color: root.isActive ? Theme.accent : Theme.textPrimary
         font.family: Theme.fontMono
-        font.pixelSize: Theme.isGotham ? 12 : Theme.fontSizeNormal
+        font.pixelSize: Theme.fontSizeNormal
         Layout.alignment: Qt.AlignVCenter
 
         Behavior on color {
