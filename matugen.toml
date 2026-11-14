@@ -19,10 +19,6 @@ post_hook = "pkill -USR1 -x kitty || true"
 input_path = "templates/foot.ini.in"
 output_path = "~/.config/foot/foot.ini"
 
-[templates.yazi]
-input_path = "templates/yazi-theme.toml.in"
-output_path = "~/.config/yazi/theme.toml"
-
 [templates.gtk3]
 input_path = "templates/gtk.css.in"
 output_path = "~/.config/gtk-3.0/gtk.css"

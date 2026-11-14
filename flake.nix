@@ -53,17 +53,33 @@
             SRC="@src@"
             ROOT="''${XDG_DATA_HOME:-$HOME/.local/share}/enyxma-shell"
             RUNTIME="$ROOT/runtime"
+            # matugen sablon yollari: store degil yazilabilir calisma agaci
+            export ENYXMA_SHELL_DIR="$RUNTIME"
             if [ ! -f "$RUNTIME/.store-source" ] || [ "$(cat "$RUNTIME/.store-source" 2>/dev/null)" != "$SRC" ]; then
               mkdir -p "$RUNTIME"
               find "$ROOT" -mindepth 1 -maxdepth 1 -type d ! -name "runtime" \
                 -exec rm -rf {} + 2>/dev/null || true
               cp -r "$SRC"/. "$RUNTIME"/
               chmod -R u+w "$RUNTIME"
+              chmod +x "$RUNTIME/enyxma-theme-apply"
               echo "$SRC" > "$RUNTIME/.store-source"
               date -u +%FT%TZ > "$RUNTIME/.stamp"
+              rm -f "$HOME/.config/yazi/theme.toml" 2>/dev/null || true
+              WP_PATH=""
+              STATE_FILE=$(find "''${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/by-shell" -maxdepth 2 -name wallpaper.json -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -n 1 | cut -d' ' -f2- || true)
+              if [ -n "$STATE_FILE" ] && [ -f "$STATE_FILE" ]; then
+                CANDIDATE=$(sed -n 's/.*"wallpaper"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE_FILE" | head -n 1 | sed 's|^file://||')
+                if [ -n "$CANDIDATE" ] && [ -f "$CANDIDATE" ]; then
+                  WP_PATH="$CANDIDATE"
+                fi
+              fi
+              if [ -z "$WP_PATH" ]; then
+                WP_PATH="$RUNTIME/assets/wallpapers/enyxma-obsidian-monolith.jpg"
+              fi
+              if [ -f "$WP_PATH" ]; then
+                "$RUNTIME/enyxma-theme-apply" image "$WP_PATH" >/dev/null 2>&1 || true
+              fi
             fi
-            # matugen sablon yollari: store degil yazilabilir calisma agaci
-            export ENYXMA_SHELL_DIR="$RUNTIME"
           '';
 
           launcher = pkgs.writeShellScript "enyxma-shell-launcher" (''
@@ -84,6 +100,8 @@
 
           themeApply = pkgs.writeShellScript "enyxma-theme-apply" ''
             set -euo pipefail
+            export PATH="${binPath}:$PATH"
+            rm -f "$HOME/.config/yazi/theme.toml" 2>/dev/null || true
             MODE="''${1:-image}"
             TARGET="''${2:-}"
             if [ -z "$TARGET" ]; then
@@ -175,6 +193,9 @@
               cp VERSION $out/share/enyxma-shell/VERSION
 
 
+              cp ${themeApply} $out/share/enyxma-shell/enyxma-theme-apply
+              chmod +x $out/share/enyxma-shell/enyxma-theme-apply
+
               mkdir -p $out/bin
               substitute ${launcher} $out/bin/enyxma-shell --replace-fail "@src@" "$out/share/enyxma-shell"
               chmod +x $out/bin/enyxma-shell
@@ -183,8 +204,8 @@
               cp ${themeApply} $out/bin/enyxma-theme-apply
               chmod +x $out/bin/enyxma-theme-apply
 
-              wrapProgram $out/bin/enyxma-shell --prefix PATH : ${binPath}
-              wrapProgram $out/bin/enyxma-shot --prefix PATH : ${binPath}
+              wrapProgram $out/bin/enyxma-shell --prefix PATH : "$out/bin:${binPath}"
+              wrapProgram $out/bin/enyxma-shot --prefix PATH : "$out/bin:${binPath}"
               wrapProgram $out/bin/enyxma-theme-apply --prefix PATH : ${binPath}
             '';
 

@@ -37,6 +37,7 @@ Singleton {
     }
 
     readonly property string matugenConfig: root.shellDir + "/matugen.toml"
+    readonly property string themeApplyBin: root.shellDir + "/enyxma-theme-apply"
     readonly property string defaultWallpaper: "file://" + root.shellDir + "/assets/wallpapers/enyxma-obsidian-monolith.jpg"
 
     function togglePicker() {
@@ -93,7 +94,7 @@ Singleton {
     function generateThemeFromImage(rawPath) {
         if (!rawPath || rawPath.length === 0) return
         matugenProc.exec([
-            "enyxma-theme-apply", "image", rawPath
+            root.themeApplyBin, "image", rawPath
         ])
     }
 
@@ -102,7 +103,7 @@ Singleton {
         var hex = String(hexColor).trim()
         if (!/^#?[0-9a-fA-F]{6}$/.test(hex)) return
         matugenProc.exec([
-            "enyxma-theme-apply", "color", hex
+            root.themeApplyBin, "color", hex
         ])
     }
 
