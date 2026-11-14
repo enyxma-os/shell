@@ -83,18 +83,28 @@ PanelWindow {
 
     Connections {
         target: WallpaperState
+        function syncSelectionToCurrent() {
+            var list = root.filteredWallpapers || []
+            for (var i = 0; i < list.length; i++) {
+                if (list[i].filePath === WallpaperState.currentWallpaper) {
+                    root.selectedIndex = i
+                    return
+                }
+            }
+            if (list.length > 0 && root.selectedIndex >= list.length) {
+                root.selectedIndex = 0
+            }
+        }
         function onPickerVisibleChanged() {
             if (WallpaperState.pickerVisible) {
                 root.filterText = ""
-                // Mevcut seçili olan duvar kağıdına odaklan
-                var all = WallpaperState.wallpapers || []
-                for (var i = 0; i < all.length; i++) {
-                    if (all[i].filePath === WallpaperState.currentWallpaper) {
-                        root.selectedIndex = i
-                        break
-                    }
-                }
+                syncSelectionToCurrent()
                 stage.forceActiveFocus()
+            }
+        }
+        function onWallpapersChanged() {
+            if (WallpaperState.pickerVisible) {
+                syncSelectionToCurrent()
             }
         }
     }
@@ -198,6 +208,9 @@ PanelWindow {
             } else if (event.key === Qt.Key_Right || event.key === Qt.Key_Tab) {
                 root.moveSelection(1)
                 event.accepted = true
+            } else if (event.key === Qt.Key_T && root.filterText.length === 0 && !(event.modifiers & Qt.ControlModifier)) {
+                WallpaperState.cycleTheme()
+                event.accepted = true
             } else if (event.text && event.text.length === 1 && event.text.charCodeAt(0) >= 32 && event.text.charCodeAt(0) !== 127) {
                 root.filterText += event.text
                 event.accepted = true
@@ -270,7 +283,7 @@ PanelWindow {
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: "ENYXMA OS DUVAR KAĞITLARI"
+                text: Theme.isGotham ? "🦇 GOTHAM KARA ŞÖVALYE KOLEKSİYONU" : "✦ ENYXMA DİNAMİK DUVAR KAĞITLARI"
                 color: Theme.textSecondary
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall
@@ -479,7 +492,7 @@ PanelWindow {
             // Kısayol Rehberi
             Text {
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "← →  kaydır     Enter  uygula     Esc  kapat     yazarak filtrele"
+                text: "← →  kaydır     Enter  uygula     T  tema değiştir     Esc  kapat     yazarak filtrele"
                 color: Theme.textMuted
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall

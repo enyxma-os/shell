@@ -10,12 +10,13 @@ EnyxmaPill {
     isActive: WallpaperState.pickerVisible
 
     onClicked: WallpaperState.togglePicker()
+    onRightClicked: WallpaperState.cycleTheme()
 
     Text {
-        text: "󰏘"
-        color: WallpaperState.pickerVisible ? Theme.accent : Theme.textPrimary
+        text: Theme.isGotham ? "🦇" : "󰏘"
+        color: (WallpaperState.pickerVisible || Theme.isGotham) ? Theme.accent : Theme.textPrimary
         font.family: Theme.fontMono
-        font.pixelSize: Theme.fontSizeNormal
+        font.pixelSize: Theme.isGotham ? 12 : Theme.fontSizeNormal
         Layout.alignment: Qt.AlignVCenter
 
         Behavior on color {
