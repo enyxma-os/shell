@@ -6,6 +6,8 @@ import QtQuick
 QtObject {
     id: root
 
+    property string preset: "dynamic"
+
     // Primary Accents
     property color primary: "{{colors.primary.default.hex}}"
     property color primaryFg: "{{colors.on_primary.default.hex}}"

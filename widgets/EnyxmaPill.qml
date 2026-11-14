@@ -14,7 +14,7 @@ Rectangle {
     implicitHeight: 24
     implicitWidth: Math.max(containerLayout.implicitWidth + Theme.spacingMedium * 2, height)
 
-    radius: height / 2
+    radius: Theme.isGotham ? Theme.radiusButton : (height / 2)
     color: isActive ? Theme.surfaceHover : (mouseArea.containsMouse ? Theme.surfaceHover : Theme.surface1)
     border.color: isActive ? Theme.accent : Theme.borderSubtle
     border.width: Theme.borderWidth

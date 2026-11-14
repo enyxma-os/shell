@@ -204,8 +204,63 @@ PanelWindow {
             }
         }
 
-        // ── Üst Bilgi Satırı (Başlık & Sayaç) ──
+        // ── Tema Profili Seçici Şeridi ──
+        Row {
+            id: themePresetRow
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: headerRow.top
+            anchors.bottomMargin: 16
+            spacing: 10
+
+            Repeater {
+                model: [
+                    { id: "dynamic", label: "✦ DİNAMİK" },
+                    { id: "gotham",  label: "🦇 GOTHAM" }
+                ]
+
+                delegate: Rectangle {
+                    required property var modelData
+                    readonly property bool isSelected: WallpaperState.currentTheme === modelData.id
+
+                    height: 28
+                    width: presetTxt.implicitWidth + 24
+                    radius: Theme.radiusButton
+                    color: isSelected
+                        ? Theme.accent
+                        : (presetMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                    border.width: Theme.borderWidth
+                    border.color: isSelected ? Theme.accent : Theme.borderSubtle
+
+                    Text {
+                        id: presetTxt
+                        anchors.centerIn: parent
+                        text: modelData.label
+                        color: isSelected ? Theme.accentOn : Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.bold: true
+                        font.letterSpacing: 1
+                    }
+
+                    MouseArea {
+                        id: presetMa
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (WallpaperState.currentTheme !== modelData.id) {
+                                WallpaperState.setThemePreset(modelData.id)
+                            }
+                            stage.forceActiveFocus()
+                        }
+                    }
+                }
+            }
+        }
+
+        // ── Üst Bilgi Satırı ──
         Item {
+            id: headerRow
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: carouselArea.top
             anchors.bottomMargin: 24
@@ -282,7 +337,7 @@ PanelWindow {
                     Rectangle {
                         id: cardFrame
                         anchors.fill: parent
-                        radius: 10
+                        radius: Theme.radiusWidget
                         color: Theme.bgPanel
                         border.width: cardItem.focused ? 2 : 1
                         border.color: cardItem.focused ? Theme.accent : Theme.borderSubtle

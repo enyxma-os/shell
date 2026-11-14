@@ -31,6 +31,9 @@
         xdg-utils
         nerd-fonts.jetbrains-mono
         inter
+        orbitron
+        bibata-cursors
+        papirus-icon-theme
       ];
 
       forAllSystems = f: nixpkgs.lib.genAttrs systems (system: f {
@@ -66,18 +69,27 @@
               date -u +%FT%TZ > "$RUNTIME/.stamp"
               rm -f "$HOME/.config/yazi/theme.toml" 2>/dev/null || true
               WP_PATH=""
+              ACTIVE_THEME="dynamic"
               STATE_FILE=$(find "''${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/by-shell" -maxdepth 2 -name wallpaper.json -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -n 1 | cut -d' ' -f2- || true)
               if [ -n "$STATE_FILE" ] && [ -f "$STATE_FILE" ]; then
-                CANDIDATE=$(sed -n 's/.*"wallpaper"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE_FILE" | head -n 1 | sed 's|^file://||')
+                THEME_CAND=$(sed -n 's/.*"theme"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE_FILE" | head -n 1 || true)
+                if [ "$THEME_CAND" = "gotham" ]; then
+                  ACTIVE_THEME="gotham"
+                fi
+                CANDIDATE=$(sed -n 's/.*"wallpaper"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p' "$STATE_FILE" | head -n 1 | sed 's|^file://||' || true)
                 if [ -n "$CANDIDATE" ] && [ -f "$CANDIDATE" ]; then
                   WP_PATH="$CANDIDATE"
                 fi
               fi
-              if [ -z "$WP_PATH" ]; then
-                WP_PATH="$RUNTIME/assets/wallpapers/enyxma-obsidian-monolith.jpg"
-              fi
-              if [ -f "$WP_PATH" ]; then
-                "$RUNTIME/enyxma-theme-apply" image "$WP_PATH" >/dev/null 2>&1 || true
+              if [ "$ACTIVE_THEME" = "gotham" ]; then
+                "$RUNTIME/enyxma-theme-apply" preset gotham >/dev/null 2>&1 || true
+              else
+                if [ -z "$WP_PATH" ]; then
+                  WP_PATH="$RUNTIME/assets/wallpapers/enyxma-obsidian-monolith.jpg"
+                fi
+                if [ -f "$WP_PATH" ]; then
+                  "$RUNTIME/enyxma-theme-apply" image "$WP_PATH" >/dev/null 2>&1 || true
+                fi
               fi
             fi
           '';
@@ -146,8 +158,273 @@
               }'
             }
 
+            apply_gotham_preset() {
+              mkdir -p "$SHELL_DIR/services" "$HOME/.config/hypr" "$HOME/.config/kitty" "$HOME/.config/foot" "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"
+
+              cat > "$SHELL_DIR/services/GeneratedColors.qml" << 'EOF'
+// Enyxma OS — Gotham Kara Sovalye Sabit Paleti
+pragma Singleton
+import QtQuick
+
+QtObject {
+    id: root
+
+    property string preset: "gotham"
+
+    // Primary Accents
+    property color primary: "#f5c518"
+    property color primaryFg: "#07080b"
+    property color primaryContainer: "#2b240a"
+    property color primaryContainerFg: "#fde047"
+
+    // Secondary & Tertiary
+    property color secondary: "#64748b"
+    property color secondaryFg: "#07080b"
+    property color tertiary: "#94a3b8"
+    property color tertiaryFg: "#07080b"
+
+    // Surfaces & Containers
+    property color background: "#07080b"
+    property color backgroundFg: "#e2e8f0"
+    property color surface: "#0b0d12"
+    property color surfaceFg: "#e2e8f0"
+    property color surfaceContainer: "#12151d"
+    property color surfaceContainerHigh: "#181c26"
+    property color surfaceVariantFg: "#94a3b8"
+
+    // Outlines & Borders
+    property color outline: "#475569"
+    property color outlineVariant: "#262c3a"
+
+    // State & Status
+    property color danger: "#e11d48"
+    property color dangerFg: "#07080b"
+}
+EOF
+
+              cat > "$HOME/.config/hypr/colors.lua" << 'EOF'
+-- Enyxma OS Gotham Kara Sovalye Hyprland Paleti
+return {
+    preset = "gotham",
+    rounding = 0,
+    border_size = 2,
+    gaps_in = 4,
+    gaps_out = 8,
+    cursor_theme = "Bibata-Modern-Classic",
+    cursor_size = 24,
+    accent = "rgba(f5c518ee)",
+    accent_secondary = "rgba(64748bee)",
+    accent_solid = "#f5c518",
+    surface = "rgba(0b0d12ee)",
+    surface_container = "rgba(12151dee)",
+    outline = "rgba(262c3aaa)",
+}
+EOF
+
+              cat > "$HOME/.config/kitty/kitty.conf" << 'EOF'
+# Enyxma OS — Gotham Kara Sovalye Kitty Yapilandirmasi
+font_family      JetBrainsMono Nerd Font
+bold_font        auto
+italic_font      auto
+font_size        11.5
+
+background_opacity    0.88
+window_padding_width  14
+
+confirm_os_window_close 0
+enable_audio_bell       no
+
+cursor_shape          beam
+cursor_blink_interval 0.5
+
+background            #07080b
+foreground            #e2e8f0
+selection_background  #2b240a
+selection_foreground  #fde047
+url_color             #f5c518
+cursor                #f5c518
+cursor_text_color     #07080b
+
+active_border_color   #f5c518
+inactive_border_color #262c3a
+active_tab_background   #f5c518
+active_tab_foreground   #07080b
+inactive_tab_background #12151d
+inactive_tab_foreground #94a3b8
+
+color0  #050608
+color8  #475569
+color1  #e11d48
+color9  #e11d48
+color2  #f5c518
+color10 #f5c518
+color3  #94a3b8
+color11 #94a3b8
+color4  #64748b
+color12 #64748b
+color5  #cbd5e1
+color13 #94a3b8
+color6  #fde047
+color14 #f5c518
+color7  #94a3b8
+color15 #e2e8f0
+EOF
+
+              cat > "$HOME/.config/foot/foot.ini" << 'EOF'
+# Enyxma OS — Gotham Kara Sovalye Foot Yapilandirmasi
+[main]
+font=JetBrainsMono Nerd Font:size=11
+pad=12x12
+initial-window-size-chars=110x32
+
+[cursor]
+style=beam
+blink=yes
+
+[scrollback]
+lines=10000
+
+[colors-dark]
+alpha=0.92
+background=07080b
+foreground=e2e8f0
+cursor=07080b f5c518
+selection-foreground=fde047
+selection-background=2b240a
+
+regular0=050608
+regular1=e11d48
+regular2=f5c518
+regular3=94a3b8
+regular4=64748b
+regular5=cbd5e1
+regular6=fde047
+regular7=94a3b8
+
+bright0=475569
+bright1=e11d48
+bright2=f5c518
+bright3=94a3b8
+bright4=64748b
+bright5=94a3b8
+bright6=f5c518
+bright7=e2e8f0
+EOF
+
+              for gtk_dir in "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"; do
+                cat > "$gtk_dir/gtk.css" << 'EOF'
+/* Enyxma OS — Gotham Kara Sovalye GTK 3 ve GTK 4 Renkleri */
+@define-color accent_color #f5c518;
+@define-color accent_bg_color #f5c518;
+@define-color accent_fg_color #07080b;
+@define-color destructive_color #e11d48;
+@define-color destructive_bg_color #4c0519;
+@define-color destructive_fg_color #fda4af;
+@define-color success_color #f5c518;
+@define-color warning_color #94a3b8;
+@define-color error_color #e11d48;
+@define-color window_bg_color #07080b;
+@define-color window_fg_color #e2e8f0;
+@define-color view_bg_color #0b0d12;
+@define-color view_fg_color #e2e8f0;
+@define-color headerbar_bg_color #12151d;
+@define-color headerbar_fg_color #e2e8f0;
+@define-color headerbar_border_color #262c3a;
+@define-color card_bg_color #12151d;
+@define-color card_fg_color #e2e8f0;
+@define-color dialog_bg_color #181c26;
+@define-color dialog_fg_color #e2e8f0;
+@define-color popover_bg_color #181c26;
+@define-color popover_fg_color #e2e8f0;
+@define-color sidebar_bg_color #090b0f;
+@define-color sidebar_fg_color #e2e8f0;
+EOF
+              done
+
+              cat > "$HOME/.config/hypr/hyprlock.conf" << 'EOF'
+# Enyxma OS — Gotham Kara Sovalye Hyprlock Yapilandirmasi
+general {
+    disable_loading_bar = true
+    hide_cursor = true
+    grace = 0
+    no_fade_in = false
+}
+
+background {
+    monitor =
+    path = screenshot
+    color = rgba(07080bff)
+    blur_passes = 3
+    blur_size = 7
+    noise = 0.0117
+    contrast = 0.8916
+    brightness = 0.70
+    vibrancy = 0.1696
+    vibrancy_darkness = 0.0
+}
+
+input-field {
+    monitor =
+    size = 280, 56
+    outline_thickness = 2
+    dots_size = 0.25
+    dots_spacing = 0.2
+    dots_center = true
+    outer_color = rgba(f5c518cc) rgba(64748bcc) 45deg
+    inner_color = rgba(0b0d12d9)
+    font_color = rgba(e2e8f0ff)
+    fade_on_empty = false
+    font_family = Orbitron
+    placeholder_text = <i><span foreground="##94a3b8">Parola...</span></i>
+    hide_input = false
+    check_color = rgba(f5c518ff)
+    fail_color = rgba(e11d48ff)
+    fail_text = <i>$FAIL <b>($ATTEMPTS)</b></i>
+    capslock_color = rgba(f5c518ff)
+    position = 0, -80
+    halign = center
+    valign = center
+}
+
+label {
+    monitor =
+    text = cmd[update:1000] echo "$(date +"%H:%M")"
+    color = rgba(e2e8f0ff)
+    font_size = 84
+    font_family = Orbitron
+    position = 0, 120
+    halign = center
+    valign = center
+}
+
+label {
+    monitor =
+    text = cmd[update:60000] echo "$(date +"%d %B %Y, %A")"
+    color = rgba(f5c518ff)
+    font_size = 18
+    font_family = Orbitron
+    position = 0, 35
+    halign = center
+    valign = center
+}
+
+label {
+    monitor =
+    text =   $USER
+    color = rgba(94a3b8ff)
+    font_size = 15
+    font_family = JetBrainsMono Nerd Font
+    position = 0, -20
+    halign = center
+    valign = center
+}
+EOF
+            }
+
             cd "$SHELL_DIR"
-            if [ "$MODE" = "image" ]; then
+            if [ "$MODE" = "preset" ] && [ "$TARGET" = "gotham" ]; then
+              apply_gotham_preset
+            elif [ "$MODE" = "image" ]; then
               HEX=$(extract_vibrant_hex "$TARGET")
               matugen -c "$CFG" -t scheme-vibrant color hex "$HEX"
             else
@@ -158,16 +435,55 @@
               export HYPRLAND_INSTANCE_SIGNATURE=$(ls -1 "/run/user/$(id -u)/hypr" 2>/dev/null | head -n 1 || true)
             fi
 
-            if [ -f "$HOME/.config/hypr/colors.lua" ] && command -v hyprctl >/dev/null 2>&1; then
-              ACT_A=$(sed -n 's/.*accent = "\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-              ACT_B=$(sed -n 's/.*accent_secondary = "\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-              INACT=$(sed -n 's/.*outline = "\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-              if [ -n "$ACT_A" ] && [ -n "$ACT_B" ]; then
-                hyprctl keyword general:col.active_border "$ACT_A $ACT_B 45deg" >/dev/null 2>&1 || true
+            CUR_THEME="Bibata-Modern-Ice"
+            CUR_SIZE="24"
+            ICON_THEME="Papirus-Dark"
+            if [ -f "$HOME/.config/hypr/colors.lua" ]; then
+              ACT_A=$(sed -n 's/^[[:space:]]*accent[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              ACT_B=$(sed -n 's/^[[:space:]]*accent_secondary[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              INACT=$(sed -n 's/^[[:space:]]*outline[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              RND=$(sed -n 's/^[[:space:]]*rounding[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              BSZ=$(sed -n 's/^[[:space:]]*border_size[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              GIN=$(sed -n 's/^[[:space:]]*gaps_in[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              GOUT=$(sed -n 's/^[[:space:]]*gaps_out[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              C_T=$(sed -n 's/^[[:space:]]*cursor_theme[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              C_S=$(sed -n 's/^[[:space:]]*cursor_size[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
+              [ -n "$C_T" ] && CUR_THEME="$C_T"
+              [ -n "$C_S" ] && CUR_SIZE="$C_S"
+
+              if command -v hyprctl >/dev/null 2>&1; then
+                [ -n "$ACT_A" ] && [ -n "$ACT_B" ] && hyprctl keyword general:col.active_border "$ACT_A $ACT_B 45deg" >/dev/null 2>&1 || true
+                [ -n "$INACT" ] && hyprctl keyword general:col.inactive_border "$INACT" >/dev/null 2>&1 || true
+                [ -n "$RND" ] && hyprctl keyword decoration:rounding "$RND" >/dev/null 2>&1 || true
+                [ -n "$BSZ" ] && hyprctl keyword general:border_size "$BSZ" >/dev/null 2>&1 || true
+                [ -n "$GIN" ] && hyprctl keyword general:gaps_in "$GIN" >/dev/null 2>&1 || true
+                [ -n "$GOUT" ] && hyprctl keyword general:gaps_out "$GOUT" >/dev/null 2>&1 || true
+                hyprctl setcursor "$CUR_THEME" "$CUR_SIZE" >/dev/null 2>&1 || true
               fi
-              if [ -n "$INACT" ]; then
-                hyprctl keyword general:col.inactive_border "$INACT" >/dev/null 2>&1 || true
-              fi
+            fi
+
+            for gtk_dir in "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"; do
+              mkdir -p "$gtk_dir"
+              cat > "$gtk_dir/settings.ini" << EOF
+[Settings]
+gtk-application-prefer-dark-theme=1
+gtk-cursor-theme-name=$CUR_THEME
+gtk-cursor-theme-size=$CUR_SIZE
+gtk-icon-theme-name=$ICON_THEME
+EOF
+            done
+
+            mkdir -p "$HOME/.icons/default"
+            cat > "$HOME/.icons/default/index.theme" << EOF
+[Icon Theme]
+Inherits=$CUR_THEME
+EOF
+
+            if command -v gsettings >/dev/null 2>&1; then
+              gsettings set org.gnome.desktop.interface cursor-theme "$CUR_THEME" >/dev/null 2>&1 || true
+              gsettings set org.gnome.desktop.interface cursor-size "$CUR_SIZE" >/dev/null 2>&1 || true
+              gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" >/dev/null 2>&1 || true
+              gsettings set org.gnome.desktop.interface color-scheme "prefer-dark" >/dev/null 2>&1 || true
             fi
 
             pkill -USR1 -x kitty >/dev/null 2>&1 || true
