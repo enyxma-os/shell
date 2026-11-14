@@ -21,6 +21,7 @@ Singleton {
     id: root
 
     property string currentWallpaper: ""
+    property string currentTheme: "dynamic"
     property real dimLevel: 0.0
     property bool pickerVisible: false
     property var wallpapers: []
@@ -70,7 +71,26 @@ Singleton {
         }
         currentWallpaper = p
         saveState()
-        generateThemeFromImage(p.replace(/^file:\/\//, ""))
+        if (root.currentTheme === "dynamic") {
+            generateThemeFromImage(p.replace(/^file:\/\//, ""))
+        }
+    }
+
+    function setThemePreset(presetName) {
+        var name = String(presetName || "").trim().toLowerCase()
+        if (name === "gotham") {
+            root.currentTheme = "gotham"
+            root.currentWallpaper = "file://" + root.shellDir + "/assets/wallpapers/enyxma-dark-city.png"
+            root.saveState()
+            matugenProc.exec([root.themeApplyBin, "preset", "gotham"])
+        } else {
+            root.currentTheme = "dynamic"
+            root.saveState()
+            var target = (root.currentWallpaper && root.currentWallpaper.length > 0)
+                ? root.currentWallpaper
+                : root.defaultWallpaper
+            root.generateThemeFromImage(target.replace(/^file:\/\//, ""))
+        }
     }
 
     function setDim(level) {
@@ -150,6 +170,11 @@ Singleton {
                     }
                     root.currentWallpaper = saved
                 }
+                if (data && typeof data === "object" &&
+                    typeof data.theme === "string" && data.theme.trim().length > 0) {
+                    var loadedTheme = data.theme.trim().toLowerCase()
+                    root.currentTheme = (loadedTheme === "gotham") ? "gotham" : "dynamic"
+                }
             }
         } catch (e) {
             console.warn("WallpaperState: Durum yüklenemedi:", e)
@@ -165,7 +190,10 @@ Singleton {
 
     function saveState() {
         try {
-            stateFile.setText(JSON.stringify({ wallpaper: root.currentWallpaper }, null, 2))
+            stateFile.setText(JSON.stringify({
+                wallpaper: root.currentWallpaper,
+                theme: root.currentTheme
+            }, null, 2))
         } catch (e) {
             console.warn("WallpaperState: Durum kaydedilemedi:", e)
         }
@@ -226,6 +254,7 @@ Singleton {
         function toggle(): void { root.togglePicker() }
         function picker(): void { root.togglePicker() }
         function color(hex: string): void { root.generateThemeFromColor(hex) }
+        function preset(name: string): void { root.setThemePreset(name) }
         function refresh(): void { root.scanWallpapers() }
     }
 

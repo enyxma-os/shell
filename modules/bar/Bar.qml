@@ -128,7 +128,7 @@ Rectangle {
             onClicked: AIState.toggle()
 
             Text {
-                text: "✦ AI"
+                text: Theme.aiLabel
                 color: AIState.isOpen ? Theme.accent : Theme.textPrimary
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall
@@ -147,5 +147,18 @@ Rectangle {
         Tray {
             id: tray
         }
+    }
+
+    // Gotham taktiksel alt HUD çizgisi
+    Rectangle {
+        visible: Theme.isGotham
+        anchors {
+            left: parent.left
+            right: parent.right
+            bottom: parent.bottom
+        }
+        height: 1
+        color: Theme.accent
+        opacity: 0.75
     }
 }

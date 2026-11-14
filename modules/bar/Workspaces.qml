@@ -17,7 +17,7 @@ RowLayout {
 
             implicitWidth: isFocused ? 28 : 10
             implicitHeight: 10
-            radius: height / 2
+            radius: Theme.isGotham ? 1 : (height / 2)
 
             color: isFocused ? Theme.accent : (wsMouse.containsMouse ? Theme.surfaceHover : Theme.surface1)
             border.color: isFocused ? Theme.accent : Theme.borderSubtle

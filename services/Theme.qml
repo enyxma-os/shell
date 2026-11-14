@@ -26,6 +26,8 @@ Singleton {
     // GeneratedColors'ın güvenli erişimi: yoksa null.
     readonly property var gen: (typeof GeneratedColors !== "undefined" && GeneratedColors) ? GeneratedColors : null
     readonly property bool hasGen: root.gen !== null && root.themeReady
+    readonly property string preset: (root.hasGen && root.gen.preset) ? root.gen.preset : "dynamic"
+    readonly property bool isGotham: root.preset === "gotham"
 
     // Motion Control
     readonly property bool reduceMotion: false
@@ -53,9 +55,11 @@ Singleton {
 
     // ── Borders ───────────────────────────────────────────────────────
     readonly property int borderWidth: 1
-    readonly property color borderSubtle: root.hasGen
-        ? Qt.rgba(root.gen.outline.r, root.gen.outline.g, root.gen.outline.b, 0.20)
-        : Qt.rgba(1, 1, 1, 0.08)
+    readonly property color borderSubtle: root.isGotham
+        ? Qt.rgba(0.96, 0.77, 0.09, 0.28)
+        : (root.hasGen
+            ? Qt.rgba(root.gen.outline.r, root.gen.outline.g, root.gen.outline.b, 0.20)
+            : Qt.rgba(1, 1, 1, 0.08))
     readonly property color borderFocus: root.hasGen
         ? Qt.rgba(root.gen.primary.r, root.gen.primary.g, root.gen.primary.b, 0.60)
         : Qt.rgba(0.22, 0.74, 0.97, 0.45)
@@ -71,18 +75,22 @@ Singleton {
     readonly property color success: "#10B981"
 
     // ── Geometry & Spacing ────────────────────────────────────────────
-    readonly property int radiusPanel: 14
-    readonly property int radiusWidget: 10
-    readonly property int radiusButton: 8
-    readonly property int radiusSmall: 6
+    readonly property int radiusPanel: root.isGotham ? 0 : 14
+    readonly property int radiusWidget: root.isGotham ? 2 : 10
+    readonly property int radiusButton: root.isGotham ? 2 : 8
+    readonly property int radiusSmall: root.isGotham ? 1 : 6
+    readonly property int barMarginTop: root.isGotham ? 0 : 4
+    readonly property int barMarginSide: root.isGotham ? 0 : 8
+    readonly property int barHeight: root.isGotham ? 34 : 36
     readonly property int spacingXS: 4
     readonly property int spacingSmall: 8
     readonly property int spacingMedium: 12
     readonly property int spacingLarge: 18
 
     // ── Typography ────────────────────────────────────────────────────
-    readonly property string fontFamily: "Inter"
+    readonly property string fontFamily: root.isGotham ? "Orbitron" : "Inter"
     readonly property string fontMono: "JetBrainsMono Nerd Font"
+    readonly property string aiLabel: root.isGotham ? "🦇 AI" : "✦ AI"
     readonly property int fontSizeSmall: 11
     readonly property int fontSizeNormal: 13
     readonly property int fontSizeLarge: 16

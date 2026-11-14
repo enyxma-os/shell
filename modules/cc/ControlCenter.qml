@@ -453,6 +453,55 @@ PanelWindow {
                 }
             }
 
+            // ── 2c. TEMA PROFİLİ SEÇİCİ ──
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingSmall
+
+                Repeater {
+                    model: [
+                        { id: "dynamic", label: "✦ DİNAMİK" },
+                        { id: "gotham",  label: "🦇 GOTHAM" }
+                    ]
+
+                    delegate: Rectangle {
+                        required property var modelData
+                        readonly property bool isSelected: WallpaperState.currentTheme === modelData.id
+
+                        Layout.fillWidth: true
+                        implicitHeight: 34
+                        radius: Theme.radiusButton
+                        color: isSelected
+                            ? Theme.accent
+                            : (ccPresetMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                        border.color: isSelected ? Theme.accent : Theme.borderSubtle
+                        border.width: Theme.borderWidth
+
+                        Text {
+                            anchors.centerIn: parent
+                            text: modelData.label
+                            color: isSelected ? Theme.accentOn : Theme.textPrimary
+                            font.family: Theme.fontMono
+                            font.pixelSize: 10
+                            font.bold: true
+                            font.letterSpacing: 1
+                        }
+
+                        MouseArea {
+                            id: ccPresetMa
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: {
+                                if (WallpaperState.currentTheme !== modelData.id) {
+                                    WallpaperState.setThemePreset(modelData.id)
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // ── 3. SES KONTROLÜ (MİNİMALİST ÇUBUK) ──
             ColumnLayout {
                 Layout.fillWidth: true

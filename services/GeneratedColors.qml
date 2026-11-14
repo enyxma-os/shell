@@ -12,6 +12,8 @@ import QtQuick
 Singleton {
     id: root
 
+    property string preset: "dynamic"
+
     // Primary / Accent
     property color primary: "#38bdf8"
     property color primaryFg: "#00344a"

@@ -57,12 +57,17 @@ ShellRoot {
                 left: true
                 right: true
             }
-            implicitHeight: 36
-            exclusiveZone: 36
+            implicitHeight: Theme.barHeight + Theme.barMarginTop
+            exclusiveZone: Theme.barHeight + Theme.barMarginTop
             color: "transparent"
 
             Bar {
-                anchors.fill: parent
+                anchors {
+                    fill: parent
+                    topMargin: Theme.barMarginTop
+                    leftMargin: Theme.barMarginSide
+                    rightMargin: Theme.barMarginSide
+                }
             }
         }
     }
