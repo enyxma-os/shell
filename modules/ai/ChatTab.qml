@@ -38,7 +38,7 @@ Item {
             Text {
                 text: "ENYXMA AI"
                 color: Theme.textSecondary
-                font.family: Theme.fontMono
+                font.family: Theme.fontDisplay
                 font.pixelSize: Theme.fontSizeSmall
                 font.bold: true
                 font.letterSpacing: 1.5

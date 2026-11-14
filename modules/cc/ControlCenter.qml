@@ -74,6 +74,18 @@ PanelWindow {
         border.color: Theme.borderSubtle
         border.width: Theme.borderWidth
 
+        // Gotham 2.0 ust vurgu hatti
+        Rectangle {
+            visible: Theme.isGotham
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+            }
+            height: 1
+            color: Theme.accent
+        }
+
         opacity: SystemState.isControlCenterOpen ? 1.0 : 0.0
 
         Behavior on opacity {

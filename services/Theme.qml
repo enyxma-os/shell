@@ -98,6 +98,7 @@ Singleton {
     readonly property string fontDisplay: root.isGotham ? "Orbitron" : "Inter"
     readonly property string fontMono: "JetBrainsMono Nerd Font"
     readonly property string aiLabel: root.isGotham ? "󰧑 AI" : "✦ AI"
+    readonly property int fontSizeXS: 9
     readonly property int fontSizeSmall: 11
     readonly property int fontSizeNormal: 13
     readonly property int fontSizeLarge: 16

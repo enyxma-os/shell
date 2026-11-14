@@ -112,7 +112,7 @@ Singleton {
 
     function cycleTheme() {
         var next = (root.currentTheme === "gotham") ? "dynamic" : "gotham"
-        var label = (next === "gotham") ? "🦇 Gotham — Kara Şövalye" : "✦ Dinamik — Matugen"
+        var label = (next === "gotham") ? "Gotham — Brutalist Mimari" : "✦ Dinamik — Matugen"
         setThemePreset(next)
         Quickshell.execDetached(["notify-send", "-t", "2200", "Enyxma Tema Motoru", label])
     }

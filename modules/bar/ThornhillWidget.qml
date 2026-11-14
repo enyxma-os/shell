@@ -22,7 +22,7 @@ EnyxmaPill {
     Text {
         Layout.alignment: Qt.AlignVCenter
         // 👁️ + durum noktası. Renk tek kaynaktan: ThornhillState.color
-        text: "👁"
+        text: Theme.isGotham ? "󰈈" : "👁"
         color: ThornhillState.color
         font.family: Theme.fontMono
         font.pixelSize: Theme.fontSizeSmall
