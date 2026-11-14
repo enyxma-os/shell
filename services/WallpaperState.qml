@@ -22,10 +22,12 @@ Singleton {
 
     property string currentWallpaper: ""
     property string currentTheme: "dynamic"
+    property var themeWallpapers: ({})
     property real dimLevel: 0.0
     property bool pickerVisible: false
     property var wallpapers: []
     property bool isScanning: false
+    property string scannedTheme: ""
     property bool stateLoaded: false
 
     readonly property string home: Quickshell.env("HOME") || ""
@@ -40,6 +42,7 @@ Singleton {
     readonly property string matugenConfig: root.shellDir + "/matugen.toml"
     readonly property string themeApplyBin: root.shellDir + "/enyxma-theme-apply"
     readonly property string defaultWallpaper: "file://" + root.shellDir + "/assets/wallpapers/enyxma-obsidian-monolith.jpg"
+    readonly property string defaultGothamWallpaper: "file://" + root.shellDir + "/assets/wallpapers/gotham/gotham-dark-city.png"
 
     function togglePicker() {
         if (pickerVisible) { pickerVisible = false; return }
@@ -47,7 +50,7 @@ Singleton {
     }
     function openPicker() {
         pickerVisible = true
-        if (wallpapers.length === 0) scanWallpapers()
+        if (wallpapers.length === 0 || scannedTheme !== currentTheme) scanWallpapers()
     }
     function closePicker() { pickerVisible = false }
 
@@ -70,6 +73,9 @@ Singleton {
             p = "file://" + p
         }
         currentWallpaper = p
+        var map = Object.assign({}, root.themeWallpapers || {})
+        map[root.currentTheme] = p
+        root.themeWallpapers = map
         saveState()
         if (root.currentTheme === "dynamic") {
             generateThemeFromImage(p.replace(/^file:\/\//, ""))
@@ -78,19 +84,37 @@ Singleton {
 
     function setThemePreset(presetName) {
         var name = String(presetName || "").trim().toLowerCase()
+        if (name !== "gotham") name = "dynamic"
+
+        var prevTheme = root.currentTheme || "dynamic"
+        var map = Object.assign({}, root.themeWallpapers || {})
+        if (root.currentWallpaper && root.currentWallpaper.length > 0) {
+            map[prevTheme] = root.currentWallpaper
+        }
+
+        root.currentTheme = name
+        var nextWp = map[name]
+        if (!nextWp || String(nextWp).trim().length === 0) {
+            nextWp = (name === "gotham") ? root.defaultGothamWallpaper : root.defaultWallpaper
+        }
+        map[name] = nextWp
+        root.themeWallpapers = map
+        root.currentWallpaper = nextWp
+        root.saveState()
+        root.scanWallpapers()
+
         if (name === "gotham") {
-            root.currentTheme = "gotham"
-            root.currentWallpaper = "file://" + root.shellDir + "/assets/wallpapers/enyxma-dark-city.png"
-            root.saveState()
             matugenProc.exec([root.themeApplyBin, "preset", "gotham"])
         } else {
-            root.currentTheme = "dynamic"
-            root.saveState()
-            var target = (root.currentWallpaper && root.currentWallpaper.length > 0)
-                ? root.currentWallpaper
-                : root.defaultWallpaper
-            root.generateThemeFromImage(target.replace(/^file:\/\//, ""))
+            root.generateThemeFromImage(String(nextWp).replace(/^file:\/\//, ""))
         }
+    }
+
+    function cycleTheme() {
+        var next = (root.currentTheme === "gotham") ? "dynamic" : "gotham"
+        var label = (next === "gotham") ? "🦇 Gotham — Kara Şövalye" : "✦ Dinamik — Matugen"
+        setThemePreset(next)
+        Quickshell.execDetached(["notify-send", "-t", "2200", "Enyxma Tema Motoru", label])
     }
 
     function setDim(level) {
@@ -147,6 +171,21 @@ Singleton {
         onLoadFailed: root.loadState()
     }
 
+    function normalizeWallpaperUrl(rawUrl) {
+        var s = String(rawUrl || "").trim()
+        if (!s) return ""
+        var marker = "/assets/wallpapers/"
+        var markerIdx = s.indexOf(marker)
+        if (s.indexOf("/enyxma-shell/") !== -1 && markerIdx !== -1) {
+            var rel = s.substring(markerIdx + marker.length)
+            if (rel === "enyxma-dark-city.png") {
+                rel = "gotham/gotham-dark-city.png"
+            }
+            s = "file://" + root.shellDir + marker + rel
+        }
+        return s
+    }
+
     function loadState() {
         if (root.stateLoaded) return
         root.stateLoaded = true
@@ -157,17 +196,9 @@ Singleton {
                 var data = JSON.parse(raw)
                 if (data && typeof data === "object" &&
                     typeof data.wallpaper === "string" && data.wallpaper.trim().length > 0) {
-                    var saved = data.wallpaper.trim()
-                    var marker = "/assets/wallpapers/"
-                    var markerIdx = saved.indexOf(marker)
-                    if (saved.indexOf("/enyxma-shell/") !== -1 && markerIdx !== -1) {
-                        var fileName = saved.substring(markerIdx + marker.length)
-                        var target = "file://" + root.shellDir + marker + fileName
-                        if (target !== saved) {
-                            saved = target
-                            migrated = true
-                        }
-                    }
+                    var orig = data.wallpaper.trim()
+                    var saved = root.normalizeWallpaperUrl(orig)
+                    if (saved !== orig) migrated = true
                     root.currentWallpaper = saved
                 }
                 if (data && typeof data === "object" &&
@@ -175,24 +206,45 @@ Singleton {
                     var loadedTheme = data.theme.trim().toLowerCase()
                     root.currentTheme = (loadedTheme === "gotham") ? "gotham" : "dynamic"
                 }
+                if (data && typeof data === "object" &&
+                    data.themeWallpapers && typeof data.themeWallpapers === "object") {
+                    var normMap = {}
+                    var keys = Object.keys(data.themeWallpapers)
+                    for (var i = 0; i < keys.length; i++) {
+                        var k = keys[i]
+                        var v = data.themeWallpapers[k]
+                        if (typeof v === "string" && v.trim().length > 0) {
+                            var nv = root.normalizeWallpaperUrl(v)
+                            if (nv !== v) migrated = true
+                            normMap[k] = nv
+                        }
+                    }
+                    root.themeWallpapers = normMap
+                }
             }
         } catch (e) {
             console.warn("WallpaperState: Durum yüklenemedi:", e)
         }
         if (!root.currentWallpaper || root.currentWallpaper.length === 0) {
-            root.currentWallpaper = root.defaultWallpaper
+            root.currentWallpaper = (root.currentTheme === "gotham")
+                ? root.defaultGothamWallpaper
+                : root.defaultWallpaper
         } else if (migrated) {
             root.saveState()
         }
         // dimLevel bilinçli olarak yüklenmez, kara ekran korumasıdır.
         root.dimLevel = 0.0
+        if (root.scannedTheme !== root.currentTheme && !root.isScanning) {
+            root.scanWallpapers()
+        }
     }
 
     function saveState() {
         try {
             stateFile.setText(JSON.stringify({
                 wallpaper: root.currentWallpaper,
-                theme: root.currentTheme
+                theme: root.currentTheme,
+                themeWallpapers: root.themeWallpapers
             }, null, 2))
         } catch (e) {
             console.warn("WallpaperState: Durum kaydedilemedi:", e)
@@ -208,6 +260,9 @@ Singleton {
         onExited: (code) => {
             root.isScanning = false
             root.consumeScan(scanOut.text)
+            if (root.scannedTheme !== root.currentTheme) {
+                root.scanWallpapers()
+            }
         }
     }
 
@@ -228,17 +283,23 @@ Singleton {
                 label: root.formatLabel(fileName)
             })
         }
+        list.sort(function(a, b) {
+            return String(a.label).localeCompare(String(b.label))
+        })
         root.wallpapers = list
     }
 
     function scanWallpapers() {
         if (isScanning) return
         isScanning = true
-        var dirs = [
-            root.shellDir + "/assets/wallpapers",
-            root.home + "/Pictures/Wallpapers",
-            root.home + "/.local/share/wallpapers"
-        ]
+        root.scannedTheme = root.currentTheme
+        var dirs = (root.currentTheme === "gotham")
+            ? [root.shellDir + "/assets/wallpapers/gotham"]
+            : [
+                root.shellDir + "/assets/wallpapers",
+                root.home + "/Pictures/Wallpapers",
+                root.home + "/.local/share/wallpapers"
+            ]
         scanProc.exec(["find"].concat(dirs).concat([
             "-maxdepth", "1", "-type", "f", "(",
             "-iname", "*.jpg", "-o", "-iname", "*.jpeg", "-o",
@@ -255,6 +316,7 @@ Singleton {
         function picker(): void { root.togglePicker() }
         function color(hex: string): void { root.generateThemeFromColor(hex) }
         function preset(name: string): void { root.setThemePreset(name) }
+        function cycle(): void { root.cycleTheme() }
         function refresh(): void { root.scanWallpapers() }
     }
 
