@@ -101,7 +101,7 @@ PanelWindow {
                 Text {
                     text: "SİSTEM"
                     color: Theme.textPrimary
-                    font.family: Theme.fontMono
+                    font.family: Theme.fontDisplay
                     font.pixelSize: Theme.fontSizeNormal
                     font.bold: true
                     font.letterSpacing: 2
@@ -112,7 +112,7 @@ PanelWindow {
                 }
 
                 Text {
-                    text: (SystemState.isBatteryPresent ? ("BATARYA %" + SystemState.batteryPercent) : "GÜÇ: AC") + (SystemState.isCharging ? " ⚡" : "")
+                    text: (SystemState.isBatteryPresent ? ("BATARYA %" + SystemState.batteryPercent) : "GÜÇ: AC") + (SystemState.isCharging ? (Theme.isGotham ? " 󰂄" : " ⚡") : "")
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -426,7 +426,7 @@ PanelWindow {
                     spacing: Theme.spacingSmall
 
                     Text {
-                        text: "👁"
+                        text: Theme.isGotham ? "󰈈" : "👁"
                         color: ThornhillState.color
                         font.family: Theme.fontMono
                         font.pixelSize: 15
@@ -460,8 +460,8 @@ PanelWindow {
 
                 Repeater {
                     model: [
-                        { id: "dynamic", label: "✦ DİNAMİK" },
-                        { id: "gotham",  label: "🦇 GOTHAM" }
+                        { id: "dynamic", label: Theme.isGotham ? "DİNAMİK" : "✦ DİNAMİK" },
+                        { id: "gotham",  label: Theme.isGotham ? "GOTHAM" : "🦇 GOTHAM" }
                     ]
 
                     delegate: Rectangle {
@@ -557,17 +557,17 @@ PanelWindow {
                         x: volumeSlider.leftPadding
                         y: volumeSlider.topPadding + volumeSlider.availableHeight / 2 - height / 2
                         implicitWidth: 200
-                        implicitHeight: 6
+                        implicitHeight: Theme.isGotham ? 4 : 6
                         width: volumeSlider.availableWidth
                         height: implicitHeight
-                        radius: 3
+                        radius: Theme.isGotham ? Theme.radiusSmall : 3
                         color: Theme.surfaceActive
 
                         Rectangle {
                             width: volumeSlider.visualPosition * parent.width
                             height: parent.height
                             color: AudioState.muted ? Theme.danger : Theme.accent
-                            radius: 3
+                            radius: Theme.isGotham ? Theme.radiusSmall : 3
                         }
                     }
 
@@ -631,17 +631,17 @@ PanelWindow {
                         x: brightSlider.leftPadding
                         y: brightSlider.topPadding + brightSlider.availableHeight / 2 - height / 2
                         implicitWidth: 200
-                        implicitHeight: 6
+                        implicitHeight: Theme.isGotham ? 4 : 6
                         width: brightSlider.availableWidth
                         height: implicitHeight
-                        radius: 3
+                        radius: Theme.isGotham ? Theme.radiusSmall : 3
                         color: Theme.surfaceActive
 
                         Rectangle {
                             width: brightSlider.visualPosition * parent.width
                             height: parent.height
                             color: Theme.accent
-                            radius: 3
+                            radius: Theme.isGotham ? Theme.radiusSmall : 3
                         }
                     }
 

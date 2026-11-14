@@ -13,7 +13,7 @@ EnyxmaPill {
     // Pil / Güç Durumu
     Text {
         Layout.alignment: Qt.AlignVCenter
-        text: (SystemState.isBatteryPresent ? ("󰁹 %" + SystemState.batteryPercent) : "AC") + (SystemState.isCharging ? " ⚡" : "")
+        text: (SystemState.isBatteryPresent ? ("󰁹 %" + SystemState.batteryPercent) : "AC") + (SystemState.isCharging ? (Theme.isGotham ? " 󰂄" : " ⚡") : "")
         color: SystemState.isControlCenterOpen ? Theme.accent : Theme.textPrimary
         font.family: Theme.fontMono
         font.pixelSize: Theme.fontSizeSmall

@@ -24,8 +24,8 @@ PanelWindow {
     }
 
     margins {
-        top: AIState.isOpen ? 44 : 20
-        right: 14
+        top: AIState.isOpen ? (Theme.isGotham ? 42 : 44) : 20
+        right: Theme.isGotham ? 12 : 14
     }
 
     implicitWidth: 432
@@ -57,6 +57,18 @@ PanelWindow {
         radius: Theme.radiusPanel
         border.color: Theme.borderSubtle
         border.width: Theme.borderWidth
+
+        // Gotham 2.0 ust vurgu hatti
+        Rectangle {
+            visible: Theme.isGotham
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+            }
+            height: 1
+            color: Theme.accent
+        }
 
         opacity: AIState.isOpen ? 1.0 : 0.0
 
@@ -132,7 +144,7 @@ PanelWindow {
                             }
                             width: 36
                             height: 36
-                            radius: 18
+                            radius: Theme.isGotham ? 2 : 18
                             color: tabItem.active ? Theme.accent
                                 : (tabMa.containsMouse ? Theme.surfaceHover : "transparent")
 

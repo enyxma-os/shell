@@ -19,43 +19,14 @@ Rectangle {
     id: root
     color: Theme.bgGlass
     radius: Theme.radiusPanel
-    border.color: Theme.borderSubtle
-    border.width: Theme.borderWidth
+    border.color: Theme.isGotham ? "transparent" : Theme.borderSubtle
+    border.width: Theme.isGotham ? 0 : Theme.borderWidth
 
     // ── MERKEZ: Saat, Tarih, Hava Durumu & Bento Hub ──
     ClockWidget {
         id: clockWidget
         anchors.centerIn: parent
         z: 2
-    }
-
-    // Gotham WayneTech HUD saat köşe çizgileri
-    Item {
-        visible: Theme.isGotham
-        anchors.right: clockWidget.left
-        anchors.rightMargin: 4
-        anchors.verticalCenter: clockWidget.verticalCenter
-        width: 5
-        height: 20
-        z: 2
-
-        Rectangle { anchors { left: parent.left; top: parent.top; bottom: parent.bottom } width: 1; color: Theme.accent; opacity: 0.75 }
-        Rectangle { anchors { left: parent.left; right: parent.right; top: parent.top } height: 1; color: Theme.accent; opacity: 0.75 }
-        Rectangle { anchors { left: parent.left; right: parent.right; bottom: parent.bottom } height: 1; color: Theme.accent; opacity: 0.75 }
-    }
-
-    Item {
-        visible: Theme.isGotham
-        anchors.left: clockWidget.right
-        anchors.leftMargin: 4
-        anchors.verticalCenter: clockWidget.verticalCenter
-        width: 5
-        height: 20
-        z: 2
-
-        Rectangle { anchors { right: parent.right; top: parent.top; bottom: parent.bottom } width: 1; color: Theme.accent; opacity: 0.75 }
-        Rectangle { anchors { left: parent.left; right: parent.right; top: parent.top } height: 1; color: Theme.accent; opacity: 0.75 }
-        Rectangle { anchors { left: parent.left; right: parent.right; bottom: parent.bottom } height: 1; color: Theme.accent; opacity: 0.75 }
     }
 
     // ── SOL KÜME: Masaüstü, Görsel & Medya Hub'ı ──
@@ -178,7 +149,7 @@ Rectangle {
         }
     }
 
-    // Gotham taktiksel alt HUD çizgisi
+    // Gotham 2.0 alt ayrim hatti
     Rectangle {
         visible: Theme.isGotham
         anchors {
@@ -187,7 +158,6 @@ Rectangle {
             bottom: parent.bottom
         }
         height: 1
-        color: Theme.accent
-        opacity: 0.75
+        color: Theme.borderSubtle
     }
 }

@@ -49,14 +49,20 @@ Singleton {
     readonly property color surface2: root.hasGen
         ? Qt.rgba(root.gen.surfaceContainerHigh.r, root.gen.surfaceContainerHigh.g, root.gen.surfaceContainerHigh.b, 0.70)
         : Qt.rgba(1, 1, 1, 0.08)
-    readonly property color surfaceHover: Qt.rgba(1, 1, 1, 0.10)
-    readonly property color surfaceActive: Qt.rgba(1, 1, 1, 0.16)
-    readonly property color scrim: Qt.rgba(0.0, 0.0, 0.0, 1.0)
+    readonly property color surfaceHover: root.isGotham
+        ? Qt.rgba(0.12, 0.14, 0.20, 0.78)
+        : Qt.rgba(1, 1, 1, 0.10)
+    readonly property color surfaceActive: root.isGotham
+        ? Qt.rgba(0.15, 0.18, 0.25, 0.90)
+        : Qt.rgba(1, 1, 1, 0.16)
+    readonly property color scrim: root.isGotham
+        ? Qt.rgba(0.02, 0.02, 0.03, 0.88)
+        : Qt.rgba(0.0, 0.0, 0.0, 1.0)
 
     // ── Borders ───────────────────────────────────────────────────────
     readonly property int borderWidth: 1
     readonly property color borderSubtle: root.isGotham
-        ? Qt.rgba(0.96, 0.77, 0.09, 0.28)
+        ? Qt.rgba(0.20, 0.24, 0.30, 0.65)
         : (root.hasGen
             ? Qt.rgba(root.gen.outline.r, root.gen.outline.g, root.gen.outline.b, 0.20)
             : Qt.rgba(1, 1, 1, 0.08))
@@ -88,9 +94,10 @@ Singleton {
     readonly property int spacingLarge: 18
 
     // ── Typography ────────────────────────────────────────────────────
-    readonly property string fontFamily: root.isGotham ? "Orbitron" : "Inter"
+    readonly property string fontFamily: "Inter"
+    readonly property string fontDisplay: root.isGotham ? "Orbitron" : "Inter"
     readonly property string fontMono: "JetBrainsMono Nerd Font"
-    readonly property string aiLabel: root.isGotham ? "🦇 AI" : "✦ AI"
+    readonly property string aiLabel: root.isGotham ? "󰧑 AI" : "✦ AI"
     readonly property int fontSizeSmall: 11
     readonly property int fontSizeNormal: 13
     readonly property int fontSizeLarge: 16

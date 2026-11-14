@@ -92,7 +92,7 @@ PanelWindow {
             z: 10
 
             Text {
-                text: "✦"
+                text: Theme.isGotham ? "󰈈" : "✦"
                 color: Theme.accent
                 font.pixelSize: Theme.fontSizeLarge + 6
             }
@@ -103,7 +103,7 @@ PanelWindow {
                 Text {
                     text: "GENEL BAKIŞ"
                     color: Theme.textPrimary
-                    font.family: Theme.fontMono
+                    font.family: Theme.fontDisplay
                     font.pixelSize: Theme.fontSizeLarge
                     font.bold: true
                     font.letterSpacing: 3

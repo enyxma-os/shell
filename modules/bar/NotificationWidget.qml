@@ -41,7 +41,7 @@ EnyxmaPill {
             visible: root.notifCount > 0
             implicitHeight: 12
             implicitWidth: Math.max(12, badgeTxt.implicitWidth + 4)
-            radius: 6
+            radius: Theme.isGotham ? 2 : 6
             color: Theme.accent
 
             anchors {

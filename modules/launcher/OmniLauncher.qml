@@ -63,6 +63,18 @@ PanelWindow {
         border.color: Theme.borderSubtle
         border.width: Theme.borderWidth
 
+        // Gotham 2.0 ust vurgu hatti
+        Rectangle {
+            visible: Theme.isGotham
+            anchors {
+                left: parent.left
+                right: parent.right
+                top: parent.top
+            }
+            height: 1
+            color: Theme.accent
+        }
+
         opacity: LauncherState.isOpen ? 1.0 : 0.0
         scale: LauncherState.isOpen ? 1.0 : 0.96
 
@@ -208,6 +220,18 @@ PanelWindow {
                     border.color: (appList.currentIndex === index) ? Theme.borderSubtle : "transparent"
                     border.width: Theme.borderWidth
 
+                    // Gotham 2.0 secili oge sol vurgu cubugu
+                    Rectangle {
+                        visible: Theme.isGotham && appList.currentIndex === index
+                        anchors {
+                            left: parent.left
+                            top: parent.top
+                            bottom: parent.bottom
+                        }
+                        width: 2
+                        color: Theme.accent
+                    }
+
                     RowLayout {
                         anchors {
                             fill: parent
@@ -234,7 +258,7 @@ PanelWindow {
                             Rectangle {
                                 anchors.fill: parent
                                 visible: appIconImg.status !== Image.Ready
-                                radius: 16
+                                radius: Theme.isGotham ? 2 : 16
                                 color: Theme.surfaceActive
                                 border.color: Theme.borderSubtle
                                 border.width: Theme.borderWidth
