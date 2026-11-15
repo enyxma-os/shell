@@ -1,7 +1,5 @@
 import QtQuick
 import "../../services"
-import "./variants/dynamic"
-import "./variants/gotham"
 
 /**
  * Bar — Enyxma Shell Ust Paneli Yonlendiricisi.

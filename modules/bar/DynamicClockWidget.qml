@@ -1,7 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
-import "../../../services"
-import "../../../widgets"
+import "../../services"
+import "../../widgets"
 
 EnyxmaPill {
     id: root
@@ -58,4 +58,3 @@ EnyxmaPill {
         Layout.alignment: Qt.AlignVCenter
     }
 }
-

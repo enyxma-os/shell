@@ -1,7 +1,5 @@
 import QtQuick
 import "../../services"
-import "./variants/dynamic"
-import "./variants/gotham"
 
 /**
  * ClockWidget — Saat ve Tarih Bileseni Yonlendiricisi.
