@@ -1,30 +1,30 @@
 import QtQuick
 import QtQuick.Layouts
-import "../../../services"
-import "../../../widgets"
-import "../../"
+import "../../services"
+import "../../widgets"
 import "."
 
 /**
- * GothamBar — Enyxma Shell Gotham 2.0 Brutalist Bar Paneli.
+ * DynamicBar — Enyxma Shell Dinamik Tema Ustu Paneli.
  *
- * Yekpare endustriyel obsidyen kiris, soguk grafit ayiricilar,
- * teknik telemetri bloklari ve kontrollu kehribar vurgular.
+ * Yuvarlatilmis cam paneller, Matugen renk uyumu ve yuzen bar karakteri.
  */
 Rectangle {
     id: root
     anchors.fill: parent
-    color: Theme.bgDark
-    radius: 0
+    color: Theme.bgGlass
+    radius: Theme.radiusPanel
+    border.color: Theme.borderSubtle
+    border.width: Theme.borderWidth
 
-    // ── MERKEZ: Iki Katmanli Taktiksel Kronometre ──
-    GothamClockWidget {
+    // ── MERKEZ: Dinamik Saat ve Tarih Bileseni ──
+    DynamicClockWidget {
         id: clockWidget
         anchors.centerIn: parent
         z: 2
     }
 
-    // ── SOL KUME: Mimari Sektor Hucreleri ve Yaratici Araclar ──
+    // ── SOL KUME: Masaustu, Gorsel ve Medya Kumesi ──
     RowLayout {
         id: leftLayout
         anchors {
@@ -36,25 +36,17 @@ Rectangle {
         }
         spacing: Theme.spacingSmall
 
-        // Calisma Alanlari: Gotham Mimari Hucre Izgarasi
-        GothamWorkspaces {
+        // Calisma Alanlari
+        DynamicWorkspaces {
             id: workspaces
         }
 
-        // Soguk Grafit Ayirici
-        Rectangle {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.preferredWidth: 1
-            Layout.preferredHeight: 14
-            color: Theme.borderSubtle
-        }
-
-        // Duvar Kagidi Koleksiyon Secici
+        // Duvar Kagidi Secici
         WallpaperWidget {
             id: wallpaperWidget
         }
 
-        // Ekran Goruntusu ve Medya Tarayicisi
+        // Ekran Goruntusu ve Kayit Galerisi
         MediaBrowserWidget {
             id: mediaBrowserWidget
         }
@@ -70,7 +62,7 @@ Rectangle {
         }
     }
 
-    // ── SAG KUME: Telemetri, Sistem Kontrolu ve Bildirim Konsolu ──
+    // ── SAG KUME: Donanim Telemetrisi, AI, Sistem Kontrolu ve Bildirimler ──
     RowLayout {
         id: rightLayout
         anchors {
@@ -87,28 +79,22 @@ Rectangle {
             Layout.fillWidth: true
         }
 
-        // 1. Telemetri Grubu: CPU, RAM, Disk ve Ag
+        // Performans: CPU ve RAM
         PerformanceWidget {
             id: performanceWidget
         }
 
+        // Depolama: Kok Disk
         StorageWidget {
             id: storageWidget
         }
 
+        // Ag Durumu ve RX/TX
         NetworkWidget {
             id: networkWidget
         }
 
-        // Soguk Grafit Ayirici
-        Rectangle {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.preferredWidth: 1
-            Layout.preferredHeight: 14
-            color: Theme.borderSubtle
-        }
-
-        // 2. Kontrol ve Sistem Grubu
+        // Ses Duzeyi ve Mute
         EnyxmaPill {
             id: volumePill
             implicitHeight: 24
@@ -124,10 +110,12 @@ Rectangle {
             }
         }
 
+        // Pil ve Guc Durumu / Kontrol Merkezi
         SystemMetrics {
             id: systemMetrics
         }
 
+        // Enyxma AI Asistani
         EnyxmaPill {
             id: aiTogglePill
             implicitHeight: 24
@@ -143,33 +131,14 @@ Rectangle {
             }
         }
 
-        // Soguk Grafit Ayirici
-        Rectangle {
-            Layout.alignment: Qt.AlignVCenter
-            Layout.preferredWidth: 1
-            Layout.preferredHeight: 14
-            color: Theme.borderSubtle
-        }
-
-        // 3. Bildirim ve Sistem Tepsisi
+        // Bildirim Merkezi
         NotificationWidget {
             id: notificationWidget
         }
 
+        // Sistem Tepsisi
         Tray {
             id: tray
         }
     }
-
-    // Gotham 2.0 alt ayrim hatti: 1 piksel keskin grafit
-    Rectangle {
-        anchors {
-            left: parent.left
-            right: parent.right
-            bottom: parent.bottom
-        }
-        height: 1
-        color: Theme.borderSubtle
-    }
 }
-
