@@ -110,7 +110,7 @@ PanelWindow {
                 }
 
                 Text {
-                    text: "MASAÜSTÜ " + ("0" + OverviewState.viewedWorkspaceId).slice(-2)
+                    text: (Theme.isGotham ? "SEKTÖR " : "MASAÜSTÜ ") + ("0" + OverviewState.viewedWorkspaceId).slice(-2)
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -196,7 +196,19 @@ PanelWindow {
                             border.width: wsCard.isViewed ? 2 : Theme.borderWidth
                             border.color: wsCard.isViewed ? Theme.accent : Theme.borderSubtle
 
-                            scale: wsCard.isViewed ? 1.02 : 1.0
+                            scale: wsCard.isViewed ? (Theme.isGotham ? 1.0 : 1.02) : 1.0
+
+                            // Gotham secili kart ust 2px kehribar vurgu hatti
+                            Rectangle {
+                                visible: Theme.isGotham && wsCard.isViewed
+                                anchors {
+                                    left: parent.left
+                                    right: parent.right
+                                    top: parent.top
+                                }
+                                height: 2
+                                color: Theme.accent
+                            }
 
                             Behavior on scale {
                                 enabled: !Theme.reduceMotion
@@ -329,7 +341,7 @@ PanelWindow {
                                                         Rectangle {
                                                             implicitWidth: 16
                                                             implicitHeight: 16
-                                                            radius: 8
+                                                            radius: Theme.isGotham ? 2 : 8
                                                             color: closeMa.containsMouse ? Theme.danger : "transparent"
 
                                                             Text {
@@ -394,7 +406,7 @@ PanelWindow {
                         border.width: Theme.borderWidth
                         border.color: newWsMa.containsMouse ? Theme.accent : Theme.borderSubtle
 
-                        scale: newWsMa.containsMouse ? 1.02 : 1.0
+                        scale: newWsMa.containsMouse ? (Theme.isGotham ? 1.0 : 1.02) : 1.0
 
                         Behavior on scale {
                             enabled: !Theme.reduceMotion

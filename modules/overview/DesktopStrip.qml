@@ -27,7 +27,7 @@ Row {
             border.width: (deskCard.isViewed || deskCard.isActive) ? 2 : Theme.borderWidth
             border.color: deskCard.isViewed ? Theme.accent : (deskCard.isActive ? Theme.borderFocus : Theme.borderSubtle)
 
-            scale: cardMa.containsMouse ? 1.04 : 1.0
+            scale: cardMa.containsMouse ? (Theme.isGotham ? 1.0 : 1.04) : 1.0
 
             Behavior on scale {
                 enabled: !Theme.reduceMotion
@@ -60,9 +60,9 @@ Row {
                         model: Math.min(deskCard.wsClients.length, 5)
 
                         delegate: Rectangle {
-                            width: 4
-                            height: 4
-                            radius: 2
+                            width: Theme.isGotham ? 8 : 4
+                            height: Theme.isGotham ? 2 : 4
+                            radius: Theme.isGotham ? 0 : 2
                             color: deskCard.isViewed ? Theme.accent : Theme.textSecondary
                         }
                     }
@@ -90,7 +90,7 @@ Row {
         border.width: Theme.borderWidth
         border.color: addMa.containsMouse ? Theme.accent : Theme.borderSubtle
 
-        scale: addMa.containsMouse ? 1.04 : 1.0
+        scale: addMa.containsMouse ? (Theme.isGotham ? 1.0 : 1.04) : 1.0
 
         Behavior on scale {
             enabled: !Theme.reduceMotion

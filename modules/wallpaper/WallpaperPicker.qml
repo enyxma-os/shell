@@ -1,9 +1,14 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
-import QtQuick.Layouts
 import "../../services"
 
+/**
+ * WallpaperPicker — Enyxma Shell Duvar Kagidi Secici Yonlendiricisi.
+ *
+ * Ortak filtreleme, klavye kisayollari, karartma katmani ve durum esitlemesini
+ * yonetir; temaya gore DynamicWallpaperStage veya GothamWallpaperStage yukler.
+ */
 PanelWindow {
     id: root
 
@@ -39,7 +44,7 @@ PanelWindow {
     property string filterText: ""
     property int selectedIndex: 0
 
-    // Filtrelenmiş liste
+    // Filtrelenmis liste
     readonly property var filteredWallpapers: {
         var all = WallpaperState.wallpapers || []
         var query = String(filterText || "").trim().toLowerCase()
@@ -99,7 +104,7 @@ PanelWindow {
             if (WallpaperState.pickerVisible) {
                 root.filterText = ""
                 syncSelectionToCurrent()
-                stage.forceActiveFocus()
+                stageHost.forceActiveFocus()
             }
         }
         function onWallpapersChanged() {
@@ -109,11 +114,11 @@ PanelWindow {
         }
     }
 
-    // Karartma katmanı (Scrim)
+    // Karartma katmani — Tema scrim tokeni
     Rectangle {
         anchors.fill: parent
-        color: Qt.rgba(0.04, 0.05, 0.08, 0.85)
-        opacity: root.reveal
+        color: Theme.scrim
+        opacity: Theme.isGotham ? root.reveal : (root.reveal * 0.85)
 
         MouseArea {
             anchors.fill: parent
@@ -124,7 +129,7 @@ PanelWindow {
         }
     }
 
-    // Boş durum (Arama sonucu bulunamadığında)
+    // Bos durum — Arama sonucu bulunamadiginda
     Column {
         anchors.centerIn: parent
         spacing: 12
@@ -148,45 +153,12 @@ PanelWindow {
         }
     }
 
-    // ── Tanzaku Sahnesi (Stage) ──
+    // Ortak Klavye ve Sahne Yukleyici
     Item {
-        id: stage
+        id: stageHost
         anchors.fill: parent
-        visible: root.filteredWallpapers.length > 0
+        focus: WallpaperState.pickerVisible
         opacity: root.reveal
-        focus: true
-
-        readonly property int focusedW: 460
-        readonly property int focusedH: 259
-        readonly property int peekW: 104
-        readonly property int stripW: 24
-        readonly property int gap: 8
-        readonly property int maxVisible: 5
-
-        function stripWidthFor(d) {
-            if (d <= 0) return focusedW
-            if (d === 1) return peekW
-            return stripW
-        }
-
-        function xForRel(r) {
-            var cx = stage.width / 2
-            var fLeft = cx - focusedW / 2
-            var fRight = cx + focusedW / 2
-            if (r === 0) return fLeft
-            if (r < 0) {
-                var x = fLeft
-                for (var k = -1; k >= r; k--) {
-                    x -= (gap + stripWidthFor(-k))
-                }
-                return x
-            }
-            var xr = fRight + gap
-            for (var j = 1; j < r; j++) {
-                xr += (stripWidthFor(j) + gap)
-            }
-            return xr
-        }
 
         Keys.onPressed: function(event) {
             if (event.key === Qt.Key_Escape) {
@@ -217,286 +189,42 @@ PanelWindow {
             }
         }
 
-        // ── Tema Profili Seçici Şeridi ──
-        Row {
-            id: themePresetRow
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: headerRow.top
-            anchors.bottomMargin: 16
-            spacing: 10
-
-            Repeater {
-                model: [
-                    { id: "dynamic", label: Theme.isGotham ? "DİNAMİK" : "✦ DİNAMİK" },
-                    { id: "gotham",  label: Theme.isGotham ? "GOTHAM" : "🦇 GOTHAM" }
-                ]
-
-                delegate: Rectangle {
-                    required property var modelData
-                    readonly property bool isSelected: WallpaperState.currentTheme === modelData.id
-
-                    height: 28
-                    width: presetTxt.implicitWidth + 24
-                    radius: Theme.radiusButton
-                    color: isSelected
-                        ? Theme.accent
-                        : (presetMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
-                    border.width: Theme.borderWidth
-                    border.color: isSelected ? Theme.accent : Theme.borderSubtle
-
-                    Text {
-                        id: presetTxt
-                        anchors.centerIn: parent
-                        text: modelData.label
-                        color: isSelected ? Theme.accentOn : Theme.textPrimary
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontSizeSmall
-                        font.bold: true
-                        font.letterSpacing: 1
-                    }
-
-                    MouseArea {
-                        id: presetMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (WallpaperState.currentTheme !== modelData.id) {
-                                WallpaperState.setThemePreset(modelData.id)
-                            }
-                            stage.forceActiveFocus()
-                        }
-                    }
+        Loader {
+            id: stageLoader
+            anchors.fill: parent
+            visible: root.filteredWallpapers.length > 0
+            sourceComponent: Theme.isGotham ? gothamStageComponent : dynamicStageComponent
+            onLoaded: {
+                if (WallpaperState.pickerVisible) {
+                    stageHost.forceActiveFocus()
                 }
             }
         }
 
-        // ── Üst Bilgi Satırı ──
-        Item {
-            id: headerRow
-            anchors.horizontalCenter: parent.horizontalCenter
-            anchors.bottom: carouselArea.top
-            anchors.bottomMargin: 24
-            width: stage.focusedW
-            height: 20
-
-            Text {
-                anchors.left: parent.left
-                anchors.verticalCenter: parent.verticalCenter
-                text: Theme.isGotham ? "GOTHAM MİMARİ KOLEKSİYONU" : "✦ ENYXMA DİNAMİK DUVAR KAĞITLARI"
-                color: Theme.textSecondary
-                font.family: Theme.fontDisplay
-                font.pixelSize: Theme.fontSizeSmall
-                font.letterSpacing: 2
-                font.weight: Font.Medium
-            }
-
-            Text {
-                anchors.right: parent.right
-                anchors.verticalCenter: parent.verticalCenter
-                text: (root.selectedIndex + 1) + " / " + root.filteredWallpapers.length
-                color: Theme.textMuted
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontSizeSmall
+        Component {
+            id: dynamicStageComponent
+            DynamicWallpaperStage {
+                anchors.fill: parent
+                wallpapers: root.filteredWallpapers
+                selectedIndex: root.selectedIndex
+                filterText: root.filterText
+                onSelectIndexRequested: (idx) => { root.selectedIndex = idx }
+                onApplyRequested: root.applySelected()
+                onRefocusRequested: stageHost.forceActiveFocus()
             }
         }
 
-        // ── Tanzaku Kartlar Alanı ──
-        Item {
-            id: carouselArea
-            anchors.centerIn: parent
-            anchors.verticalCenterOffset: -20
-            width: parent.width
-            height: stage.focusedH
-
-            Repeater {
-                model: root.filteredWallpapers.length
-
-                delegate: Item {
-                    id: cardItem
-                    required property int index
-                    readonly property var entry: root.filteredWallpapers[index] || null
-                    readonly property int relIdx: index - root.selectedIndex
-                    readonly property bool focused: relIdx === 0
-                    readonly property bool near: Math.abs(relIdx) <= stage.maxVisible
-
-                    width: stage.stripWidthFor(Math.abs(relIdx))
-                    height: stage.focusedH
-                    y: 0
-                    x: stage.xForRel(relIdx)
-                    z: focused ? 100 : (50 - Math.abs(relIdx))
-                    visible: near
-                    opacity: near ? 1.0 : 0.0
-
-                    Behavior on x {
-                        NumberAnimation {
-                            duration: 250
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-                    Behavior on width {
-                        NumberAnimation {
-                            duration: 250
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: 200
-                        }
-                    }
-
-                    // Dış Kart Çerçevesi
-                    Rectangle {
-                        id: cardFrame
-                        anchors.fill: parent
-                        radius: Theme.radiusWidget
-                        color: Theme.bgPanel
-                        border.width: cardItem.focused ? 2 : 1
-                        border.color: cardItem.focused ? Theme.accent : Theme.borderSubtle
-
-                        Behavior on border.color {
-                            ColorAnimation {
-                                duration: 180
-                            }
-                        }
-
-                        // İç kırpma alanı
-                        Item {
-                            anchors.fill: parent
-                            anchors.margins: cardItem.focused ? 2 : 1
-                            clip: true
-
-                            Image {
-                                id: imgThumb
-                                anchors.fill: parent
-                                source: cardItem.entry ? cardItem.entry.filePath : ""
-                                fillMode: Image.PreserveAspectCrop
-                                asynchronous: true
-                                cache: true
-                                smooth: true
-                                sourceSize.width: stage.focusedW
-                                sourceSize.height: stage.focusedH
-                            }
-
-                            // Odak dışı kart karartması
-                            Rectangle {
-                                anchors.fill: parent
-                                color: Theme.bgDark
-                                opacity: cardItem.focused ? 0.0 : (Math.abs(cardItem.relIdx) === 1 ? 0.25 : 0.55)
-                                Behavior on opacity {
-                                    NumberAnimation {
-                                        duration: 180
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Aktif Duvar Kağıdı Rozeti
-                    Rectangle {
-                        visible: cardItem.entry && cardItem.entry.filePath === WallpaperState.currentWallpaper
-                        width: 72
-                        height: 22
-                        radius: 11
-                        x: 10
-                        y: 10
-                        z: 10
-                        color: Qt.rgba(0.04, 0.05, 0.08, 0.85)
-                        border.color: Theme.accent
-                        border.width: 1
-
-                        Row {
-                            anchors.centerIn: parent
-                            spacing: 5
-                            Rectangle {
-                                width: 6
-                                height: 6
-                                radius: 3
-                                color: Theme.accent
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                            Text {
-                                text: "AKTİF"
-                                color: Theme.textPrimary
-                                font.family: Theme.fontMono
-                                font.pixelSize: 10
-                                font.bold: true
-                                anchors.verticalCenter: parent.verticalCenter
-                            }
-                        }
-                    }
-
-                    // Tıklama Alanı
-                    MouseArea {
-                        anchors.fill: parent
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: {
-                            if (cardItem.focused) {
-                                root.applySelected()
-                            } else {
-                                root.selectedIndex = cardItem.index
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── Alt Bilgi Bölümü (Vurgu Çizgisi, Başlık & Kısayol Rehberi) ──
-        Column {
-            anchors.top: carouselArea.bottom
-            anchors.topMargin: 20
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: 12
-
-            // Gradyanlı fırça darbesi vurgu çizgisi
-            Rectangle {
-                anchors.horizontalCenter: parent.horizontalCenter
-                width: 220
-                height: 3
-                radius: 1.5
-                gradient: Gradient {
-                    orientation: Gradient.Horizontal
-                    GradientStop { position: 0.0; color: "transparent" }
-                    GradientStop { position: 0.5; color: Theme.accent }
-                    GradientStop { position: 1.0; color: "transparent" }
-                }
-            }
-
-            // Seçili Duvar Kağıdı İsmi
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: (root.filteredWallpapers.length > 0 && root.selectedIndex >= 0 && root.selectedIndex < root.filteredWallpapers.length)
-                      ? root.filteredWallpapers[root.selectedIndex].label
-                      : ""
-                color: Theme.textPrimary
-                font.family: Theme.fontMono
-                font.pixelSize: 22
-                font.weight: Font.DemiBold
-                horizontalAlignment: Text.AlignHCenter
-            }
-
-            // Canlı Filtre Metni (Yazılıyorsa göster)
-            Text {
-                visible: root.filterText.length > 0
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: "Filtre: " + root.filterText
-                color: Theme.accent
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontSizeNormal
-                font.bold: true
-                horizontalAlignment: Text.AlignHCenter
-            }
-
-            // Kısayol Rehberi
-            Text {
-                anchors.horizontalCenter: parent.horizontalCenter
-                text: "← →  kaydır     Enter  uygula     T  tema değiştir     Esc  kapat     yazarak filtrele"
-                color: Theme.textMuted
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontSizeSmall
-                horizontalAlignment: Text.AlignHCenter
+        Component {
+            id: gothamStageComponent
+            GothamWallpaperStage {
+                anchors.fill: parent
+                wallpapers: root.filteredWallpapers
+                selectedIndex: root.selectedIndex
+                filterText: root.filterText
+                onSelectIndexRequested: (idx) => { root.selectedIndex = idx }
+                onMoveRequested: (delta) => root.moveSelection(delta)
+                onApplyRequested: root.applySelected()
+                onRefocusRequested: stageHost.forceActiveFocus()
             }
         }
     }
