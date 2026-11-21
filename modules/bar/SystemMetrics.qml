@@ -10,10 +10,10 @@ EnyxmaPill {
     isActive: SystemState.isControlCenterOpen
     onClicked: SystemState.toggleControlCenter()
 
-    // Pil / Güç Durumu
+    // Pil / Güç Durumu ve Kontrol Merkezi Girişi
     Text {
         Layout.alignment: Qt.AlignVCenter
-        text: (SystemState.isBatteryPresent ? ("󰁹 %" + SystemState.batteryPercent) : "AC") + (SystemState.isCharging ? (Theme.isGotham ? " 󰂄" : " ⚡") : "")
+        text: "󰒓 " + (SystemState.isBatteryPresent ? ("󰁹 %" + SystemState.batteryPercent) : "AC") + (SystemState.isCharging ? (Theme.isGotham ? " 󰂄" : " ⚡") : "")
         color: SystemState.isControlCenterOpen ? Theme.accent : Theme.textPrimary
         font.family: Theme.fontMono
         font.pixelSize: Theme.fontSizeSmall

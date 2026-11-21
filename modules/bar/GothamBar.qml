@@ -35,6 +35,33 @@ Rectangle {
         }
         spacing: Theme.spacingSmall
 
+        // Enyxma Sistem ve Komut Menusu
+        EnyxmaPill {
+            id: menuPill
+            implicitHeight: 24
+            isActive: LauncherState.isOpen
+            onClicked: LauncherState.toggle()
+            onRightClicked: LauncherState.openMode("actions")
+
+            Text {
+                text: "󰈈 ENYXMA"
+                color: LauncherState.isOpen ? Theme.accent : Theme.textPrimary
+                font.family: Theme.fontDisplay
+                font.pixelSize: Theme.fontSizeSmall
+                font.bold: true
+                font.letterSpacing: 1
+                Layout.alignment: Qt.AlignVCenter
+            }
+        }
+
+        // Soguk Grafit Ayirici
+        Rectangle {
+            Layout.alignment: Qt.AlignVCenter
+            Layout.preferredWidth: 1
+            Layout.preferredHeight: 14
+            color: Theme.borderSubtle
+        }
+
         // Calisma Alanlari: Gotham Mimari Hucre Izgarasi
         GothamWorkspaces {
             id: workspaces
@@ -114,9 +141,12 @@ Rectangle {
             isActive: AudioState.muted
 
             onClicked: AudioState.toggleMute()
+            onRightClicked: SystemState.toggleControlCenter()
 
             Text {
-                text: AudioState.muted ? "MUTED" : Math.round(AudioState.volume * 100) + "%"
+                text: AudioState.muted
+                    ? "󰝟 SESSİZ"
+                    : ((AudioState.volume > 0.66 ? "󰕾 " : (AudioState.volume > 0.33 ? "󰖀 " : "󰕿 ")) + Math.round(AudioState.volume * 100) + "%")
                 color: AudioState.muted ? Theme.danger : Theme.textPrimary
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall

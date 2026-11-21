@@ -36,6 +36,23 @@ Rectangle {
         }
         spacing: Theme.spacingSmall
 
+        // Enyxma Sistem ve Komut Menusu
+        EnyxmaPill {
+            id: menuPill
+            implicitHeight: 24
+            isActive: LauncherState.isOpen
+            onClicked: LauncherState.toggle()
+            onRightClicked: LauncherState.openMode("actions")
+
+            Text {
+                text: "✦"
+                color: LauncherState.isOpen ? Theme.accent : Theme.textPrimary
+                font.family: Theme.fontDisplay
+                font.pixelSize: Theme.fontSizeNormal
+                Layout.alignment: Qt.AlignVCenter
+            }
+        }
+
         // Calisma Alanlari
         DynamicWorkspaces {
             id: workspaces
@@ -101,9 +118,12 @@ Rectangle {
             isActive: AudioState.muted
 
             onClicked: AudioState.toggleMute()
+            onRightClicked: SystemState.toggleControlCenter()
 
             Text {
-                text: AudioState.muted ? "MUTED" : Math.round(AudioState.volume * 100) + "%"
+                text: AudioState.muted
+                    ? "󰝟 SESSİZ"
+                    : ((AudioState.volume > 0.66 ? "󰕾 " : (AudioState.volume > 0.33 ? "󰖀 " : "󰕿 ")) + Math.round(AudioState.volume * 100) + "%")
                 color: AudioState.muted ? Theme.danger : Theme.textPrimary
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall

@@ -17,12 +17,12 @@
       # Eksik her giriş, temiz bir NixOS kurulumunda "command not found"tu.
       runtimeDeps = pkgs: with pkgs; [
         bash coreutils procps findutils gnugrep gnused gawk
-        wl-clipboard libnotify
+        wl-clipboard cliphist libnotify
         bluez
         matugen
         imagemagick
         networkmanager iw iproute2
-        brightnessctl
+        brightnessctl hyprsunset
         hyprland
         util-linux pciutils
         curl wget yt-dlp ffmpeg
