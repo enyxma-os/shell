@@ -431,8 +431,9 @@ EOF
               matugen -c "$CFG" -t scheme-vibrant color hex "$TARGET"
             fi
 
-            if [ -z "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && [ -d "/run/user/$(id -u)/hypr" ]; then
-              export HYPRLAND_INSTANCE_SIGNATURE=$(ls -1 "/run/user/$(id -u)/hypr" 2>/dev/null | head -n 1 || true)
+            RUNTIME_HYPR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/hypr"
+            if [ -z "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ] && [ -d "$RUNTIME_HYPR" ]; then
+              export HYPRLAND_INSTANCE_SIGNATURE=$(ls -1t "$RUNTIME_HYPR" 2>/dev/null | head -n 1 || true)
             fi
 
             CUR_THEME="Bibata-Modern-Ice"
@@ -452,12 +453,16 @@ EOF
               [ -n "$C_S" ] && CUR_SIZE="$C_S"
 
               if command -v hyprctl >/dev/null 2>&1; then
-                [ -n "$ACT_A" ] && [ -n "$ACT_B" ] && hyprctl keyword general:col.active_border "$ACT_A $ACT_B 45deg" >/dev/null 2>&1 || true
-                [ -n "$INACT" ] && hyprctl keyword general:col.inactive_border "$INACT" >/dev/null 2>&1 || true
-                [ -n "$RND" ] && hyprctl keyword decoration:rounding "$RND" >/dev/null 2>&1 || true
-                [ -n "$BSZ" ] && hyprctl keyword general:border_size "$BSZ" >/dev/null 2>&1 || true
-                [ -n "$GIN" ] && hyprctl keyword general:gaps_in "$GIN" >/dev/null 2>&1 || true
-                [ -n "$GOUT" ] && hyprctl keyword general:gaps_out "$GOUT" >/dev/null 2>&1 || true
+                LUA_SYNC='local ok, c = pcall(dofile, (os.getenv("HOME") or "") .. "/.config/hypr/colors.lua"); if ok and type(c) == "table" then local a = c.accent or "rgba(7aa2f7ee)"; local b = c.accent_secondary or c.outline or "rgba(bb9af7ee)"; hl.config({ general = { gaps_in = c.gaps_in ~= nil and c.gaps_in or 5, gaps_out = c.gaps_out ~= nil and c.gaps_out or 10, border_size = c.border_size ~= nil and c.border_size or 2, col = { active_border = { colors = { a, b }, angle = 45 }, inactive_border = c.outline or "rgba(3b4261aa)" } }, decoration = { rounding = c.rounding ~= nil and c.rounding or 10 } }) end'
+                EVAL_RES=$(hyprctl eval "$LUA_SYNC" 2>/dev/null || true)
+                if [ "$EVAL_RES" != "ok" ]; then
+                  [ -n "$ACT_A" ] && [ -n "$ACT_B" ] && hyprctl keyword general:col.active_border "$ACT_A $ACT_B 45deg" >/dev/null 2>&1 || true
+                  [ -n "$INACT" ] && hyprctl keyword general:col.inactive_border "$INACT" >/dev/null 2>&1 || true
+                  [ -n "$RND" ] && hyprctl keyword decoration:rounding "$RND" >/dev/null 2>&1 || true
+                  [ -n "$BSZ" ] && hyprctl keyword general:border_size "$BSZ" >/dev/null 2>&1 || true
+                  [ -n "$GIN" ] && hyprctl keyword general:gaps_in "$GIN" >/dev/null 2>&1 || true
+                  [ -n "$GOUT" ] && hyprctl keyword general:gaps_out "$GOUT" >/dev/null 2>&1 || true
+                fi
                 hyprctl setcursor "$CUR_THEME" "$CUR_SIZE" >/dev/null 2>&1 || true
               fi
             fi
