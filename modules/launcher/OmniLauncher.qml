@@ -30,9 +30,10 @@ PanelWindow {
     visible: card.opacity > 0.0
 
     function launchCurrent() {
-        if (LauncherState.filteredApps && LauncherState.filteredApps.length > 0) {
-            const idx = Math.max(0, Math.min(appList.currentIndex, LauncherState.filteredApps.length - 1))
-            LauncherState.launch(LauncherState.filteredApps[idx])
+        const items = LauncherState.currentItems
+        if (items && items.length > 0) {
+            const idx = Math.max(0, Math.min(appList.currentIndex, items.length - 1))
+            LauncherState.activateItem(items[idx])
         }
     }
 
@@ -40,9 +41,18 @@ PanelWindow {
         target: LauncherState
         function onIsOpenChanged() {
             if (LauncherState.isOpen) {
-                searchField.text = ""
+                searchField.text = LauncherState.searchText
                 searchField.forceActiveFocus()
                 appList.currentIndex = 0
+            }
+        }
+        function onActiveModeChanged() {
+            if (searchField.text !== LauncherState.searchText) {
+                searchField.text = LauncherState.searchText
+            }
+            appList.currentIndex = 0
+            if (LauncherState.isOpen) {
+                searchField.forceActiveFocus()
             }
         }
     }
@@ -56,14 +66,14 @@ PanelWindow {
     Rectangle {
         id: card
         anchors.centerIn: parent
-        implicitWidth: 600
+        implicitWidth: 640
         implicitHeight: mainCol.implicitHeight + Theme.spacingMedium * 2
         color: Theme.bgGlass
         radius: Theme.radiusPanel
         border.color: Theme.borderSubtle
         border.width: Theme.borderWidth
 
-        // Gotham 2.0 ust vurgu hatti
+        // Gotham 2.0 üst vurgu hattı
         Rectangle {
             visible: Theme.isGotham
             anchors {
@@ -108,7 +118,64 @@ PanelWindow {
                 right: parent.right
                 margins: Theme.spacingMedium
             }
-            spacing: Theme.spacingMedium
+            spacing: Theme.spacingSmall
+
+            // 4 Sekmeli Mod Seçici Şeridi
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: Theme.spacingXS
+
+                Repeater {
+                    model: LauncherState.modes
+
+                    delegate: Rectangle {
+                        required property var modelData
+                        readonly property bool isTabActive: LauncherState.activeMode === modelData.id
+
+                        Layout.fillWidth: true
+                        implicitHeight: 32
+                        radius: Theme.radiusButton
+                        color: isTabActive
+                            ? Theme.accent
+                            : (tabArea.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                        border.color: isTabActive ? Theme.accent : Theme.borderSubtle
+                        border.width: Theme.borderWidth
+
+                        Behavior on color {
+                            enabled: !Theme.reduceMotion
+                            ColorAnimation { duration: Theme.animFast }
+                        }
+
+                        RowLayout {
+                            anchors.centerIn: parent
+                            spacing: Theme.spacingXS
+
+                            Text {
+                                text: modelData.icon
+                                color: isTabActive ? Theme.accentOn : Theme.accent
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontSizeSmall
+                            }
+
+                            Text {
+                                text: modelData.label
+                                color: isTabActive ? Theme.accentOn : Theme.textPrimary
+                                font.family: Theme.fontFamily
+                                font.pixelSize: Theme.fontSizeSmall
+                                font.bold: isTabActive
+                            }
+                        }
+
+                        MouseArea {
+                            id: tabArea
+                            anchors.fill: parent
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: LauncherState.setMode(modelData.id)
+                        }
+                    }
+                }
+            }
 
             // Üst Arama Çubuğu
             Rectangle {
@@ -136,7 +203,12 @@ PanelWindow {
                     spacing: Theme.spacingSmall
 
                     Text {
-                        text: "󰍉"
+                        text: {
+                            if (LauncherState.activeMode === "actions") return "󰘳"
+                            if (LauncherState.activeMode === "clipboard") return "󰅍"
+                            if (LauncherState.activeMode === "keys") return "󰌌"
+                            return "󰍉"
+                        }
                         color: searchField.activeFocus ? Theme.accent : Theme.textMuted
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSizeLarge
@@ -145,7 +217,12 @@ PanelWindow {
                     TextField {
                         id: searchField
                         Layout.fillWidth: true
-                        placeholderText: "Bir uygulama arayın veya komut yazın..."
+                        placeholderText: {
+                            if (LauncherState.activeMode === "actions") return "Sistem komutu veya araç ara..."
+                            if (LauncherState.activeMode === "clipboard") return "Pano geçmişinde ara..."
+                            if (LauncherState.activeMode === "keys") return "Kısayol veya işlev ara..."
+                            return "Uygulama ara — veya > komutlar, ? kısayollar"
+                        }
                         placeholderTextColor: Theme.textMuted
                         color: Theme.textPrimary
                         font.family: Theme.fontFamily
@@ -154,28 +231,64 @@ PanelWindow {
                         focus: true
 
                         onTextChanged: {
+                            if (text.startsWith(">")) {
+                                const rest = text.substring(1).trimStart()
+                                LauncherState.setMode("actions")
+                                text = rest
+                                return
+                            }
+                            if (text.startsWith("?")) {
+                                const rest = text.substring(1).trimStart()
+                                LauncherState.setMode("keys")
+                                text = rest
+                                return
+                            }
                             LauncherState.searchText = text
                             appList.currentIndex = 0
                         }
 
-                        Keys.onEscapePressed: {
+                        Keys.onTabPressed: (event) => {
+                            LauncherState.cycleMode(1)
+                            event.accepted = true
+                        }
+
+                        Keys.onBacktabPressed: (event) => {
+                            LauncherState.cycleMode(-1)
+                            event.accepted = true
+                        }
+
+                        Keys.onEscapePressed: (event) => {
                             LauncherState.close()
                             event.accepted = true
                         }
 
-                        Keys.onDownPressed: {
+                        Keys.onDownPressed: (event) => {
                             appList.incrementCurrentIndex()
                             event.accepted = true
                         }
 
-                        Keys.onUpPressed: {
+                        Keys.onUpPressed: (event) => {
                             appList.decrementCurrentIndex()
                             event.accepted = true
                         }
 
-                        Keys.onReturnPressed: {
+                        Keys.onReturnPressed: (event) => {
                             root.launchCurrent()
                             event.accepted = true
+                        }
+                    }
+
+                    EnyxmaPill {
+                        implicitHeight: 24
+                        visible: LauncherState.activeMode === "clipboard" && LauncherState.clipboardItems.length > 0
+                        onClicked: LauncherState.wipeClipboard()
+
+                        Text {
+                            text: "󰃢 Temizle"
+                            color: Theme.danger
+                            font.family: Theme.fontMono
+                            font.pixelSize: Theme.fontSizeXS
+                            font.bold: true
                         }
                     }
 
@@ -198,16 +311,16 @@ PanelWindow {
                 }
             }
 
-            // Uygulama Listesi
+            // Birleşik Liste Görünümü
             ListView {
                 id: appList
                 Layout.fillWidth: true
-                implicitHeight: Math.min(contentHeight, 340)
+                implicitHeight: Math.min(contentHeight, 360)
                 clip: true
-                model: LauncherState.filteredApps
+                model: LauncherState.currentItems
                 currentIndex: 0
                 highlightFollowsCurrentItem: true
-                visible: LauncherState.filteredApps.length > 0
+                visible: LauncherState.currentItems.length > 0
 
                 delegate: Rectangle {
                     required property var modelData
@@ -220,7 +333,7 @@ PanelWindow {
                     border.color: (appList.currentIndex === index) ? Theme.borderSubtle : "transparent"
                     border.width: Theme.borderWidth
 
-                    // Gotham 2.0 secili oge sol vurgu cubugu
+                    // Gotham 2.0 seçili öğe sol vurgu çubuğu
                     Rectangle {
                         visible: Theme.isGotham && appList.currentIndex === index
                         anchors {
@@ -240,7 +353,7 @@ PanelWindow {
                         }
                         spacing: Theme.spacingMedium
 
-                        // İkon Konteyneri (Sabit 32x32)
+                        // İkon Konteyneri — Sabit 32x32
                         Item {
                             Layout.preferredWidth: 32
                             Layout.preferredHeight: 32
@@ -251,39 +364,48 @@ PanelWindow {
                                 sourceSize.width: 32
                                 sourceSize.height: 32
                                 fillMode: Image.PreserveAspectFit
-                                source: Quickshell.iconPath(modelData.icon) || ""
-                                visible: status === Image.Ready
+                                source: (modelData.kind === "app" && modelData.iconName.length > 0)
+                                    ? (Quickshell.iconPath(modelData.iconName) || "")
+                                    : ""
+                                visible: modelData.kind === "app" && status === Image.Ready
                             }
 
                             Rectangle {
                                 anchors.fill: parent
-                                visible: appIconImg.status !== Image.Ready
+                                visible: !(modelData.kind === "app" && appIconImg.status === Image.Ready)
                                 radius: Theme.isGotham ? 2 : 16
-                                color: Theme.surfaceActive
+                                color: (appList.currentIndex === index) ? Theme.surfaceActive : Theme.surface1
                                 border.color: Theme.borderSubtle
                                 border.width: Theme.borderWidth
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: (modelData.name && modelData.name.length > 0) ? modelData.name.charAt(0).toUpperCase() : "󰀻"
-                                    color: Theme.accent
+                                    text: {
+                                        if (modelData.kind === "app") {
+                                            return (modelData.title && modelData.title.length > 0)
+                                                ? modelData.title.charAt(0).toUpperCase()
+                                                : "󰀻"
+                                        }
+                                        return modelData.iconGlyph
+                                    }
+                                    color: (appList.currentIndex === index) ? Theme.accent : Theme.textSecondary
                                     font.family: Theme.fontMono
-                                    font.pixelSize: 14
+                                    font.pixelSize: 15
                                     font.bold: true
                                 }
                             }
                         }
 
-                        // Uygulama Adı ve Açıklama
+                        // Öğe Başlığı ve Açıklaması
                         ColumnLayout {
                             Layout.fillWidth: true
                             spacing: 1
 
                             Text {
                                 Layout.fillWidth: true
-                                text: modelData.name || ""
+                                text: modelData.title || ""
                                 color: Theme.textPrimary
-                                font.family: Theme.fontFamily
+                                font.family: (modelData.kind === "key") ? Theme.fontMono : Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeNormal
                                 font.bold: true
                                 elide: Text.ElideRight
@@ -291,7 +413,7 @@ PanelWindow {
 
                             Text {
                                 Layout.fillWidth: true
-                                text: modelData.genericName || modelData.comment || modelData.id || ""
+                                text: modelData.subtitle || ""
                                 color: Theme.textSecondary
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeSmall
@@ -300,8 +422,30 @@ PanelWindow {
                             }
                         }
 
-                        // Enter İpucu
+                        // Sağ Etiket / Kısayol Rozeti
+                        Rectangle {
+                            visible: modelData.badge && modelData.badge.length > 0 && modelData.kind !== "app"
+                            implicitWidth: badgeText.implicitWidth + 12
+                            implicitHeight: 20
+                            radius: Theme.radiusSmall
+                            color: (appList.currentIndex === index) ? Theme.surfaceActive : Theme.surface1
+                            border.color: (appList.currentIndex === index) ? Theme.accent : Theme.borderSubtle
+                            border.width: 1
+
+                            Text {
+                                id: badgeText
+                                anchors.centerIn: parent
+                                text: modelData.badge || ""
+                                color: (appList.currentIndex === index) ? Theme.accent : Theme.textSecondary
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontSizeXS
+                                font.bold: true
+                            }
+                        }
+
+                        // Uygulama Enter İpucu
                         Text {
+                            visible: modelData.kind === "app"
                             text: "↵"
                             color: (appList.currentIndex === index) ? Theme.accent : "transparent"
                             font.family: Theme.fontMono
@@ -327,21 +471,32 @@ PanelWindow {
             Item {
                 Layout.fillWidth: true
                 implicitHeight: 64
-                visible: LauncherState.filteredApps.length === 0
+                visible: LauncherState.currentItems.length === 0
 
                 RowLayout {
                     anchors.centerIn: parent
                     spacing: Theme.spacingSmall
 
                     Text {
-                        text: "󰍉"
+                        text: {
+                            if (LauncherState.activeMode === "clipboard") return "󰅍"
+                            if (LauncherState.activeMode === "keys") return "󰌌"
+                            return "󰍉"
+                        }
                         color: Theme.textMuted
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSizeLarge
                     }
 
                     Text {
-                        text: "Eşleşen uygulama bulunamadı"
+                        text: {
+                            if (LauncherState.activeMode === "actions") return "Eşleşen sistem komutu bulunamadı"
+                            if (LauncherState.activeMode === "clipboard") {
+                                return LauncherState.clipboardLoading ? "Pano geçmişi yükleniyor..." : "Pano geçmişi boş"
+                            }
+                            if (LauncherState.activeMode === "keys") return "Eşleşen kısayol bulunamadı"
+                            return "Eşleşen uygulama bulunamadı"
+                        }
                         color: Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeNormal
@@ -354,7 +509,13 @@ PanelWindow {
                 Layout.fillWidth: true
 
                 Text {
-                    text: LauncherState.filteredApps.length + " uygulama"
+                    text: {
+                        const count = LauncherState.currentItems.length
+                        if (LauncherState.activeMode === "actions") return count + " komut"
+                        if (LauncherState.activeMode === "clipboard") return count + " pano öğesi"
+                        if (LauncherState.activeMode === "keys") return count + " kısayol"
+                        return count + " uygulama"
+                    }
                     color: Theme.textMuted
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -365,7 +526,7 @@ PanelWindow {
                 }
 
                 Text {
-                    text: "↑↓ Gezin  •  ↵ Başlat  •  Esc Kapat"
+                    text: "Tab Sekme  •  ↑↓ Gezin  •  ↵ Seç  •  Esc Kapat"
                     color: Theme.textMuted
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
