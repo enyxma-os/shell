@@ -1,0 +1,25 @@
+# Enyxma OS — Matugen Tarafından Otomatik Üretilen Starship Yapılandırması
+# DOĞRUDAN DÜZENLEMEYİN. Şablon: templates/starship.toml.in
+
+add_newline = false
+format = "$username$hostname$directory$git_branch$git_status$cmd_duration$line_break$character"
+
+[directory]
+style = "bold {{colors.primary.default.hex}}"
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+symbol = "git "
+style = "bold {{colors.tertiary.default.hex}}"
+
+[git_status]
+style = "bold {{colors.error.default.hex}}"
+
+[cmd_duration]
+min_time = 2000
+style = "bold {{colors.secondary.default.hex}}"
+
+[character]
+success_symbol = "[❯]({{colors.primary.default.hex}} bold)"
+error_symbol = "[❯]({{colors.error.default.hex}} bold)"

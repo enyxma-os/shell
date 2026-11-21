@@ -67,7 +67,6 @@
               chmod +x "$RUNTIME/enyxma-theme-apply"
               echo "$SRC" > "$RUNTIME/.store-source"
               date -u +%FT%TZ > "$RUNTIME/.stamp"
-              rm -f "$HOME/.config/yazi/theme.toml" 2>/dev/null || true
               WP_PATH=""
               ACTIVE_THEME="dynamic"
               STATE_FILE=$(find "''${XDG_STATE_HOME:-$HOME/.local/state}/quickshell/by-shell" -maxdepth 2 -name wallpaper.json -printf '%T@ %p\n' 2>/dev/null | sort -rn | head -n 1 | cut -d' ' -f2- || true)
@@ -113,7 +112,13 @@
           themeApply = pkgs.writeShellScript "enyxma-theme-apply" ''
             set -euo pipefail
             export PATH="${binPath}:$PATH"
-            rm -f "$HOME/.config/yazi/theme.toml" 2>/dev/null || true
+            mkdir -p "$HOME/.config/btop/themes" "$HOME/.config/yazi"
+            if [ ! -f "$HOME/.config/btop/btop.conf" ]; then
+              cat > "$HOME/.config/btop/btop.conf" << 'EOF'
+color_theme = "enyxma"
+theme_background = False
+EOF
+            fi
             MODE="''${1:-image}"
             TARGET="''${2:-}"
             if [ -z "$TARGET" ]; then
@@ -159,7 +164,7 @@
             }
 
             apply_gotham_preset() {
-              mkdir -p "$SHELL_DIR/services" "$HOME/.config/hypr" "$HOME/.config/kitty" "$HOME/.config/foot" "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"
+              mkdir -p "$SHELL_DIR/services" "$HOME/.config/hypr" "$HOME/.config/kitty" "$HOME/.config/foot" "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0" "$HOME/.config/btop/themes" "$HOME/.config/yazi"
 
               cat > "$SHELL_DIR/services/GeneratedColors.qml" << 'EOF'
 // Enyxma OS — Gotham 2.0 Brutalist Sabit Paleti
@@ -419,6 +424,106 @@ label {
     valign = center
 }
 EOF
+
+              cat > "$HOME/.config/starship.toml" << 'EOF'
+# Enyxma OS — Gotham 2.0 Starship Yapilandirmasi
+add_newline = false
+format = "$username$hostname$directory$git_branch$git_status$cmd_duration$line_break$character"
+
+[directory]
+style = "bold #f0b429"
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+symbol = "git "
+style = "bold #94a3b8"
+
+[git_status]
+style = "bold #e11d48"
+
+[cmd_duration]
+min_time = 2000
+style = "bold #64748b"
+
+[character]
+success_symbol = "[❯](#f0b429 bold)"
+error_symbol = "[❯](#e11d48 bold)"
+EOF
+
+              cat > "$HOME/.config/btop/themes/enyxma.theme" << 'EOF'
+# Enyxma OS — Gotham 2.0 btop Temasi
+theme[main_bg]=""
+theme[main_fg]="#e2e8f0"
+theme[title]="#e2e8f0"
+theme[hi_fg]="#f0b429"
+theme[selected_bg]="#241e0a"
+theme[selected_fg]="#fcd34d"
+theme[inactive_fg]="#333c4d"
+theme[graph_text]="#94a3b8"
+theme[meter_bg]="#171b26"
+theme[proc_misc]="#94a3b8"
+theme[cpu_box]="#222834"
+theme[mem_box]="#222834"
+theme[net_box]="#222834"
+theme[proc_box]="#222834"
+theme[div_line]="#222834"
+
+theme[temp_start]="#f0b429"
+theme[temp_mid]="#94a3b8"
+theme[temp_end]="#e11d48"
+
+theme[cpu_start]="#f0b429"
+theme[cpu_mid]="#94a3b8"
+theme[cpu_end]="#e11d48"
+
+theme[free_start]="#f0b429"
+theme[free_mid]="#64748b"
+theme[free_end]="#94a3b8"
+
+theme[cached_start]="#64748b"
+theme[cached_mid]="#f0b429"
+theme[cached_end]="#94a3b8"
+
+theme[available_start]="#f0b429"
+theme[available_mid]="#64748b"
+theme[available_end]="#94a3b8"
+
+theme[used_start]="#64748b"
+theme[used_mid]="#94a3b8"
+theme[used_end]="#e11d48"
+
+theme[download_start]="#f0b429"
+theme[download_mid]="#64748b"
+theme[download_end]="#94a3b8"
+
+theme[upload_start]="#94a3b8"
+theme[upload_mid]="#64748b"
+theme[upload_end]="#e11d48"
+
+theme[process_start]="#f0b429"
+theme[process_mid]="#94a3b8"
+theme[process_end]="#e11d48"
+EOF
+
+              cat > "$HOME/.config/yazi/theme.toml" << 'EOF'
+# Enyxma OS — Gotham 2.0 Yazi Temasi
+[mgr]
+cwd = { fg = "#f0b429", bold = true }
+hovered = { fg = "#fcd34d", bg = "#241e0a", bold = true }
+preview_hovered = { underline = true }
+find_keyword = { fg = "#f0b429", bold = true, underline = true }
+find_position = { fg = "#94a3b8", bold = true }
+marker_copied = { fg = "#f0b429", bg = "#f0b429" }
+marker_cut = { fg = "#e11d48", bg = "#e11d48" }
+marker_marked = { fg = "#94a3b8", bg = "#94a3b8" }
+marker_selected = { fg = "#64748b", bg = "#64748b" }
+border_style = { fg = "#222834" }
+
+[tabs]
+active = { fg = "#07080b", bg = "#f0b429", bold = true }
+inactive = { fg = "#94a3b8", bg = "#11141c" }
+EOF
             }
 
             cd "$SHELL_DIR"
@@ -492,6 +597,7 @@ EOF
             fi
 
             pkill -USR1 -x kitty >/dev/null 2>&1 || true
+            pkill -USR2 -x btop >/dev/null 2>&1 || true
           '';
         in
         {

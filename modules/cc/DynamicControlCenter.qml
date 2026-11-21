@@ -73,31 +73,6 @@ Item {
                     font.pixelSize: 10
                     font.letterSpacing: 0.5
                 }
-
-                Rectangle {
-                    implicitHeight: 24
-                    implicitWidth: 24
-                    radius: Theme.radiusButton
-                    color: closeMa.containsMouse ? Theme.surfaceHover : Theme.surface1
-                    border.color: Theme.borderSubtle
-                    border.width: Theme.borderWidth
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "✕"
-                        color: Theme.textSecondary
-                        font.family: Theme.fontFamily
-                        font.pixelSize: Theme.fontSizeSmall
-                    }
-
-                    MouseArea {
-                        id: closeMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: SystemState.closeControlCenter()
-                    }
-                }
             }
 
             Rectangle {
@@ -347,7 +322,7 @@ Item {
                 color: Theme.borderSubtle
             }
 
-            // 2b. Thornhill Bilissel Cekirdek + Konsol Kisa Yolu
+            // 2b. Thornhill Bilissel Cekirdek
             Rectangle {
                 Layout.fillWidth: true
                 implicitHeight: 42
@@ -378,55 +353,22 @@ Item {
                         opacity: ThornhillState.running ? 1.0 : 0.55
                     }
 
-                    ColumnLayout {
-                        spacing: 0
-                        Layout.fillWidth: true
-
-                        Text {
-                            text: "THORNHILL"
-                            color: Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 10
-                            font.bold: true
-                            font.letterSpacing: 1
-                        }
-
-                        Text {
-                            text: ThornhillState.busy ? "…" : ThornhillState.label
-                            color: ThornhillState.color
-                            font.family: Theme.fontMono
-                            font.pixelSize: Theme.fontSizeXS
-                        }
+                    Text {
+                        text: "THORNHILL"
+                        color: Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 10
+                        font.bold: true
+                        font.letterSpacing: 1
                     }
 
-                    Rectangle {
-                        implicitWidth: thConsoleTxt.implicitWidth + 14
-                        implicitHeight: 24
-                        radius: Theme.radiusButton
-                        color: thConsoleMa.containsMouse ? Theme.surfaceActive : Theme.surface2
-                        border.color: thConsoleMa.containsMouse ? Theme.accent : Theme.borderSubtle
-                        border.width: Theme.borderWidth
+                    Item { Layout.fillWidth: true }
 
-                        Text {
-                            id: thConsoleTxt
-                            anchors.centerIn: parent
-                            text: "Konsol"
-                            color: thConsoleMa.containsMouse ? Theme.accent : Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: Theme.fontSizeXS
-                            font.bold: true
-                        }
-
-                        MouseArea {
-                            id: thConsoleMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                SystemState.closeControlCenter()
-                                ThornhillState.openConsole()
-                            }
-                        }
+                    Text {
+                        text: ThornhillState.busy ? "…" : ThornhillState.label
+                        color: ThornhillState.color
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeXS
                     }
                 }
             }

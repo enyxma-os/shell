@@ -106,31 +106,6 @@ Item {
                         font.letterSpacing: 1
                     }
                 }
-
-                Rectangle {
-                    implicitWidth: 26
-                    implicitHeight: 26
-                    radius: Theme.radiusButton
-                    color: closeMa.containsMouse ? Theme.surfaceHover : Theme.surface1
-                    border.color: closeMa.containsMouse ? Theme.accent : Theme.borderSubtle
-                    border.width: Theme.borderWidth
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "✕"
-                        color: closeMa.containsMouse ? Theme.accent : Theme.textSecondary
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontSizeSmall
-                    }
-
-                    MouseArea {
-                        id: closeMa
-                        anchors.fill: parent
-                        hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: SystemState.closeControlCenter()
-                    }
-                }
             }
 
             Rectangle {
@@ -451,55 +426,22 @@ Item {
                         font.pixelSize: 15
                     }
 
-                    ColumnLayout {
-                        spacing: 0
-                        Layout.fillWidth: true
-
-                        Text {
-                            text: "THORNHILL"
-                            color: Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: 10
-                            font.bold: true
-                            font.letterSpacing: 1
-                        }
-
-                        Text {
-                            text: ThornhillState.busy ? "…" : ThornhillState.label
-                            color: ThornhillState.color
-                            font.family: Theme.fontMono
-                            font.pixelSize: Theme.fontSizeXS
-                        }
+                    Text {
+                        text: "THORNHILL"
+                        color: Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 10
+                        font.bold: true
+                        font.letterSpacing: 1
                     }
 
-                    Rectangle {
-                        implicitWidth: thConsTxt.implicitWidth + 14
-                        implicitHeight: 24
-                        radius: Theme.radiusSmall
-                        color: thConsMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive
-                        border.color: thConsMa.containsMouse ? Theme.accent : Theme.borderSubtle
-                        border.width: 1
+                    Item { Layout.fillWidth: true }
 
-                        Text {
-                            id: thConsTxt
-                            anchors.centerIn: parent
-                            text: "󰖟 KONSOL"
-                            color: thConsMa.containsMouse ? Theme.accent : Theme.textPrimary
-                            font.family: Theme.fontMono
-                            font.pixelSize: Theme.fontSizeXS
-                            font.bold: true
-                        }
-
-                        MouseArea {
-                            id: thConsMa
-                            anchors.fill: parent
-                            hoverEnabled: true
-                            cursorShape: Qt.PointingHandCursor
-                            onClicked: {
-                                SystemState.closeControlCenter()
-                                ThornhillState.openConsole()
-                            }
-                        }
+                    Text {
+                        text: ThornhillState.busy ? "…" : ThornhillState.label
+                        color: ThornhillState.color
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeXS
                     }
                 }
             }

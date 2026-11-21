@@ -30,3 +30,16 @@ output_path = "~/.config/gtk-4.0/gtk.css"
 [templates.hyprlock]
 input_path = "templates/hyprlock.conf.in"
 output_path = "~/.config/hypr/hyprlock.conf"
+
+[templates.starship]
+input_path = "templates/starship.toml.in"
+output_path = "~/.config/starship.toml"
+
+[templates.btop]
+input_path = "templates/btop.theme.in"
+output_path = "~/.config/btop/themes/enyxma.theme"
+post_hook = "pkill -USR2 -x btop >/dev/null 2>&1 || true"
+
+[templates.yazi]
+input_path = "templates/yazi-theme.toml.in"
+output_path = "~/.config/yazi/theme.toml"
