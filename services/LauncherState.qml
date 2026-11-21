@@ -9,7 +9,7 @@ Singleton {
 
     property bool isOpen: false
     property string searchText: ""
-    property string activeMode: "apps" // apps | actions | clipboard | keys
+    property string activeMode: "apps" // apps | actions | clipboard
     property var clipboardItems: []
     property bool clipboardLoading: false
     property string pendingClipId: ""
@@ -17,8 +17,7 @@ Singleton {
     readonly property var modes: [
         { id: "apps",      label: "Uygulamalar", icon: "󰀻" },
         { id: "actions",   label: "Komutlar",    icon: "󰘳" },
-        { id: "clipboard", label: "Pano",        icon: "󰅍" },
-        { id: "keys",      label: "Kısayollar",  icon: "󰌌" }
+        { id: "clipboard", label: "Pano",        icon: "󰅍" }
     ]
 
     readonly property var systemActions: [
@@ -41,37 +40,12 @@ Singleton {
         { id: "poweroff-system",   title: "Sistemi Kapat",                         subtitle: "Tüm servisleri durdurup bilgisayarı kapatır",                      icon: "⏻", badge: "KAPAT" }
     ]
 
-    readonly property var keybindList: [
-        { combo: "SUPER + SPACE",     desc: "Uygulama ve Komuta Başlatıcı",              category: "SİSTEM" },
-        { combo: "SUPER + ALT + SPACE", desc: "Enyxma Sistem Komutları Menüsü",          category: "SİSTEM" },
-        { combo: "SUPER + /",         desc: "Klavye Kısayol Rehberi",                    category: "SİSTEM" },
-        { combo: "SUPER + SHIFT + V", desc: "Pano Geçmişi Yöneticisi",                   category: "PANO" },
-        { combo: "SUPER + RETURN",    desc: "Terminal [Kitty]",                          category: "UYGULAMA" },
-        { combo: "SUPER + W",         desc: "Web Tarayıcı [LibreWolf]",                  category: "UYGULAMA" },
-        { combo: "SUPER + E",         desc: "Dosya Yöneticisi [Thunar]",                 category: "UYGULAMA" },
-        { combo: "SUPER + Y",         desc: "Uçbirim Dosya Yöneticisi [Yazi]",           category: "UYGULAMA" },
-        { combo: "SUPER + TAB",       desc: "Genel Bakış ve Masaüstü Şeridi",            category: "MASAÜSTÜ" },
-        { combo: "SUPER + T",         desc: "Tema Değiştir [Dynamic / Gotham 2.0]",      category: "TEMA" },
-        { combo: "SUPER + SHIFT + T", desc: "Duvar Kağıdı Seçici",                       category: "TEMA" },
-        { combo: "SUPER + D",         desc: "Kontrol Merkezi",                           category: "SİSTEM" },
-        { combo: "SUPER + S",         desc: "Enyxma AI Kenar Çubuğu",                    category: "YAPAY ZEKA" },
-        { combo: "SUPER + N",         desc: "Bildirim Merkezi",                          category: "SİSTEM" },
-        { combo: "SUPER + B",         desc: "Üst Barı Gizle / Göster",                   category: "MASAÜSTÜ" },
-        { combo: "SUPER + SHIFT + S", desc: "Ekran Alıntısı ve Çizim Stüdyosu",          category: "GÖRÜNTÜ" },
-        { combo: "PRINT",             desc: "Tam Ekran Görüntüsü Kopyala",               category: "GÖRÜNTÜ" },
-        { combo: "SUPER + Q",         desc: "Aktif Pencereyi Kapat",                     category: "PENCERE" },
-        { combo: "SUPER + F",         desc: "Tam Ekran Modu",                            category: "PENCERE" },
-        { combo: "SUPER + V",         desc: "Yüzen Pencere Modu",                        category: "PENCERE" },
-        { combo: "SUPER + L",         desc: "Ekranı Kilitle",                            category: "OTURUM" },
-        { combo: "SUPER + 1..9",      desc: "Çalışma Alanları Arasında Geçiş",           category: "MASAÜSTÜ" }
-    ]
-
     onIsOpenChanged: {
         WallpaperState.dimLevel = (isOpen || AIState.isOpen) ? 0.3 : 0.0
     }
 
     function normalizeMode(mode) {
-        if (mode === "actions" || mode === "clipboard" || mode === "keys") return mode
+        if (mode === "actions" || mode === "clipboard") return mode
         return "apps"
     }
 
@@ -113,7 +87,7 @@ Singleton {
     }
 
     function cycleMode(step) {
-        const order = ["apps", "actions", "clipboard", "keys"]
+        const order = ["apps", "actions", "clipboard"]
         const idx = order.indexOf(activeMode)
         const next = (idx + (step || 1) + order.length) % order.length
         setMode(order[next])
@@ -218,9 +192,6 @@ Singleton {
             runSystemAction(item.id)
         } else if (item.kind === "clipboard") {
             selectClipboardItem(item)
-        } else if (item.kind === "key") {
-            close()
-            Quickshell.execDetached(["notify-send", "-t", "2000", item.title, item.subtitle])
         }
     }
 
@@ -329,17 +300,6 @@ Singleton {
         )
     }
 
-    // Arama metnine göre filtrelenmiş klavye kısayolları
-    readonly property var filteredKeys: {
-        const query = searchText.trim().toLowerCase()
-        if (!query) return keybindList
-        return keybindList.filter(k =>
-            k.combo.toLowerCase().includes(query) ||
-            k.desc.toLowerCase().includes(query) ||
-            k.category.toLowerCase().includes(query)
-        )
-    }
-
     // Aktif sekmeye göre tek tip liste öğeleri
     readonly property var currentItems: {
         if (activeMode === "actions") {
@@ -366,18 +326,6 @@ Singleton {
                 entry: null
             }))
         }
-        if (activeMode === "keys") {
-            return filteredKeys.map(k => ({
-                kind: "key",
-                id: k.combo,
-                title: k.combo,
-                subtitle: k.desc,
-                iconName: "",
-                iconGlyph: "󰌌",
-                badge: k.category,
-                entry: null
-            }))
-        }
         return filteredApps.map(entry => ({
             kind: "app",
             id: entry.id || "",
@@ -398,7 +346,6 @@ Singleton {
         function close(): void { root.close() }
         function menu(): void { root.openMode("actions") }
         function clipboard(): void { root.openMode("clipboard") }
-        function keys(): void { root.openMode("keys") }
     }
 
     IpcHandler {
@@ -409,6 +356,5 @@ Singleton {
         function close(): void { root.close() }
         function menu(): void { root.openMode("actions") }
         function clipboard(): void { root.openMode("clipboard") }
-        function keys(): void { root.openMode("keys") }
     }
 }

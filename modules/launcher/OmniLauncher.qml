@@ -120,7 +120,7 @@ PanelWindow {
             }
             spacing: Theme.spacingSmall
 
-            // 4 Sekmeli Mod Seçici Şeridi
+            // 3 Sekmeli Mod Seçici Şeridi
             RowLayout {
                 Layout.fillWidth: true
                 spacing: Theme.spacingXS
@@ -206,7 +206,6 @@ PanelWindow {
                         text: {
                             if (LauncherState.activeMode === "actions") return "󰘳"
                             if (LauncherState.activeMode === "clipboard") return "󰅍"
-                            if (LauncherState.activeMode === "keys") return "󰌌"
                             return "󰍉"
                         }
                         color: searchField.activeFocus ? Theme.accent : Theme.textMuted
@@ -220,8 +219,7 @@ PanelWindow {
                         placeholderText: {
                             if (LauncherState.activeMode === "actions") return "Sistem komutu veya araç ara..."
                             if (LauncherState.activeMode === "clipboard") return "Pano geçmişinde ara..."
-                            if (LauncherState.activeMode === "keys") return "Kısayol veya işlev ara..."
-                            return "Uygulama ara — veya > komutlar, ? kısayollar"
+                            return "Uygulama ara — veya > komutlar"
                         }
                         placeholderTextColor: Theme.textMuted
                         color: Theme.textPrimary
@@ -234,12 +232,6 @@ PanelWindow {
                             if (text.startsWith(">")) {
                                 const rest = text.substring(1).trimStart()
                                 LauncherState.setMode("actions")
-                                text = rest
-                                return
-                            }
-                            if (text.startsWith("?")) {
-                                const rest = text.substring(1).trimStart()
-                                LauncherState.setMode("keys")
                                 text = rest
                                 return
                             }
@@ -405,7 +397,7 @@ PanelWindow {
                                 Layout.fillWidth: true
                                 text: modelData.title || ""
                                 color: Theme.textPrimary
-                                font.family: (modelData.kind === "key") ? Theme.fontMono : Theme.fontFamily
+                                font.family: Theme.fontFamily
                                 font.pixelSize: Theme.fontSizeNormal
                                 font.bold: true
                                 elide: Text.ElideRight
@@ -480,7 +472,6 @@ PanelWindow {
                     Text {
                         text: {
                             if (LauncherState.activeMode === "clipboard") return "󰅍"
-                            if (LauncherState.activeMode === "keys") return "󰌌"
                             return "󰍉"
                         }
                         color: Theme.textMuted
@@ -494,7 +485,6 @@ PanelWindow {
                             if (LauncherState.activeMode === "clipboard") {
                                 return LauncherState.clipboardLoading ? "Pano geçmişi yükleniyor..." : "Pano geçmişi boş"
                             }
-                            if (LauncherState.activeMode === "keys") return "Eşleşen kısayol bulunamadı"
                             return "Eşleşen uygulama bulunamadı"
                         }
                         color: Theme.textMuted
@@ -513,7 +503,6 @@ PanelWindow {
                         const count = LauncherState.currentItems.length
                         if (LauncherState.activeMode === "actions") return count + " komut"
                         if (LauncherState.activeMode === "clipboard") return count + " pano öğesi"
-                        if (LauncherState.activeMode === "keys") return count + " kısayol"
                         return count + " uygulama"
                     }
                     color: Theme.textMuted
