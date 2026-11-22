@@ -27,7 +27,6 @@ Singleton {
         { id: "overview",          title: "Genel Bakış — Masaüstü Şeridi",         subtitle: "Tüm açık pencereleri ve çalışma alanlarını yönetir",               icon: "󰕮", badge: "SUPER + TAB" },
         { id: "control-center",    title: "Kontrol Merkezi",                       subtitle: "Ses, parlaklık, gece ışığı, Bluetooth ve hızlı ayarlar",           icon: "󰒓", badge: "SUPER + D" },
         { id: "ai-assistant",      title: "Enyxma AI Kenar Çubuğu",                subtitle: "Yapay zeka sohbet, araçlar ve kullanım paneli",                    icon: "󰧑", badge: "SUPER + S" },
-        { id: "thornhill-console", title: "Thornhill Bilişsel Nedensellik Konsolu", subtitle: "Yerel olay grafiği ve S1 refleks motoru arayüzü",                 icon: "󰈈", badge: "127.0.0.1:9099" },
         { id: "performance-panel", title: "Sistem Performans ve Telemetri Paneli",  subtitle: "Canlı CPU, RAM ve süreç kaynak kullanımı",                         icon: "󰍛", badge: "TELEMETRİ" },
         { id: "network-panel",     title: "Ağ ve Bağlantı Yönetimi",               subtitle: "Wi-Fi, Ethernet ve veri akışı bilgileri",                          icon: "󰤨", badge: "AĞ" },
         { id: "storage-panel",     title: "Depolama ve Disk Durumu",               subtitle: "Btrfs bölümleri ve disk doluluk analizi",                          icon: "󰋊", badge: "DİSK" },
@@ -146,9 +145,6 @@ Singleton {
             break
         case "ai-assistant":
             AIState.open()
-            break
-        case "thornhill-console":
-            ThornhillState.openConsole()
             break
         case "performance-panel":
             PerformanceState.open()

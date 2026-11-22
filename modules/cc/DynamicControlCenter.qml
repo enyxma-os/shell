@@ -322,57 +322,6 @@ Item {
                 color: Theme.borderSubtle
             }
 
-            // 2b. Thornhill Bilissel Cekirdek
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: 42
-                radius: Theme.radiusWidget
-                color: thMa.containsMouse ? Theme.surfaceHover : Theme.surface1
-                border.color: ThornhillState.running ? Theme.accent : Theme.borderSubtle
-                border.width: Theme.borderWidth
-
-                MouseArea {
-                    id: thMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: ThornhillState.toggle()
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: Theme.spacingSmall
-                    anchors.rightMargin: Theme.spacingSmall
-                    spacing: Theme.spacingSmall
-
-                    Text {
-                        text: "👁"
-                        color: ThornhillState.color
-                        font.family: Theme.fontMono
-                        font.pixelSize: 15
-                        opacity: ThornhillState.running ? 1.0 : 0.55
-                    }
-
-                    Text {
-                        text: "THORNHILL"
-                        color: Theme.textPrimary
-                        font.family: Theme.fontMono
-                        font.pixelSize: 10
-                        font.bold: true
-                        font.letterSpacing: 1
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    Text {
-                        text: ThornhillState.busy ? "…" : ThornhillState.label
-                        color: ThornhillState.color
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontSizeXS
-                    }
-                }
-            }
-
             // 2c. Tema Profili Secici
             RowLayout {
                 Layout.fillWidth: true

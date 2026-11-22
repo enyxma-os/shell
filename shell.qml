@@ -206,13 +206,4 @@ ShellRoot {
             screen: modelData
         }
     }
-
-    // ── 18. Action Chip Pop-up: odaklı ekran ───────────────────────────
-    Variants {
-        model: ScreenState.overlayScreens
-        ActionChipPopup {
-            property var modelData
-            screen: modelData
-        }
-    }
 }

@@ -385,67 +385,6 @@ Item {
                 }
             }
 
-            // 2b. Thornhill Taktiksel Durum Seridi
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: 42
-                radius: Theme.radiusButton
-                color: thMa.containsMouse ? Theme.surfaceHover : Theme.surface1
-                border.color: ThornhillState.running ? Theme.borderFocus : Theme.borderSubtle
-                border.width: Theme.borderWidth
-
-                Rectangle {
-                    visible: ThornhillState.running
-                    anchors {
-                        left: parent.left
-                        top: parent.top
-                        bottom: parent.bottom
-                    }
-                    width: 2
-                    color: Theme.accent
-                }
-
-                MouseArea {
-                    id: thMa
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: ThornhillState.toggle()
-                }
-
-                RowLayout {
-                    anchors.fill: parent
-                    anchors.leftMargin: Theme.spacingSmall + 2
-                    anchors.rightMargin: Theme.spacingSmall
-                    spacing: Theme.spacingSmall
-
-                    Text {
-                        text: "󰈈"
-                        color: ThornhillState.color
-                        font.family: Theme.fontMono
-                        font.pixelSize: 15
-                    }
-
-                    Text {
-                        text: "THORNHILL"
-                        color: Theme.textPrimary
-                        font.family: Theme.fontMono
-                        font.pixelSize: 10
-                        font.bold: true
-                        font.letterSpacing: 1
-                    }
-
-                    Item { Layout.fillWidth: true }
-
-                    Text {
-                        text: ThornhillState.busy ? "…" : ThornhillState.label
-                        color: ThornhillState.color
-                        font.family: Theme.fontMono
-                        font.pixelSize: Theme.fontSizeXS
-                    }
-                }
-            }
-
             // 2c. Keskin Segmentli Tema Profili Anahtari
             Rectangle {
                 Layout.fillWidth: true
