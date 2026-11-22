@@ -99,9 +99,24 @@ Singleton {
                 conf: c.conf !== undefined ? c.conf : 1.0,
                 deadline: Date.now() + (c.ttl_ms || 60000),
                 execCmd: (c.actions || []).filter(a => a.action_type === "exec")
-                            .map(a => a.payload && a.payload.cmd ? a.payload.cmd : "").join("")
+                            .map(a => a.payload && a.payload.cmd ? a.payload.cmd : "").join(" · ")
             }
             root.ingestActionChip(entry)
+            return
+        }
+
+        if (msg.req && String(msg.req).indexOf("ui-") === 0) {
+            if (msg.ok === true && msg.data && msg.data.dispatched) {
+                const d = msg.data
+                const raw = d.note || d.explanation || d.stdout || d.stderr || "Eylem tamamlandı"
+                const summary = String(raw).trim().slice(0, 260)
+                Quickshell.execDetached(["notify-send", "-a", "Thornhill", "Thornhill Eylem", summary])
+            } else if (msg.ok === false && msg.error) {
+                Quickshell.execDetached([
+                    "notify-send", "-a", "Thornhill", "-u", "critical",
+                    "Thornhill Hata", String(msg.error).slice(0, 260)
+                ])
+            }
         }
     }
 
