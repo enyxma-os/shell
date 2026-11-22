@@ -1,14 +1,12 @@
 import QtQuick
 import QtQuick.Layouts
 import "../../services"
-import "../../widgets"
-import "."
 
 /**
- * GothamBar — Enyxma Shell Gotham 2.0 Brutalist Bar Paneli.
+ * GothamBar — Enyxma Shell Gotham 2.0 Kapsulsuz Kokpit Ust Paneli.
  *
- * Yekpare endustriyel obsidyen kiris, soguk grafit ayiricilar,
- * teknik telemetri bloklari ve kontrollu kehribar vurgular.
+ * Ic kapsuller olmadan yalnizca 1px soguk grafit dikey izgaralarla bolunmus,
+ * sabit genislikli teknik telemetri ve komuta hucrelerinden olusur.
  */
 Rectangle {
     id: root
@@ -16,182 +14,643 @@ Rectangle {
     color: Theme.bgDark
     radius: 0
 
-    // ── MERKEZ: Iki Katmanli Taktiksel Kronometre ──
+    function pad2(n) {
+        var v = Math.max(0, Math.round(n))
+        return v < 10 ? ("0" + v) : String(v)
+    }
+
+    // Merkez: Iki Katmanli Taktiksel Kronometre
     GothamClockWidget {
         id: clockWidget
         anchors.centerIn: parent
         z: 2
     }
 
-    // ── SOL KUME: Mimari Sektor Hucreleri ve Yaratici Araclar ──
+    // Sol Kume: Komuta, Sektorler ve Gorsel Araclar
     RowLayout {
         id: leftLayout
         anchors {
             left: parent.left
-            leftMargin: Theme.spacingMedium
             right: clockWidget.left
-            rightMargin: Theme.spacingMedium
-            verticalCenter: parent.verticalCenter
+            rightMargin: Theme.spacingSmall
+            top: parent.top
+            bottom: bottomLine.top
         }
-        spacing: Theme.spacingSmall
+        spacing: 0
 
-        // Enyxma Sistem ve Komut Menusu
-        EnyxmaPill {
-            id: menuPill
-            implicitHeight: 24
-            isActive: LauncherState.isOpen
-            onClicked: LauncherState.toggle()
-            onRightClicked: LauncherState.openMode("actions")
+        // 1. ENYXMA Komuta Hucresi
+        Rectangle {
+            Layout.fillHeight: true
+            implicitWidth: enyxmaRow.implicitWidth + 20
+            radius: 0
+            color: LauncherState.isOpen ? Theme.surfaceActive : (enyxmaMa.containsMouse ? Theme.surfaceHover : "transparent")
 
-            Text {
-                text: "󰈈 ENYXMA"
-                color: LauncherState.isOpen ? Theme.accent : Theme.textPrimary
-                font.family: Theme.fontDisplay
-                font.pixelSize: Theme.fontSizeSmall
-                font.bold: true
-                font.letterSpacing: 1
-                Layout.alignment: Qt.AlignVCenter
+            Rectangle {
+                visible: LauncherState.isOpen
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            RowLayout {
+                id: enyxmaRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                Text {
+                    text: "󰈈"
+                    color: LauncherState.isOpen ? Theme.accent : Theme.accent
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeNormal
+                }
+
+                Text {
+                    text: "ENYXMA"
+                    color: LauncherState.isOpen ? Theme.accent : Theme.textPrimary
+                    font.family: Theme.fontDisplay
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.bold: true
+                    font.letterSpacing: 1
+                }
+            }
+
+            MouseArea {
+                id: enyxmaMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onClicked: (mouse) => {
+                    if (mouse.button === Qt.RightButton) LauncherState.openMode("actions")
+                    else LauncherState.toggle()
+                }
             }
         }
 
-        // Soguk Grafit Ayirici
+        // Dikey Izgara Ayirici
         Rectangle {
-            Layout.alignment: Qt.AlignVCenter
+            Layout.fillHeight: true
             Layout.preferredWidth: 1
-            Layout.preferredHeight: 14
             color: Theme.borderSubtle
         }
 
-        // Calisma Alanlari: Gotham Mimari Hucre Izgarasi
-        GothamWorkspaces {
-            id: workspaces
+        // 2. Calisma Alanlari: Gotham Mimari Hucre Izgarasi
+        Item {
+            Layout.fillHeight: true
+            Layout.leftMargin: Theme.spacingSmall
+            Layout.rightMargin: Theme.spacingSmall
+            implicitWidth: workspaces.implicitWidth
+
+            GothamWorkspaces {
+                id: workspaces
+                anchors.verticalCenter: parent.verticalCenter
+            }
         }
 
-        // Soguk Grafit Ayirici
+        // Dikey Izgara Ayirici
         Rectangle {
-            Layout.alignment: Qt.AlignVCenter
+            Layout.fillHeight: true
             Layout.preferredWidth: 1
-            Layout.preferredHeight: 14
             color: Theme.borderSubtle
         }
 
-        // Duvar Kagidi Koleksiyon Secici
-        WallpaperWidget {
-            id: wallpaperWidget
+        // 3. Duvar Kagidi ve Tema Hucresi
+        Rectangle {
+            Layout.fillHeight: true
+            implicitWidth: 34
+            radius: 0
+            color: WallpaperState.pickerVisible ? Theme.surfaceActive : (wpMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: WallpaperState.pickerVisible
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            Text {
+                anchors.centerIn: parent
+                text: "󰏘"
+                color: WallpaperState.pickerVisible ? Theme.accent : Theme.textPrimary
+                font.family: Theme.fontMono
+                font.pixelSize: Theme.fontSizeNormal
+            }
+
+            MouseArea {
+                id: wpMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onClicked: (mouse) => {
+                    if (mouse.button === Qt.RightButton) WallpaperState.cycleTheme()
+                    else WallpaperState.togglePicker()
+                }
+            }
         }
 
-        // Ekran Goruntusu ve Medya Tarayicisi
-        MediaBrowserWidget {
-            id: mediaBrowserWidget
+        // Dikey Izgara Ayirici
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: Theme.borderSubtle
         }
 
-        // Calan Medya
+        // 4. Medya ve Ekran Alintisi Galerisi Hucresi
+        Rectangle {
+            Layout.fillHeight: true
+            implicitWidth: 34
+            radius: 0
+            color: MediaBrowserState.isOpen ? Theme.surfaceActive : (mbMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: MediaBrowserState.isOpen
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            Text {
+                anchors.centerIn: parent
+                text: "󰋩"
+                color: MediaBrowserState.isOpen ? Theme.accent : Theme.textPrimary
+                font.family: Theme.fontMono
+                font.pixelSize: Theme.fontSizeNormal
+            }
+
+            MouseArea {
+                id: mbMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onClicked: (mouse) => {
+                    if (mouse.button === Qt.RightButton) MediaBrowserState.toggle("videos")
+                    else MediaBrowserState.toggle("screenshots")
+                }
+            }
+        }
+
+        // Dikey Izgara Ayirici
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: Theme.borderSubtle
+        }
+
+        // Calan Medya Bileseni
         MediaWidget {
             id: mediaWidget
+            Layout.alignment: Qt.AlignVCenter
+            Layout.leftMargin: Theme.spacingSmall
         }
 
-        // Kalan boslugu saga dogru it
         Item {
             Layout.fillWidth: true
         }
     }
 
-    // ── SAG KUME: Telemetri, Sistem Kontrolu ve Bildirim Konsolu ──
+    // Sag Kume: Kapsulsuz Kokpit Telemetri ve Sistem Bloklari
     RowLayout {
         id: rightLayout
         anchors {
             left: clockWidget.right
-            leftMargin: Theme.spacingMedium
+            leftMargin: Theme.spacingSmall
             right: parent.right
-            rightMargin: Theme.spacingMedium
-            verticalCenter: parent.verticalCenter
+            top: parent.top
+            bottom: bottomLine.top
         }
-        spacing: Theme.spacingXS
+        spacing: 0
 
-        // Sol tarafi bos birakip bilesenleri saga yasla
         Item {
             Layout.fillWidth: true
         }
 
-        // 1. Telemetri Grubu: CPU, RAM, Disk ve Ag
-        PerformanceWidget {
-            id: performanceWidget
-        }
-
-        StorageWidget {
-            id: storageWidget
-        }
-
-        NetworkWidget {
-            id: networkWidget
-        }
-
-        // Soguk Grafit Ayirici
+        // Dikey Izgara Ayirici
         Rectangle {
-            Layout.alignment: Qt.AlignVCenter
+            Layout.fillHeight: true
             Layout.preferredWidth: 1
-            Layout.preferredHeight: 14
             color: Theme.borderSubtle
         }
 
-        // 2. Kontrol ve Sistem Grubu
-        EnyxmaPill {
-            id: volumePill
-            implicitHeight: 24
-            isActive: AudioState.muted
-
-            onClicked: AudioState.toggleMute()
-            onRightClicked: SystemState.toggleControlCenter()
-
-            Text {
-                text: AudioState.muted
-                    ? "󰝟 SESSİZ"
-                    : ((AudioState.volume > 0.66 ? "󰕾 " : (AudioState.volume > 0.33 ? "󰖀 " : "󰕿 ")) + Math.round(AudioState.volume * 100) + "%")
-                color: AudioState.muted ? Theme.danger : Theme.textPrimary
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontSizeSmall
-            }
-        }
-
-        SystemMetrics {
-            id: systemMetrics
-        }
-
-        EnyxmaPill {
-            id: aiTogglePill
-            implicitHeight: 24
-            isActive: AIState.isOpen
-            onClicked: AIState.toggle()
-
-            Text {
-                text: Theme.aiLabel
-                color: AIState.isOpen ? Theme.accent : Theme.textPrimary
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontSizeSmall
-                font.bold: true
-            }
-        }
-
-        // Soguk Grafit Ayirici
+        // 1. CPU + RAM Telemetri Hucresi
         Rectangle {
-            Layout.alignment: Qt.AlignVCenter
+            Layout.fillHeight: true
+            implicitWidth: perfRow.implicitWidth + 16
+            radius: 0
+            color: PerformanceState.isOpen ? Theme.surfaceActive : (perfMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: PerformanceState.isOpen
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            RowLayout {
+                id: perfRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                Text {
+                    text: "CPU"
+                    color: Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeXS
+                    font.bold: true
+                }
+
+                Text {
+                    text: root.pad2(PerformanceState.cpuPercent) + "%"
+                    color: PerformanceState.cpuPercent > 80 ? Theme.danger : (PerformanceState.isOpen ? Theme.accent : Theme.textPrimary)
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.bold: true
+                }
+
+                Text {
+                    text: "MEM"
+                    color: Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeXS
+                    font.bold: true
+                }
+
+                Text {
+                    text: perfMa.containsMouse
+                        ? (PerformanceState.memUsedGiB.toFixed(1) + "G")
+                        : (root.pad2(PerformanceState.memPercent) + "%")
+                    color: PerformanceState.memPercent > 85 ? Theme.danger : (PerformanceState.isOpen ? Theme.accent : Theme.textPrimary)
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.bold: true
+                }
+            }
+
+            MouseArea {
+                id: perfMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: PerformanceState.toggle()
+            }
+        }
+
+        // Dikey Izgara Ayirici
+        Rectangle {
+            Layout.fillHeight: true
             Layout.preferredWidth: 1
-            Layout.preferredHeight: 14
             color: Theme.borderSubtle
         }
 
-        // 3. Bildirim ve Sistem Tepsisi
-        NotificationWidget {
-            id: notificationWidget
+        // 2. Depolama Hucresi
+        Rectangle {
+            Layout.fillHeight: true
+            implicitWidth: dskRow.implicitWidth + 16
+            radius: 0
+            color: StorageState.isOpen ? Theme.surfaceActive : (dskMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: StorageState.isOpen
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            RowLayout {
+                id: dskRow
+                anchors.centerIn: parent
+                spacing: 4
+
+                Text {
+                    text: "DSK"
+                    color: Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeXS
+                    font.bold: true
+                }
+
+                Text {
+                    text: root.pad2(StorageState.rootPercent) + "%"
+                    color: StorageState.isOpen ? Theme.accent : Theme.textPrimary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.bold: true
+                }
+            }
+
+            MouseArea {
+                id: dskMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: StorageState.toggle()
+            }
         }
 
+        // Dikey Izgara Ayirici
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: Theme.borderSubtle
+        }
+
+        // 3. Ag Hucresi
+        Rectangle {
+            Layout.fillHeight: true
+            implicitWidth: netRow.implicitWidth + 16
+            radius: 0
+            color: NetworkState.isOpen ? Theme.surfaceActive : (netMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: NetworkState.isOpen
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            RowLayout {
+                id: netRow
+                anchors.centerIn: parent
+                spacing: 6
+
+                Text {
+                    text: {
+                        if (!NetworkState.isConnected) return "󰤭"
+                        if (NetworkState.connectionType === "ethernet") return "󰈀"
+                        if (NetworkState.signalStrength > 75) return "󰤨"
+                        if (NetworkState.signalStrength > 50) return "󰤥"
+                        if (NetworkState.signalStrength > 25) return "󰤢"
+                        return "󰤟"
+                    }
+                    color: NetworkState.isOpen ? Theme.accent : (NetworkState.isConnected ? Theme.textPrimary : Theme.textMuted)
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+
+                Column {
+                    spacing: 2
+                    Layout.alignment: Qt.AlignVCenter
+
+                    Rectangle {
+                        width: 8
+                        height: 3
+                        radius: 0
+                        color: NetworkState.rxLevel > 0.08 ? Theme.accent : Theme.surfaceActive
+                    }
+
+                    Rectangle {
+                        width: 8
+                        height: 3
+                        radius: 0
+                        color: NetworkState.txLevel > 0.08 ? Theme.accent : Theme.surfaceActive
+                    }
+                }
+            }
+
+            MouseArea {
+                id: netMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: NetworkState.toggle()
+            }
+        }
+
+        // Dikey Izgara Ayirici
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: Theme.borderSubtle
+        }
+
+        // 4. Ses Hucresi
+        Rectangle {
+            Layout.fillHeight: true
+            implicitWidth: volRow.implicitWidth + 16
+            radius: 0
+            color: AudioState.muted ? Theme.surfaceActive : (volMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: AudioState.muted
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.danger
+            }
+
+            RowLayout {
+                id: volRow
+                anchors.centerIn: parent
+                spacing: 4
+
+                Text {
+                    text: "VOL"
+                    color: AudioState.muted ? Theme.danger : Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeXS
+                    font.bold: true
+                }
+
+                Text {
+                    text: AudioState.muted ? "MUTE" : (root.pad2(Math.round(AudioState.volume * 100)) + "%")
+                    color: AudioState.muted ? Theme.danger : Theme.textPrimary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.bold: true
+                }
+            }
+
+            MouseArea {
+                id: volMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                acceptedButtons: Qt.LeftButton | Qt.RightButton
+                onClicked: (mouse) => {
+                    if (mouse.button === Qt.RightButton) SystemState.toggleControlCenter()
+                    else AudioState.toggleMute()
+                }
+            }
+        }
+
+        // Dikey Izgara Ayirici
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: Theme.borderSubtle
+        }
+
+        // 5. SYS // PWR Kontrol Merkezi Hucresi
+        Rectangle {
+            Layout.fillHeight: true
+            implicitWidth: sysRow.implicitWidth + 16
+            radius: 0
+            color: SystemState.isControlCenterOpen ? Theme.surfaceActive : (sysMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: SystemState.isControlCenterOpen
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            RowLayout {
+                id: sysRow
+                anchors.centerIn: parent
+                spacing: 4
+
+                Text {
+                    text: "SYS ·"
+                    color: SystemState.isControlCenterOpen ? Theme.accent : Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeXS
+                    font.bold: true
+                }
+
+                Text {
+                    text: (SystemState.isBatteryPresent ? ("%" + SystemState.batteryPercent) : "AC")
+                        + (SystemState.isCharging ? " 󰂄" : "")
+                    color: SystemState.isControlCenterOpen ? Theme.accent : Theme.textPrimary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.bold: true
+                }
+            }
+
+            MouseArea {
+                id: sysMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: SystemState.toggleControlCenter()
+            }
+        }
+
+        // Dikey Izgara Ayirici
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: Theme.borderSubtle
+        }
+
+        // 6. ORACLE // AI Hucresi
+        Rectangle {
+            Layout.fillHeight: true
+            implicitWidth: aiRow.implicitWidth + 16
+            radius: 0
+            color: AIState.isOpen ? Theme.surfaceActive : (aiMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: AIState.isOpen
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            RowLayout {
+                id: aiRow
+                anchors.centerIn: parent
+                spacing: 5
+
+                Text {
+                    text: "󰧑"
+                    color: AIState.isOpen ? Theme.accent : Theme.textPrimary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                }
+
+                Text {
+                    text: "ORACLE"
+                    color: AIState.isOpen ? Theme.accent : Theme.textPrimary
+                    font.family: Theme.fontDisplay
+                    font.pixelSize: Theme.fontSizeXS
+                    font.bold: true
+                    font.letterSpacing: 1
+                }
+            }
+
+            MouseArea {
+                id: aiMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: AIState.toggle()
+            }
+        }
+
+        // Dikey Izgara Ayirici
+        Rectangle {
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: Theme.borderSubtle
+        }
+
+        // 7. Bildirim Hucresi
+        Rectangle {
+            Layout.fillHeight: true
+            implicitWidth: notifRow.implicitWidth + 16
+            radius: 0
+            color: NotificationState.isPanelOpen ? Theme.surfaceActive : (notifMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: NotificationState.isPanelOpen
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            RowLayout {
+                id: notifRow
+                anchors.centerIn: parent
+                spacing: 5
+
+                Text {
+                    text: "󰂚"
+                    color: NotificationState.isPanelOpen ? Theme.accent
+                        : (NotificationState.notifications.length > 0 ? Theme.textPrimary : Theme.textSecondary)
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeNormal
+                }
+
+                Rectangle {
+                    visible: NotificationState.notifications.length > 0
+                    implicitWidth: notifCountTxt.implicitWidth + 6
+                    implicitHeight: 16
+                    radius: 0
+                    color: Theme.accent
+
+                    Text {
+                        id: notifCountTxt
+                        anchors.centerIn: parent
+                        text: NotificationState.notifications.length > 99 ? "99" : String(NotificationState.notifications.length)
+                        color: Theme.accentOn
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeXS
+                        font.bold: true
+                    }
+                }
+            }
+
+            MouseArea {
+                id: notifMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: NotificationState.toggle()
+            }
+        }
+
+        // Sistem Tepsisi
         Tray {
             id: tray
+            Layout.alignment: Qt.AlignVCenter
+            Layout.rightMargin: Theme.spacingSmall
         }
     }
 
     // Gotham 2.0 alt ayrim hatti: 1 piksel keskin grafit
     Rectangle {
+        id: bottomLine
         anchors {
             left: parent.left
             right: parent.right

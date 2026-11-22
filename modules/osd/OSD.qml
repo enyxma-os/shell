@@ -1,9 +1,14 @@
 import Quickshell
 import Quickshell.Wayland
 import QtQuick
-import QtQuick.Layouts
 import "../../services"
 
+/**
+ * OSD — Enyxma Shell Ses ve Parlaklik Gostergesi Yonlendiricisi.
+ *
+ * Ses ve parlaklik olaylarini tek yerde dinler; temaya gore DynamicOSD
+ * veya 16 segmentli GothamOSD varyantini yukler.
+ */
 PanelWindow {
     id: root
     property var modelData
@@ -17,16 +22,26 @@ PanelWindow {
         bottom: true
     }
     margins {
-        bottom: 60
+        bottom: Theme.isGotham ? 48 : 60
     }
 
-    implicitWidth: 260
-    implicitHeight: 52
+    implicitWidth: Theme.isGotham ? 320 : 260
+    implicitHeight: Theme.isGotham ? 58 : 52
     color: "transparent"
-    visible: container.opacity > 0.0
+    visible: root.osdOpacity > 0.0
 
     property bool isReady: false
+    property bool shown: false
     property string osdMode: "audio" // "audio" | "brightness"
+
+    property real osdOpacity: root.shown ? 1.0 : 0.0
+    Behavior on osdOpacity {
+        enabled: !Theme.reduceMotion
+        NumberAnimation {
+            duration: Theme.animNormal
+            easing.type: Easing.OutQuint
+        }
+    }
 
     Timer {
         id: initTimer
@@ -38,12 +53,12 @@ PanelWindow {
     Timer {
         id: hideTimer
         interval: 2000
-        onTriggered: container.opacity = 0.0
+        onTriggered: root.shown = false
     }
 
     function show() {
         if (!isReady) return
-        container.opacity = 1.0
+        root.shown = true
         hideTimer.restart()
     }
 
@@ -67,88 +82,26 @@ PanelWindow {
         }
     }
 
-    Rectangle {
-        id: container
+    Loader {
+        id: osdLoader
         anchors.fill: parent
-        color: Theme.bgGlass
-        radius: Theme.radiusPanel
-        border.color: Theme.borderSubtle
-        border.width: Theme.borderWidth
-        opacity: 0.0
+        opacity: root.osdOpacity
+        sourceComponent: Theme.isGotham ? gothamOsdComponent : dynamicOsdComponent
+    }
 
-        // Gotham 2.0 ust vurgu hatti
-        Rectangle {
-            visible: Theme.isGotham
-            anchors {
-                left: parent.left
-                right: parent.right
-                top: parent.top
-            }
-            height: 1
-            color: Theme.accent
-        }
-
-        Behavior on opacity {
-            enabled: !Theme.reduceMotion
-            NumberAnimation {
-                duration: Theme.animNormal
-                easing.type: Easing.OutQuint
-            }
-        }
-
-        RowLayout {
+    Component {
+        id: dynamicOsdComponent
+        DynamicOSD {
             anchors.fill: parent
-            anchors.leftMargin: Theme.spacingMedium
-            anchors.rightMargin: Theme.spacingMedium
-            spacing: Theme.spacingMedium
+            osdMode: root.osdMode
+        }
+    }
 
-            Text {
-                text: root.osdMode === "brightness"
-                    ? "󰃠 BRT"
-                    : (AudioState.muted ? "󰝟 MUTED" : "󰕾 VOL")
-                color: root.osdMode === "brightness"
-                    ? Theme.accent
-                    : (AudioState.muted ? Theme.danger : Theme.textPrimary)
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontSizeSmall
-            }
-
-            Rectangle {
-                Layout.fillWidth: true
-                height: Theme.isGotham ? 4 : 6
-                radius: Theme.isGotham ? Theme.radiusSmall : height / 2
-                color: Theme.surface1
-
-                Rectangle {
-                    height: parent.height
-                    width: parent.width * (
-                        root.osdMode === "brightness"
-                            ? Math.max(0.0, Math.min(1.0, BrightnessState.level))
-                            : (AudioState.muted ? 0.0 : Math.max(0.0, Math.min(1.0, AudioState.volume)))
-                    )
-                    radius: Theme.isGotham ? Theme.radiusSmall : height / 2
-                    color: root.osdMode === "brightness"
-                        ? Theme.accent
-                        : (AudioState.muted ? Theme.danger : Theme.accent)
-
-                    Behavior on width {
-                        enabled: !Theme.reduceMotion
-                        NumberAnimation {
-                            duration: Theme.animFast
-                            easing.type: Easing.OutQuint
-                        }
-                    }
-                }
-            }
-
-            Text {
-                text: root.osdMode === "brightness"
-                    ? (Math.round(BrightnessState.level * 100) + "%")
-                    : (AudioState.muted ? "0%" : (Math.round(AudioState.volume * 100) + "%"))
-                color: (root.osdMode === "audio" && AudioState.muted) ? Theme.danger : Theme.textSecondary
-                font.family: Theme.fontMono
-                font.pixelSize: Theme.fontSizeSmall
-            }
+    Component {
+        id: gothamOsdComponent
+        GothamOSD {
+            anchors.fill: parent
+            osdMode: root.osdMode
         }
     }
 }
