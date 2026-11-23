@@ -97,15 +97,15 @@
             set -euo pipefail
           '' + bootstrap + ''
             lock="''${XDG_RUNTIME_DIR:-/tmp}/enyxma-shell.lock"
-            exec flock -n "$lock" ${qsPkg}/bin/quickshell -p "$RUNTIME/shell.qml" "$@"
+            exec flock --close -n "$lock" ${qsPkg}/bin/quickshell -p "$RUNTIME/shell.qml" "$@"
           '');
 
           shotLauncher = pkgs.writeShellScript "enyxma-shot-launcher" (''
             set -euo pipefail
           '' + bootstrap + ''
-            # Kilit: XDG_RUNTIME_DIR (çok kullanıcılı /tmp symlink riski yok).
+            # Kilit: XDG_RUNTIME_DIR, --close alt süreçlerin kilidi miras almasını önler.
             lock="''${XDG_RUNTIME_DIR:-/tmp}/enyxma-shot.lock"
-            exec flock -n "$lock" ${qsPkg}/bin/quickshell \
+            exec flock --close -n "$lock" ${qsPkg}/bin/quickshell \
               -p "$RUNTIME/modules/screenshot/shell.qml" "$@"
           '');
 
