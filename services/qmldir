@@ -22,3 +22,5 @@ singleton ScreenTimeState 1.0 ScreenTimeState.qml
 singleton ToolsState 1.0 ToolsState.qml
 singleton BluetoothState 1.0 BluetoothState.qml
 singleton SettingsState 1.0 SettingsState.qml
+singleton FocusState 1.0 FocusState.qml
+singleton ContainerState 1.0 ContainerState.qml

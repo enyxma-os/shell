@@ -502,6 +502,89 @@ Rectangle {
             }
         }
 
+        // Odak Zamanlayici Hucresi
+        Rectangle {
+            visible: SettingsState.enableFocusTimer
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: Theme.borderSubtle
+        }
+
+        Rectangle {
+            visible: SettingsState.enableFocusTimer
+            Layout.fillHeight: true
+            implicitWidth: focusRow.implicitWidth + 14
+            radius: 0
+            color: FocusState.running ? Theme.surfaceActive : (focusMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: FocusState.running
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            RowLayout {
+                id: focusRow
+                anchors.centerIn: parent
+                spacing: 5
+                Text { text: "󰔟"; color: FocusState.running ? Theme.accent : Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall }
+                Text { text: FocusState.displayText; color: FocusState.running ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true }
+            }
+
+            MouseArea {
+                id: focusMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                acceptedButtons: Qt.LeftButton | Qt.RightButton | Qt.MiddleButton
+                onClicked: (mouse) => {
+                    if (mouse.button === Qt.RightButton) FocusState.cycleMode()
+                    else if (mouse.button === Qt.MiddleButton) FocusState.reset()
+                    else FocusState.toggle()
+                }
+            }
+        }
+
+        // Konteyner Izleyici Hucresi
+        Rectangle {
+            visible: SettingsState.enableContainerMonitor
+            Layout.fillHeight: true
+            Layout.preferredWidth: 1
+            color: Theme.borderSubtle
+        }
+
+        Rectangle {
+            visible: SettingsState.enableContainerMonitor
+            Layout.fillHeight: true
+            implicitWidth: contRow.implicitWidth + 14
+            radius: 0
+            color: ContainerState.isOpen ? Theme.surfaceActive : (contMa.containsMouse ? Theme.surfaceHover : "transparent")
+
+            Rectangle {
+                visible: ContainerState.isOpen
+                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
+                height: 2
+                color: Theme.accent
+            }
+
+            RowLayout {
+                id: contRow
+                anchors.centerIn: parent
+                spacing: 5
+                Text { text: "󰡨"; color: ContainerState.isOpen ? Theme.accent : Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall }
+                Text { text: String(ContainerState.runningCount); color: ContainerState.isOpen ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true }
+            }
+
+            MouseArea {
+                id: contMa
+                anchors.fill: parent
+                hoverEnabled: true
+                cursorShape: Qt.PointingHandCursor
+                onClicked: ContainerState.toggle()
+            }
+        }
+
         // Dikey Izgara Ayirici
         Rectangle {
             visible: SettingsState.showAi

@@ -18,6 +18,7 @@ import "./modules/overview"
 import "./modules/settings"
 import "./modules/audio"
 import "./modules/bluetooth"
+import "./modules/containers"
 
 /**
  * Enyxma Shell — kök katman.
@@ -222,6 +223,15 @@ ShellRoot {
     Variants {
         model: ScreenState.overlayScreens
         BluetoothPanel {
+            property var modelData
+            screen: modelData
+        }
+    }
+
+    // ── 21. Konteyner İzleyici Paneli (odaklı ekran) ──────────────────
+    Variants {
+        model: ScreenState.overlayScreens
+        ContainerPanel {
             property var modelData
             screen: modelData
         }

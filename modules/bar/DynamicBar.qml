@@ -139,6 +139,41 @@ Rectangle {
             visible: SettingsState.showPower
         }
 
+        // Odak Zamanlayici
+        EnyxmaPill {
+            id: focusPill
+            visible: SettingsState.enableFocusTimer
+            implicitHeight: 24
+            isActive: FocusState.running
+
+            onClicked: FocusState.toggle()
+            onRightClicked: FocusState.cycleMode()
+
+            Text {
+                text: "󰔟 " + FocusState.displayText
+                color: FocusState.running ? Theme.accent : Theme.textPrimary
+                font.family: Theme.fontMono
+                font.pixelSize: Theme.fontSizeSmall
+            }
+        }
+
+        // Konteyner Izleyici
+        EnyxmaPill {
+            id: containerPill
+            visible: SettingsState.enableContainerMonitor
+            implicitHeight: 24
+            isActive: ContainerState.isOpen
+
+            onClicked: ContainerState.toggle()
+
+            Text {
+                text: "󰡨 " + ContainerState.runningCount
+                color: ContainerState.isOpen ? Theme.accent : Theme.textPrimary
+                font.family: Theme.fontMono
+                font.pixelSize: Theme.fontSizeSmall
+            }
+        }
+
         // Enyxma AI Asistani
         EnyxmaPill {
             id: aiTogglePill
