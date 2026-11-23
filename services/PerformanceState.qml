@@ -24,9 +24,30 @@ Singleton {
     id: root
 
     property bool isOpen: false
+    property string activeTab: "performance" // performance | storage
 
-    function toggle(): void { root.isOpen = !root.isOpen; if (root.isOpen) root.refreshHeavy() }
-    function open(): void { root.isOpen = true; root.refreshHeavy() }
+    function openTab(tab): void {
+        var next = (tab === "storage") ? "storage" : "performance"
+        root.activeTab = next
+        root.isOpen = true
+        if (next === "storage") {
+            StorageState.refresh()
+        } else {
+            root.refreshHeavy()
+        }
+    }
+
+    function toggleTab(tab): void {
+        var next = (tab === "storage") ? "storage" : "performance"
+        if (root.isOpen && root.activeTab === next) {
+            root.close()
+        } else {
+            root.openTab(next)
+        }
+    }
+
+    function toggle(): void { root.toggleTab("performance") }
+    function open(): void { root.openTab("performance") }
     function close(): void { root.isOpen = false }
 
     function openBtop(): void {
@@ -65,6 +86,29 @@ Singleton {
         running: true
         stdout: StdioCollector {
             onStreamFinished: root.kernel = this.text.trim()
+        }
+    }
+
+    Process {
+        id: gpuModelProc
+        command: ["lspci", "-mm"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var lines = String(this.text || "").split("\n")
+                for (var i = 0; i < lines.length; i++) {
+                    var l = lines[i]
+                    if (l.indexOf("\"VGA compatible controller\"") >= 0 || l.indexOf("\"3D controller\"") >= 0 || l.indexOf("\"Display controller\"") >= 0) {
+                        var cols = l.match(/"([^"]*)"/g)
+                        if (cols && cols.length >= 4) {
+                            var vendor = cols[2].replace(/"/g, "").replace(/\s*\[[^\]]*\]/g, "").trim()
+                            var dev = cols[3].replace(/"/g, "").replace(/\s*\[([^\]]+)\]/g, " $1").trim()
+                            root.gpuModel = (vendor.indexOf("AMD") >= 0 ? "AMD " : (vendor.indexOf("NVIDIA") >= 0 ? "NVIDIA " : (vendor.indexOf("Intel") >= 0 ? "Intel " : ""))) + dev
+                            return
+                        }
+                    }
+                }
+            }
         }
     }
 
@@ -231,16 +275,32 @@ Singleton {
         else pollGpu()
     }
 
+    Timer {
+        interval: 2500
+        running: root.isOpen && root.activeTab === "performance"
+        repeat: true
+        onTriggered: root.refreshHeavy()
+    }
+
     Process {
         id: gpuDetectProc
         running: false
-        // Kabuk yok: glob'u `find` çözer, hata bastırma `-maxdepth` ile yapısal.
+        // Kabuk yok: glob'u `find` çözer; yalnızca card<N>/device yollarını seç.
         command: ["find", "/sys/class/drm", "-maxdepth", "2", "-name", "device", "-type", "d"]
         stdout: StdioCollector {
             onStreamFinished: {
-                var p = this.text.trim()
-                if (p !== "") {
-                    root.gpuDeviceDir = p
+                var lines = String(this.text || "").trim().split("\n")
+                var chosen = ""
+                for (var i = 0; i < lines.length; i++) {
+                    var cand = lines[i].trim()
+                    if (/^\/sys\/class\/drm\/card\d+\/device$/.test(cand)) {
+                        chosen = cand
+                        // Harici kart genelde card1+ olur; buldugumuz ilk gecerli karti al
+                        if (cand.indexOf("card0") < 0) break
+                    }
+                }
+                if (chosen !== "") {
+                    root.gpuDeviceDir = chosen
                     root.pollGpu()
                 }
             }

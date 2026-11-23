@@ -2,52 +2,57 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "."
 
 Singleton {
     id: root
 
-    // Panel Görünürlük Durumu
-    property bool isOpen: false
+    // Birlesik Sistem paneli uzerinden yonetilir
+    readonly property bool isOpen: PerformanceState.isOpen && PerformanceState.activeTab === "storage"
 
     function toggle() {
-        isOpen = !isOpen
-        if (isOpen)
-            refresh()
+        PerformanceState.toggleTab("storage")
     }
 
     function open() {
-        isOpen = true
-        refresh()
+        PerformanceState.openTab("storage")
     }
 
     function close() {
-        isOpen = false
+        if (PerformanceState.activeTab === "storage") {
+            PerformanceState.close()
+        }
     }
 
-    // Panel açıldığında: hem kök kullanım hem sürücü envanteri.
     function refresh() {
-        telemetryProc.exec(["df", "-P", "-B1", "/"])
+        telemetryProc.exec(["df", "-PT", "-B1"])
         inventoryProc.exec(["lsblk", "-J", "-b", "-o",
             "NAME,PATH,TYPE,SIZE,FSTYPE,FSUSED,FSAVAIL,FSUSE%,MOUNTPOINTS,MODEL,TRAN,ROTA,RM,HOTPLUG"])
     }
 
-    // Panel kapalıyken (bar göstergesi için) yalnızca hafif df.
     function refreshLight() {
-        telemetryProc.exec(["df", "-P", "-B1", "/"])
+        telemetryProc.exec(["df", "-PT", "-B1"])
     }
 
-    // Kök (Root) Dosya Sistemi Metrikleri
+    // Ana fiziksel dosya sistemi metrikleri
     property int rootPercent: 0
     property real rootUsedBytes: 0
     property real rootTotalBytes: 0
+    property string rootMount: "/"
+    property string rootFsType: ""
     readonly property real rootUsedGiB: rootUsedBytes / 1073741824
     readonly property real rootTotalGiB: rootTotalBytes / 1073741824
     readonly property real rootFreeGiB: Math.max(0, rootTotalGiB - rootUsedGiB)
     property bool isAvailable: false
 
-    // Fiziksel Sürücüler (Drives) Listesi
+    // Fiziksel suruculer listesi
     property var drives: []
     readonly property int driveCount: drives.length
+
+    // Surucu aksiyon durumu
+    property bool actionBusy: false
+    property string actionError: ""
+    property string _pendingEjectDisk: ""
 
     function formatCapacity(bytes) {
         var value = Number(bytes) || 0
@@ -61,8 +66,8 @@ Singleton {
     function formatFree(bytes) {
         var value = Number(bytes) || 0
         if (value >= 1099511627776)
-            return (value / 1099511627776).toFixed(1) + " TiB free"
-        return (value / 1073741824).toFixed(1) + " GiB free"
+            return (value / 1099511627776).toFixed(1) + " TiB boş"
+        return (value / 1073741824).toFixed(1) + " GiB boş"
     }
 
     function driveTypeIcon(driveType) {
@@ -71,37 +76,118 @@ Singleton {
         return "󰋊"
     }
 
-    // Kök dosya sistemi kullanımı sorgusu
+    function openMount(path) {
+        if (!path || String(path).length === 0) return
+        Quickshell.execDetached(["enyxma-launch", "xdg-open", String(path)])
+    }
+
+    function mountDrive(partPath) {
+        if (!partPath || root.actionBusy) return
+        root.actionBusy = true
+        root.actionError = ""
+        root._pendingEjectDisk = ""
+        driveActionProc.exec(["udisksctl", "mount", "-b", String(partPath)])
+    }
+
+    function unmountDrive(partPath) {
+        if (!partPath || root.actionBusy) return
+        root.actionBusy = true
+        root.actionError = ""
+        root._pendingEjectDisk = ""
+        driveActionProc.exec(["udisksctl", "unmount", "-b", String(partPath)])
+    }
+
+    function ejectDrive(diskPath, partPath) {
+        if (!diskPath || root.actionBusy) return
+        root.actionBusy = true
+        root.actionError = ""
+        if (partPath && String(partPath).length > 0) {
+            root._pendingEjectDisk = String(diskPath)
+            driveActionProc.exec(["udisksctl", "unmount", "-b", String(partPath)])
+        } else {
+            root._pendingEjectDisk = ""
+            driveActionProc.exec(["udisksctl", "power-off", "-b", String(diskPath)])
+        }
+    }
+
+    Process {
+        id: driveActionProc
+        running: false
+        stderr: StdioCollector { id: driveActionErr }
+        onExited: (code, status) => {
+            if (code === 0 && root._pendingEjectDisk !== "") {
+                var disk = root._pendingEjectDisk
+                root._pendingEjectDisk = ""
+                driveActionProc.exec(["udisksctl", "power-off", "-b", disk])
+                return
+            }
+            root._pendingEjectDisk = ""
+            root.actionBusy = false
+            if (code === 0) {
+                root.actionError = ""
+                root.refresh()
+            } else {
+                var msg = (driveActionErr.text || "").trim()
+                root.actionError = msg !== "" ? msg.split("\n")[0] : ("Sürücü işlemi başarısız, kod " + code)
+            }
+        }
+    }
+
+    // Ana fiziksel dosya sistemi sorgusu (tmpfs / impermanence uyumlu)
     Process {
         id: telemetryProc
-        // Kabuksuz `df`: awk yerine JS ayrıştırma (fork başına 1 süreç).
-        command: ["df", "-P", "-B1", "/"]
+        command: ["df", "-PT", "-B1"]
         running: false
         stdout: StdioCollector {
             onStreamFinished: {
-                var lines = this.text.trim().split("\n")
+                var lines = String(this.text || "").trim().split("\n")
                 if (lines.length < 2) return
-                // df -P: Filesystem 1024-blocks Used Available Capacity Mounted-on
-                var f = lines[1].trim().split(/\s+/)
-                if (f.length < 5) return
-                var total = parseFloat(f[1])
-                var used = parseFloat(f[2])
-                var pct = parseInt(String(f[4]).replace("%", ""))
-                if (!isNaN(pct) && !isNaN(used) && !isNaN(total) && total > 0) {
-                    root.rootPercent = Math.max(0, Math.min(100, pct))
-                    root.rootUsedBytes = Math.max(0, used)
-                    root.rootTotalBytes = Math.max(0, total)
+                var byMount = {}
+                for (var i = 1; i < lines.length; i++) {
+                    var f = lines[i].trim().split(/\s+/)
+                    if (f.length < 7) continue
+                    var fstype = f[1]
+                    var total = parseFloat(f[2])
+                    var used = parseFloat(f[3])
+                    var pct = parseInt(String(f[5]).replace("%", ""))
+                    var mnt = f.slice(6).join(" ")
+                    if (isNaN(total) || total <= 0 || isNaN(used) || isNaN(pct)) continue
+                    byMount[mnt] = {
+                        fs: fstype,
+                        total: total,
+                        used: used,
+                        pct: Math.max(0, Math.min(100, pct)),
+                        mount: mnt
+                    }
+                }
+                var chosen = byMount["/"] || null
+                if (chosen && (chosen.fs === "tmpfs" || chosen.fs === "overlay" || chosen.fs === "ramfs" || chosen.fs === "devtmpfs")) {
+                    var fallbacks = ["/persist", "/nix", "/home"]
+                    for (var k = 0; k < fallbacks.length; k++) {
+                        var cand = byMount[fallbacks[k]]
+                        if (cand && cand.fs !== "tmpfs" && cand.fs !== "overlay" && cand.fs !== "ramfs") {
+                            chosen = cand
+                            break
+                        }
+                    }
+                }
+                if (chosen) {
+                    root.rootPercent = chosen.pct
+                    root.rootUsedBytes = Math.max(0, chosen.used)
+                    root.rootTotalBytes = Math.max(0, chosen.total)
+                    root.rootMount = chosen.mount
+                    root.rootFsType = chosen.fs
                     root.isAvailable = true
                 }
             }
         }
     }
 
-    // Fiziksel sürücü ve bölüm envanteri (lsblk JSON)
+    // Fiziksel surucu ve bolum envanteri (lsblk JSON)
     Process {
         id: inventoryProc
         command: ["lsblk", "-J", "-b", "-o", "NAME,PATH,TYPE,SIZE,FSTYPE,FSUSED,FSAVAIL,FSUSE%,MOUNTPOINTS,MODEL,TRAN,ROTA,RM,HOTPLUG"]
-        running: false   // yalnızca panel açıkken (refresh)
+        running: false
         stdout: StdioCollector {
             onStreamFinished: {
                 var raw = this.text.trim()
@@ -120,9 +206,6 @@ Singleton {
                     return val === null || val === undefined ? "" : String(val).trim()
                 }
 
-                // R1/B20: lsblk bazı sürümlerde boolean alanları "0"/"1"
-                // veya "true"/"false" döndürür. Katı === true karşılaştırması
-                // SSD'leri HDD gösterebiliyordu.
                 function isTruthy(val) {
                     if (val === true) return true
                     var s = textValue(val).toLowerCase()
@@ -139,8 +222,11 @@ Singleton {
                             mountedAt = "/"
                             break
                         }
-                        if (mountedAt === "" && cand !== "" && cand !== "[SWAP]") {
-                            mountedAt = cand
+                        if (cand !== "" && cand !== "[SWAP]") {
+                            // /persist veya /home gibi ana baglama noktalarini /boot'a tercih et
+                            if (mountedAt === "" || mountedAt === "/boot" || mountedAt === "/boot/efi") {
+                                mountedAt = cand
+                            }
                         }
                     }
                     if (fs !== "") {
@@ -149,6 +235,8 @@ Singleton {
                         var freeB = textValue(node.fsavail) === "" ? -1 : Number(node.fsavail)
                         var usedB = textValue(node.fsused) === "" ? -1 : Number(node.fsused)
                         target.push({
+                            path: textValue(node.path),
+                            size: Number(node.size) || 0,
                             fs: fs,
                             mount: mountedAt,
                             percent: isNaN(pct) ? -1 : Math.max(0, Math.min(100, pct)),
@@ -174,27 +262,34 @@ Singleton {
                     var volumes = []
                     collectVolumes(dev, volumes)
                     var fsList = []
-                    var primaryMount = ""
-                    var usage = -1
-                    var freeBytes = -1
-                    var usedBytes = -1
+                    var primaryVol = null
+                    var fallbackBoot = null
+                    var firstMountable = null
 
                     for (var v = 0; v < volumes.length; v++) {
-                        if (fsList.indexOf(volumes[v].fs) < 0)
-                            fsList.push(volumes[v].fs)
-                        // Kök dizini öncelikli al
-                        if (volumes[v].mount === "/" || (primaryMount !== "/" && primaryMount === "" && volumes[v].mount !== "")) {
-                            primaryMount = volumes[v].mount
-                            usage = volumes[v].percent
-                            freeBytes = volumes[v].freeBytes
-                            usedBytes = volumes[v].usedBytes
-                        } else if (volumes[v].mount === "/") {
-                            primaryMount = "/"
-                            usage = volumes[v].percent
-                            freeBytes = volumes[v].freeBytes
-                            usedBytes = volumes[v].usedBytes
+                        var vol = volumes[v]
+                        if (fsList.indexOf(vol.fs) < 0)
+                            fsList.push(vol.fs)
+                        if (!firstMountable && vol.fs !== "swap" && vol.path !== "") {
+                            firstMountable = vol
+                        }
+                        if (vol.mount === "/") {
+                            primaryVol = vol
+                        } else if (vol.mount !== "" && vol.mount !== "/boot" && vol.mount !== "/boot/efi") {
+                            if (!primaryVol || (primaryVol.mount !== "/" && vol.size > primaryVol.size)) {
+                                primaryVol = vol
+                            }
+                        } else if (vol.mount === "/boot" || vol.mount === "/boot/efi") {
+                            if (!fallbackBoot) fallbackBoot = vol
                         }
                     }
+
+                    var chosenVol = primaryVol || fallbackBoot || firstMountable
+                    var primaryMount = chosenVol ? chosenVol.mount : ""
+                    var usage = chosenVol ? chosenVol.percent : -1
+                    var freeBytes = chosenVol ? chosenVol.freeBytes : -1
+                    var usedBytes = chosenVol ? chosenVol.usedBytes : -1
+                    var partPath = chosenVol ? chosenVol.path : ""
 
                     var tran = textValue(dev.tran).toUpperCase()
                     var removable = isTruthy(dev.rm) || isTruthy(dev.hotplug) || tran === "USB"
@@ -209,12 +304,17 @@ Singleton {
 
                     list.push({
                         name: name,
+                        diskPath: textValue(dev.path),
+                        partPath: partPath,
                         model: textValue(dev.model) || name,
                         size: Number(dev.size) || 0,
                         driveType: driveType,
                         media: media,
                         fileSystems: fsList.join(" + ").toUpperCase(),
                         state: state,
+                        mountPoint: primaryMount,
+                        mounted: primaryMount !== "",
+                        removable: removable,
                         percent: usage,
                         freeBytes: freeBytes,
                         usedBytes: usedBytes
@@ -226,8 +326,6 @@ Singleton {
         }
     }
 
-    // P1: kapalı panelde ağır `lsblk` YOK. Bar için 60 sn'de bir tek `df`.
-    // (Eski: 30 sn'de bir df + lsblk → günde ~5.760 process.)
     Timer {
         interval: 60000
         running: true

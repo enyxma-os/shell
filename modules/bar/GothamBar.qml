@@ -235,13 +235,14 @@ Rectangle {
 
         // 1. CPU + RAM Telemetri Hucresi
         Rectangle {
+            readonly property bool perfActive: PerformanceState.isOpen && PerformanceState.activeTab === "performance"
             Layout.fillHeight: true
             implicitWidth: perfRow.implicitWidth + 16
             radius: 0
-            color: PerformanceState.isOpen ? Theme.surfaceActive : (perfMa.containsMouse ? Theme.surfaceHover : "transparent")
+            color: perfActive ? Theme.surfaceActive : (perfMa.containsMouse ? Theme.surfaceHover : "transparent")
 
             Rectangle {
-                visible: PerformanceState.isOpen
+                visible: parent.perfActive
                 anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
                 height: 2
                 color: Theme.accent
@@ -262,7 +263,7 @@ Rectangle {
 
                 Text {
                     text: root.pad2(PerformanceState.cpuPercent) + "%"
-                    color: PerformanceState.cpuPercent > 80 ? Theme.danger : (PerformanceState.isOpen ? Theme.accent : Theme.textPrimary)
+                    color: PerformanceState.cpuPercent > 80 ? Theme.danger : (PerformanceState.isOpen && PerformanceState.activeTab === "performance" ? Theme.accent : Theme.textPrimary)
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true
@@ -280,7 +281,7 @@ Rectangle {
                     text: perfMa.containsMouse
                         ? (PerformanceState.memUsedGiB.toFixed(1) + "G")
                         : (root.pad2(PerformanceState.memPercent) + "%")
-                    color: PerformanceState.memPercent > 85 ? Theme.danger : (PerformanceState.isOpen ? Theme.accent : Theme.textPrimary)
+                    color: PerformanceState.memPercent > 85 ? Theme.danger : (PerformanceState.isOpen && PerformanceState.activeTab === "performance" ? Theme.accent : Theme.textPrimary)
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true

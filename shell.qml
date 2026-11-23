@@ -108,15 +108,6 @@ ShellRoot {
         }
     }
 
-    // ── 7. Depolama Paneli (odaklı ekran) ─────────────────────────────
-    Variants {
-        model: ScreenState.overlayScreens
-        StoragePanel {
-            property var modelData
-            screen: modelData
-        }
-    }
-
     // ── 8. Bildirim Pop-up (odaklı ekran) ─────────────────────────────
     Variants {
         model: ScreenState.overlayScreens

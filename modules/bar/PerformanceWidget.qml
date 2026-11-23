@@ -7,7 +7,7 @@ EnyxmaPill {
     id: root
 
     readonly property bool isHovered: mouseArea.containsMouse
-    readonly property bool isOpen: PerformanceState.isOpen
+    readonly property bool isOpen: PerformanceState.isOpen && PerformanceState.activeTab === "performance"
 
     implicitHeight: 24
     onClicked: PerformanceState.toggle()

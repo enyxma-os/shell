@@ -24,7 +24,7 @@
         networkmanager networkmanagerapplet iw iproute2
         brightnessctl hyprsunset ddcutil
         hyprland
-        util-linux pciutils
+        util-linux pciutils udisks2
         curl wget yt-dlp ffmpeg
         glib
         zenity kitty foot
