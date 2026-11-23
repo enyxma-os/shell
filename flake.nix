@@ -630,10 +630,13 @@ EOF
               chmod +x $out/bin/enyxma-shot
               cp ${themeApply} $out/bin/enyxma-theme-apply
               chmod +x $out/bin/enyxma-theme-apply
+              cp bin/enyxma-clip $out/bin/enyxma-clip
+              chmod +x $out/bin/enyxma-clip
 
               wrapProgram $out/bin/enyxma-shell --prefix PATH : "$out/bin:${binPath}"
               wrapProgram $out/bin/enyxma-shot --prefix PATH : "$out/bin:${binPath}"
               wrapProgram $out/bin/enyxma-theme-apply --prefix PATH : ${binPath}
+              wrapProgram $out/bin/enyxma-clip --prefix PATH : ${binPath}
             '';
 
             meta = with pkgs.lib; {

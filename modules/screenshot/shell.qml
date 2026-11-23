@@ -58,7 +58,7 @@ ShellRoot {
     }
 
     function exitApp() {
-        Quickshell.execDetached(["kill", "-TERM", String(Quickshell.processId)]);
+        Qt.quit();
     }
 
     readonly property string defaultPath: generateSavePath()
@@ -327,19 +327,46 @@ ShellRoot {
         quitTimer.restart();
     }
 
+    property string _pendingSaveSrc: ""
+    property string _pendingSaveTarget: ""
+
+    Process {
+        id: saveMkdirProc
+        running: false
+        onExited: (code) => {
+            if (code === 0 && root._pendingSaveSrc.length > 0 && root._pendingSaveTarget.length > 0) {
+                saveCpProc.exec(["cp", "-f", root._pendingSaveSrc, root._pendingSaveTarget]);
+            } else {
+                quitTimer.restart();
+            }
+        }
+    }
+
+    Process {
+        id: saveCpProc
+        running: false
+        onExited: (code) => {
+            var target = root._pendingSaveTarget;
+            if (code === 0 && target.length > 0) {
+                Quickshell.execDetached(["enyxma-clip", target]);
+                Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-i", target,
+                                         "✦ Ekran Görüntüsü Kaydedildi", target]);
+                Quickshell.execDetached(["quickshell", "ipc", "call", "media-browser", "refresh"]);
+            } else {
+                Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-u", "critical",
+                                         "Ekran Görüntüsü Kaydedilemedi", target || "Kopyalama hatası"]);
+            }
+            quitTimer.restart();
+        }
+    }
+
     function saveToScreenshots(file) {
         if (root.exported) return;
         root.exported = true;
         var target = root.generateSavePath();
-        // Dört ayrı kabuksuz çağrı. Hata durumunda zincir kırılmaz; her adım
-        // kendi çıkış kodunu taşır, dosya adı asla komut metnine girmez.
-        Quickshell.execDetached(["mkdir", "-p", root.saveRoot]);
-        Quickshell.execDetached(["cp", "-f", file, target]);
-        Quickshell.execDetached(["enyxma-clip", target]);
-        Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-i", target,
-                                 "✦ Ekran Görüntüsü Kaydedildi", target]);
-        Quickshell.execDetached(["quickshell", "ipc", "call", "media-browser", "refresh"]);
-        quitTimer.restart();
+        root._pendingSaveSrc = file;
+        root._pendingSaveTarget = target;
+        saveMkdirProc.exec(["mkdir", "-p", root.saveRoot]);
     }
 
     function doCopy() {
