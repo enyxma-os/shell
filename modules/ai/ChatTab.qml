@@ -225,7 +225,7 @@ Item {
                         onClicked: {
                             // Kabuk yok: yapılandırma dizinini dosya yöneticisinde aç.
                             // Anahtarın nereye yazılacağı zaten alt satırdaki metinde.
-                            Quickshell.execDetached(["xdg-open", Quickshell.env("HOME") + "/.config/enyxma"])
+                            Quickshell.execDetached(["enyxma-launch", "xdg-open", Quickshell.env("HOME") + "/.config/enyxma"])
                         }
                     }
                 }

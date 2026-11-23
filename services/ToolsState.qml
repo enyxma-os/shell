@@ -168,7 +168,7 @@ Singleton {
             root.notify("Desteklenmeyen Paket",
                         "NixOS üzerinde .deb/.rpm kurulamaz. Paketi Nix ifadesine dönüştürün.")
         } else {
-            Quickshell.execDetached(["xdg-open", p.substring(0, p.lastIndexOf("/")) || p])
+            Quickshell.execDetached(["enyxma-launch", "xdg-open", p.substring(0, p.lastIndexOf("/")) || p])
         }
     }
 
@@ -179,7 +179,7 @@ Singleton {
 
     function openFile(path) {
         if (!path) return
-        Quickshell.execDetached(["xdg-open", path])
+        Quickshell.execDetached(["enyxma-launch", "xdg-open", path])
     }
 
     function removeFile(path) {

@@ -109,6 +109,20 @@
               -p "$RUNTIME/modules/screenshot/shell.qml" "$@"
           '');
 
+          launchWrapper = pkgs.writeShellScript "enyxma-launch" ''
+            set -euo pipefail
+            if [ "$#" -eq 0 ]; then
+              exit 0
+            fi
+            if command -v uwsm >/dev/null 2>&1 && uwsm check is-active >/dev/null 2>&1; then
+              exec uwsm app -- "$@"
+            elif command -v systemd-run >/dev/null 2>&1; then
+              exec systemd-run --user --scope --slice=app.slice --quiet -- "$@"
+            else
+              exec "$@"
+            fi
+          '';
+
           themeApply = pkgs.writeShellScript "enyxma-theme-apply" ''
             set -euo pipefail
             export PATH="${binPath}:$PATH"
@@ -660,6 +674,8 @@ EOF
               chmod +x $out/bin/enyxma-theme-apply
               cp bin/enyxma-clip $out/bin/enyxma-clip
               chmod +x $out/bin/enyxma-clip
+              cp ${launchWrapper} $out/bin/enyxma-launch
+              chmod +x $out/bin/enyxma-launch
 
               wrapProgram $out/bin/enyxma-shell --prefix PATH : "$out/bin:${binPath}"
               wrapProgram $out/bin/enyxma-shot --prefix PATH : "$out/bin:${binPath}"

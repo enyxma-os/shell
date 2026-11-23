@@ -101,6 +101,22 @@ Singleton {
         if (!entry) return
         close()
         try {
+            var cmd = entry.command || []
+            if (cmd && cmd.length > 0) {
+                var argv = ["enyxma-launch"]
+                if (entry.runInTerminal) {
+                    argv.push("kitty", "-e")
+                }
+                for (var i = 0; i < cmd.length; i++) {
+                    argv.push(String(cmd[i]))
+                }
+                if (entry.workingDirectory && String(entry.workingDirectory).length > 0) {
+                    Quickshell.execDetached({ command: argv, workingDirectory: String(entry.workingDirectory) })
+                } else {
+                    Quickshell.execDetached(argv)
+                }
+                return
+            }
             entry.execute()
         } catch (e) {
             console.warn("Launcher: Uygulama başlatılamadı:", e)
@@ -159,7 +175,7 @@ Singleton {
             MediaBrowserState.open("screenshots")
             break
         case "system-update":
-            Quickshell.execDetached(["kitty", "-e", "enyxma", "update"])
+            Quickshell.execDetached(["enyxma-launch", "kitty", "-e", "enyxma", "update"])
             break
         case "clipboard-wipe":
             clipboardItems = []

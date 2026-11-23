@@ -398,7 +398,7 @@ Singleton {
         id: settingsProc
         running: false
         onExited: (code) => {
-            if (code !== 0) Quickshell.execDetached(["foot", "-e", "nmtui"])
+            if (code !== 0) Quickshell.execDetached(["enyxma-launch", "foot", "-e", "nmtui"])
         }
     }
 

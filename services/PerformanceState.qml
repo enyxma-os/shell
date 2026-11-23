@@ -31,7 +31,7 @@ Singleton {
 
     function openBtop(): void {
         root.close()
-        Quickshell.execDetached(["foot", "btop"])
+        Quickshell.execDetached(["enyxma-launch", "foot", "btop"])
     }
 
     // ── Metrikler ───────────────────────────────────────────────────
