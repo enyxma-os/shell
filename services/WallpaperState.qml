@@ -104,7 +104,7 @@ Singleton {
         root.scanWallpapers()
 
         if (name === "gotham") {
-            matugenProc.exec([root.themeApplyBin, "preset", "gotham"])
+            runThemeApply([root.themeApplyBin, "preset", "gotham"])
         } else {
             root.generateThemeFromImage(String(nextWp).replace(/^file:\/\//, ""))
         }
@@ -135,9 +135,16 @@ Singleton {
         }
     }
 
+    function runThemeApply(args) {
+        if (matugenProc.running) {
+            matugenProc.running = false
+        }
+        matugenProc.exec(args)
+    }
+
     function generateThemeFromImage(rawPath) {
         if (!rawPath || rawPath.length === 0) return
-        matugenProc.exec([
+        runThemeApply([
             root.themeApplyBin, "image", rawPath
         ])
     }
@@ -146,7 +153,7 @@ Singleton {
         if (!hexColor || hexColor.length === 0) return
         var hex = String(hexColor).trim()
         if (!/^#?[0-9a-fA-F]{6}$/.test(hex)) return
-        matugenProc.exec([
+        runThemeApply([
             root.themeApplyBin, "color", hex
         ])
     }
