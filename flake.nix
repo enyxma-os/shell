@@ -22,7 +22,7 @@
         matugen
         imagemagick
         networkmanager iw iproute2
-        brightnessctl hyprsunset
+        brightnessctl hyprsunset ddcutil
         hyprland
         util-linux pciutils
         curl wget yt-dlp ffmpeg

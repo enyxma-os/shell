@@ -27,6 +27,9 @@ Singleton {
     // Parlaklık Seviyesi (0.05 - 1.00 arası)
     property real level: 0.85
     property bool hasDevice: false
+    property string backend: "none" // none | brightnessctl | ddcutil
+    readonly property string ddcBus: Quickshell.env("ENYXMA_DDC_BUS") || ""
+    property int _pendingPct: 85
 
     // Başlangıçta mevcut parlaklığı tespit et (kabuksuz, tek seferlik).
     Process {
@@ -41,19 +44,73 @@ Singleton {
                 const val = parseInt(f[4])
                 if (!isNaN(val) && val > 0) {
                     root.hasDevice = true
+                    root.backend = "brightnessctl"
                     root.level = Math.max(0.05, Math.min(1.0, val / 100.0))
                 }
             }
         }
         onExited: (code) => {
-            // Cihaz yoksa (masaüstü) sessizce yazılımsal seviyeye düş.
-            if (code !== 0) root.hasDevice = false
+            if (code !== 0 || !root.hasDevice) {
+                if (root.ddcBus.length > 0 && /^\d+$/.test(root.ddcBus)) {
+                    ddcReadProc.running = true
+                } else {
+                    root.hasDevice = false
+                    root.backend = "none"
+                }
+            }
+        }
+    }
+
+    // Harici monitör başlangıç parlaklığı: yalnızca ENYXMA_DDC_BUS tanımlıysa tek veriyolundan okur
+    Process {
+        id: ddcReadProc
+        running: false
+        command: ["ddcutil", "-b", root.ddcBus, "getvcp", "10", "--brief"]
+        stdout: SplitParser {
+            onRead: data => {
+                // VCP 10 C <current> <max>
+                const parts = data.trim().split(/\s+/)
+                if (parts.length >= 5 && parts[0] === "VCP" && parts[1] === "10") {
+                    const cur = parseInt(parts[3])
+                    const max = parseInt(parts[4])
+                    if (!isNaN(cur) && !isNaN(max) && max > 0) {
+                        root.hasDevice = true
+                        root.backend = "ddcutil"
+                        root.level = Math.max(0.05, Math.min(1.0, cur / max))
+                    }
+                }
+            }
+        }
+        onExited: (code) => {
+            if (code !== 0 && root.backend !== "ddcutil") {
+                root.hasDevice = false
+                root.backend = "none"
+            }
         }
     }
 
     Process {
         id: setProc
         running: false
+    }
+
+    Process {
+        id: ddcSetProc
+        running: false
+    }
+
+    Timer {
+        id: ddcDebounceTimer
+        interval: 250
+        repeat: false
+        onTriggered: {
+            if (root.backend !== "ddcutil" || root.ddcBus.length === 0) return
+            if (ddcSetProc.running) {
+                ddcDebounceTimer.restart()
+                return
+            }
+            ddcSetProc.exec(["ddcutil", "-b", root.ddcBus, "setvcp", "10", String(root._pendingPct)])
+        }
     }
 
     function setBrightness(val) {
@@ -63,6 +120,11 @@ Singleton {
 
         // Donanım yoksa bile level güncellenir ve OSD tetiklenir.
         if (!root.hasDevice) return
+        if (root.backend === "ddcutil") {
+            root._pendingPct = pct
+            ddcDebounceTimer.restart()
+            return
+        }
         setProc.exec(["brightnessctl", "set", pct + "%"])
     }
 
