@@ -207,7 +207,7 @@ Item {
                         Layout.fillWidth: true
                         Text { text: "SSID"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 56 }
                         Text {
-                            text: NetworkState.isConnected ? (NetworkState.connectionName || "-") : "BAĞLANTI YOK"
+                            text: NetworkState.isConnected ? (NetworkState.ssid || NetworkState.connectionName || "-") : "BAĞLANTI YOK"
                             color: NetworkState.isConnected ? Theme.textPrimary : Theme.textMuted
                             font.family: Theme.fontMono
                             font.pixelSize: 11
@@ -776,6 +776,16 @@ Item {
                             }
                         }
                     }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    visible: NetworkState.isConnected && NetworkState.dnsServers.length > 0
+                    text: "AKTİF DNS: " + NetworkState.dnsServers.join(", ")
+                    color: Theme.textMuted
+                    font.family: Theme.fontMono
+                    font.pixelSize: 10
+                    elide: Text.ElideRight
                 }
 
                 RowLayout {

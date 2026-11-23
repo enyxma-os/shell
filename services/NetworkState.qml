@@ -48,6 +48,7 @@ Singleton {
     property bool isConnected: false
     property string connectionType: "none" // ethernet | wifi | none
     property string connectionName: ""
+    property string ssid: ""
     property string interfaceName: ""
     property string ipAddress: ""
     property int signalStrength: 0
@@ -168,6 +169,8 @@ Singleton {
     property string _freq: ""
     property string _speed: ""
     property var _dns: []
+    property bool _dnsIgnoreAuto: false
+    property string _dnsStatic: ""
 
     function refreshDetails() {
         if (pipeProc.running) return
@@ -180,6 +183,8 @@ Singleton {
         root._freq = ""
         root._speed = ""
         root._dns = []
+        root._dnsIgnoreAuto = false
+        root._dnsStatic = ""
         pipeProc.command = ["ip", "-j", "route", "get", "1.1.1.1"]
         pipeProc.running = true
     }
@@ -208,6 +213,18 @@ Singleton {
             return
         case 3: // dns
             root._dns = parseDnsLines(t)
+            if (root._conn !== "") {
+                root._step = 6
+                pipeProc.command = ["nmcli", "-t", "-f", "ipv4.ignore-auto-dns,ipv4.dns", "con", "show", root._conn]
+                pipeProc.running = true
+                return
+            }
+            root._step = 4
+            pipeProc.command = ["cat", "/sys/class/net/" + root._iface + "/speed"]
+            pipeProc.running = true
+            return
+        case 6: // nmcli profile dns config
+            parseDnsConfig(t)
             root._step = 4
             pipeProc.command = ["cat", "/sys/class/net/" + root._iface + "/speed"]
             pipeProc.running = true
@@ -308,16 +325,33 @@ Singleton {
         return Math.max(0, Math.min(100, q))
     }
 
+    function parseDnsConfig(text) {
+        root._dnsIgnoreAuto = false
+        root._dnsStatic = ""
+        var lines = String(text || "").split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            var s = lines[i].trim()
+            if (s.indexOf("ipv4.ignore-auto-dns:") === 0) {
+                root._dnsIgnoreAuto = (s.substring("ipv4.ignore-auto-dns:".length).trim() === "yes")
+            } else if (s.indexOf("ipv4.dns:") === 0) {
+                root._dnsStatic = s.substring("ipv4.dns:".length).trim()
+            }
+        }
+    }
+
     function applyDisconnected() {
         isConnected = false
         connectionType = "none"
         connectionName = ""
+        ssid = ""
         interfaceName = ""
         ipAddress = ""
         signalStrength = 0
         frequency = ""
         linkSpeed = ""
         dnsServers = []
+        _dnsIgnoreAuto = false
+        _dnsStatic = ""
     }
 
     function applyConnected() {
@@ -325,6 +359,7 @@ Singleton {
         isConnected = true
         interfaceName = root._iface
         ipAddress = root._ip
+        ssid = isWifi ? root._ssid : ""
         connectionName = root._conn !== "" ? root._conn : (isWifi ? root._ssid : root._iface)
         dnsServers = root._dns
         parseDnsProvider()
@@ -345,12 +380,14 @@ Singleton {
     }
 
     function parseDnsProvider() {
-        var list = root.dnsServers
-        if (list.length === 0) { dnsProvider = "dhcp"; return }
-        var str = list.join(" ")
+        if (!root._dnsIgnoreAuto && root._dnsStatic === "") {
+            dnsProvider = "dhcp"
+            return
+        }
+        var str = root._dnsStatic !== "" ? root._dnsStatic : root.dnsServers.join(" ")
         if (str.indexOf("1.1.1.1") >= 0) dnsProvider = "cloudflare"
         else if (str.indexOf("8.8.8.8") >= 0) dnsProvider = "google"
-        else if (list[0] !== "127.0.0.53") dnsProvider = "custom"
+        else if (str.trim() !== "") dnsProvider = "custom"
         else dnsProvider = "dhcp"
     }
 

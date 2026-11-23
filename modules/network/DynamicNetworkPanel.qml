@@ -183,7 +183,7 @@ Item {
                         Text {
                             text: {
                                 if (!NetworkState.isConnected) return "Bağlantı Yok"
-                                if (NetworkState.connectionType === "wifi") return (NetworkState.connectionName || "Wi-Fi")
+                                if (NetworkState.connectionType === "wifi") return (NetworkState.ssid || NetworkState.connectionName || "Wi-Fi")
                                 return NetworkState.connectionName || "Ethernet"
                             }
                             color: NetworkState.isConnected ? Theme.textPrimary : Theme.textMuted
@@ -917,6 +917,16 @@ Item {
                             }
                         }
                     }
+                }
+
+                Text {
+                    Layout.fillWidth: true
+                    visible: NetworkState.isConnected && NetworkState.dnsServers.length > 0
+                    text: "Aktif: " + NetworkState.dnsServers.join(", ")
+                    color: Theme.textMuted
+                    font.family: Theme.fontMono
+                    font.pixelSize: 10
+                    elide: Text.ElideRight
                 }
 
                 // Ozel DNS giris alani
