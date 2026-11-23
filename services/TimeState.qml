@@ -51,13 +51,18 @@ Singleton {
         return base;
     }
 
-    // Bar ve paneller için formatlanmış tarih
-    readonly property string formattedDate: Qt.formatDate(now, "d MMM ddd")
-    readonly property string fullDateString: Qt.formatDate(now, "d MMMM yyyy, dddd")
+    readonly property var _trDaysLong: ["Pazar", "Pazartesi", "Salı", "Çarşamba", "Perşembe", "Cuma", "Cumartesi"]
+    readonly property var _trDaysShort: ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"]
+    readonly property var _trMonthsLong: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
+    readonly property var _trMonthsShort: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"]
+
+    // Bar ve paneller için formatlanmış Türkçe tarih
     readonly property int dayNumber: now.getDate()
-    readonly property string dayName: Qt.formatDate(now, "dddd")
-    readonly property string monthName: Qt.formatDate(now, "MMMM")
+    readonly property string dayName: _trDaysLong[now.getDay()]
+    readonly property string monthName: _trMonthsLong[now.getMonth()]
     readonly property int year: now.getFullYear()
+    readonly property string formattedDate: dayNumber + " " + _trMonthsShort[now.getMonth()] + " " + _trDaysShort[now.getDay()]
+    readonly property string fullDateString: dayNumber + " " + monthName + " " + year + ", " + dayName
 
     // Hafta numarası ve yılın günü
     readonly property int weekNumber: {

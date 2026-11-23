@@ -513,7 +513,9 @@ Item {
                 Item { Layout.fillWidth: true }
 
                 Text {
-                    text: LauncherState.activeMode.toUpperCase()
+                    text: LauncherState.activeMode === "actions"
+                        ? "KOMUTLAR"
+                        : (LauncherState.activeMode === "clipboard" ? "PANO" : "UYGULAMALAR")
                     color: Theme.accent
                     font.family: Theme.fontMono
                     font.pixelSize: 9

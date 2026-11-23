@@ -15,41 +15,32 @@ PanelWindow {
 
     WlrLayershell.namespace: "enyxma-performance"
     WlrLayershell.layer: WlrLayer.Overlay
+    WlrLayershell.keyboardFocus: PerformanceState.isOpen ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
     exclusionMode: ExclusionMode.Ignore
 
     anchors {
         top: true
+        bottom: true
+        left: true
         right: true
     }
 
-    margins {
-        top: PerformanceState.isOpen ? 42 : 20
-        right: 12
-    }
-
-    implicitWidth: 340
-    implicitHeight: mainCard.implicitHeight
     color: "transparent"
+    visible: contentHost.opacity > 0.0
 
-    visible: mainCard.opacity > 0.0
-
-    Behavior on margins.top {
-        enabled: !Theme.reduceMotion
-        NumberAnimation {
-            duration: Theme.animNormal
-            easing.type: Easing.OutQuint
+    Connections {
+        target: PerformanceState
+        function onIsOpenChanged() {
+            if (PerformanceState.isOpen) {
+                contentHost.forceActiveFocus()
+            }
         }
     }
 
-    Rectangle {
-        id: mainCard
+    Item {
+        id: contentHost
         anchors.fill: parent
-        implicitHeight: contentCol.implicitHeight + Theme.spacingMedium * 2
-        color: Theme.bgGlass
-        radius: Theme.radiusPanel
-        border.color: Theme.borderSubtle
-        border.width: Theme.borderWidth
-
+        focus: PerformanceState.isOpen
         opacity: PerformanceState.isOpen ? 1.0 : 0.0
 
         Behavior on opacity {
@@ -60,15 +51,65 @@ PanelWindow {
             }
         }
 
-        ColumnLayout {
-            id: contentCol
+        Keys.onEscapePressed: (event) => {
+            PerformanceState.close()
+            event.accepted = true
+        }
+
+        MouseArea {
+            anchors.fill: parent
+            onClicked: PerformanceState.close()
+        }
+
+        Rectangle {
+            id: mainCard
             anchors {
                 top: parent.top
-                left: parent.left
+                topMargin: PerformanceState.isOpen ? (Theme.isGotham ? Theme.barHeight : 42) : 20
                 right: parent.right
-                margins: Theme.spacingMedium
+                rightMargin: Theme.isGotham ? 0 : 12
             }
-            spacing: Theme.spacingSmall
+            implicitWidth: Theme.isGotham ? 360 : 340
+            implicitHeight: contentCol.implicitHeight + Theme.spacingMedium * 2
+            color: Theme.isGotham ? Theme.bgPanel : Theme.bgGlass
+            radius: Theme.radiusPanel
+            border.color: Theme.isGotham ? Theme.borderFocus : Theme.borderSubtle
+            border.width: Theme.borderWidth
+
+            Behavior on anchors.topMargin {
+                enabled: !Theme.reduceMotion
+                NumberAnimation {
+                    duration: Theme.animNormal
+                    easing.type: Easing.OutQuint
+                }
+            }
+
+            Rectangle {
+                visible: Theme.isGotham
+                anchors {
+                    left: parent.left
+                    right: parent.right
+                    top: parent.top
+                }
+                height: 2
+                color: Theme.accent
+            }
+
+            MouseArea {
+                anchors.fill: parent
+                preventStealing: true
+            }
+
+            ColumnLayout {
+                id: contentCol
+                anchors {
+                    top: parent.top
+                    left: parent.left
+                    right: parent.right
+                    margins: Theme.spacingMedium
+                    topMargin: Theme.isGotham ? (Theme.spacingMedium + 2) : Theme.spacingMedium
+                }
+                spacing: Theme.spacingSmall
 
             // ── BAŞLIK BÖLÜMÜ (PERFORMANS, ÇEKİRDEK, KAPAT) ──
             RowLayout {
@@ -97,6 +138,7 @@ PanelWindow {
                 }
 
                 Rectangle {
+                    visible: !Theme.isGotham
                     implicitHeight: 24
                     implicitWidth: 24
                     radius: Theme.radiusButton
@@ -168,12 +210,12 @@ PanelWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 8
-                    radius: 4
+                    radius: Theme.isGotham ? 0 : 4
                     color: Theme.surfaceActive
 
                     Rectangle {
                         height: parent.height
-                        radius: 4
+                        radius: Theme.isGotham ? 0 : 4
                         color: PerformanceState.cpuPercent > 80 ? Theme.danger : Theme.accent
                         width: parent.width * Math.max(0, Math.min(100, PerformanceState.cpuPercent)) / 100
 
@@ -209,7 +251,7 @@ PanelWindow {
                 Layout.fillWidth: true
 
                 Text {
-                    text: "Yük 1 · 5 · 15"
+                    text: Theme.isGotham ? "YÜK 1 · 5 · 15" : "Yük 1 · 5 · 15"
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -313,12 +355,12 @@ PanelWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 8
-                    radius: 4
+                    radius: Theme.isGotham ? 0 : 4
                     color: Theme.surfaceActive
 
                     Rectangle {
                         height: parent.height
-                        radius: 4
+                        radius: Theme.isGotham ? 0 : 4
                         color: PerformanceState.memPercent > 85 ? Theme.danger : Theme.accent
                         width: parent.width * Math.max(0, Math.min(100, PerformanceState.memPercent)) / 100
 
@@ -461,12 +503,12 @@ PanelWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 8
-                    radius: 4
+                    radius: Theme.isGotham ? 0 : 4
                     color: Theme.surfaceActive
 
                     Rectangle {
                         height: parent.height
-                        radius: 4
+                        radius: Theme.isGotham ? 0 : 4
                         color: PerformanceState.gpuPercent > 80 ? Theme.danger : Theme.accent
                         width: parent.width * Math.max(0, Math.min(100, PerformanceState.gpuPercent)) / 100
 
@@ -505,12 +547,12 @@ PanelWindow {
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: 8
-                    radius: 4
+                    radius: Theme.isGotham ? 0 : 4
                     color: Theme.surfaceActive
 
                     Rectangle {
                         height: parent.height
-                        radius: 4
+                        radius: Theme.isGotham ? 0 : 4
                         color: PerformanceState.vramPercent > 85 ? Theme.danger : Theme.accent
                         width: parent.width * Math.max(0, Math.min(100, PerformanceState.vramPercent)) / 100
 
@@ -555,10 +597,11 @@ PanelWindow {
 
                 Text {
                     anchors.centerIn: parent
-                    text: "btop'u aç"
+                    text: Theme.isGotham ? "BTOP'U AÇ" : "btop'u aç"
                     color: Theme.textPrimary
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
+                    font.bold: Theme.isGotham
                 }
 
                 MouseArea {
@@ -570,5 +613,6 @@ PanelWindow {
                 }
             }
         }
+    }
     }
 }

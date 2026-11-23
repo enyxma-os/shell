@@ -229,7 +229,7 @@ Singleton {
             onStreamFinished: {
                 if (this.text && this.text.length > 0) {
                     Quickshell.execDetached(["wl-copy", "--", this.text])
-                    Quickshell.execDetached(["notify-send", "-t", "1800", "Pano", "Seçilen öğe panoya kopyalandı"])
+                    Quickshell.execDetached(["notify-send", "-a", "Enyxma", "-t", "1800", "Pano", "Seçilen öğe panoya kopyalandı"])
                 }
             }
         }
@@ -241,7 +241,7 @@ Singleton {
         onExited: (code) => {
             if (code === 0) {
                 root.clipboardItems = []
-                Quickshell.execDetached(["notify-send", "-t", "1800", "Pano", "Pano geçmişi temizlendi"])
+                Quickshell.execDetached(["notify-send", "-a", "Enyxma", "-t", "1800", "Pano", "Pano geçmişi temizlendi"])
             }
         }
     }

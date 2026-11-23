@@ -114,7 +114,7 @@ Singleton {
         var next = (root.currentTheme === "gotham") ? "dynamic" : "gotham"
         var label = (next === "gotham") ? "Gotham — Brutalist Mimari" : "✦ Dinamik — Matugen"
         setThemePreset(next)
-        Quickshell.execDetached(["notify-send", "-t", "2200", "Enyxma Tema Motoru", label])
+        Quickshell.execDetached(["notify-send", "-a", "Enyxma", "-t", "2200", "Enyxma Tema Motoru", label])
     }
 
     function setDim(level) {

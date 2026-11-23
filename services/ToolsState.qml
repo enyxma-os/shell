@@ -85,7 +85,7 @@ Singleton {
     property string lastOutput: ""
 
     function notify(title, body) {
-        Quickshell.execDetached(["notify-send", title, body])
+        Quickshell.execDetached(["notify-send", "-a", "Enyxma", title, body])
     }
 
     // ── Video sıkıştırma ─────────────────────────────────────────────

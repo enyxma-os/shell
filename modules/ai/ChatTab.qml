@@ -34,9 +34,11 @@ Item {
         RowLayout {
             Layout.fillWidth: true
             spacing: Theme.spacingSmall
+            visible: !Theme.isGotham || AIState.messages.length > 0
 
             Text {
-                text: Theme.isGotham ? "ORACLE // SOHBET" : "ENYXMA AI"
+                visible: !Theme.isGotham
+                text: "ENYXMA AI"
                 color: Theme.textSecondary
                 font.family: Theme.fontDisplay
                 font.pixelSize: Theme.fontSizeSmall
@@ -50,7 +52,7 @@ Item {
             Rectangle {
                 implicitWidth: 26
                 implicitHeight: 26
-                radius: Theme.isGotham ? 2 : 13
+                radius: Theme.isGotham ? 0 : 13
                 color: histMa.containsMouse ? Theme.surfaceHover : "transparent"
                 visible: AIState.messages.length > 0
 
@@ -75,8 +77,9 @@ Item {
             Rectangle {
                 implicitWidth: 26
                 implicitHeight: 26
-                radius: Theme.isGotham ? 2 : 13
+                radius: Theme.isGotham ? 0 : 13
                 color: newChatMa.containsMouse ? Theme.surfaceHover : "transparent"
+                visible: !Theme.isGotham || AIState.messages.length > 0
 
                 Text {
                     anchors.centerIn: parent
@@ -100,9 +103,10 @@ Item {
 
             // Kapatma Butonu
             Rectangle {
+                visible: !Theme.isGotham
                 implicitWidth: 26
                 implicitHeight: 26
-                radius: Theme.isGotham ? 2 : 13
+                radius: 13
                 color: closeMa.containsMouse ? Theme.surfaceHover : "transparent"
 
                 Text {
@@ -160,7 +164,9 @@ Item {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
-                    text: "Enyxma'nın yanıtlamak için bir yapay zekaya ihtiyacı var. Bir kez ayarlayın ve asistan hazır."
+                    text: Theme.isGotham
+                        ? "ORACLE yanıtlamak için bir yapay zeka bağlantısına ihtiyaç duyar. Bir kez ayarlayın ve terminal hazır."
+                        : "Enyxma'nın yanıtlamak için bir yapay zekaya ihtiyacı var. Bir kez ayarlayın ve asistan hazır."
                     color: Theme.textSecondary
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -174,8 +180,12 @@ Item {
                     Layout.alignment: Qt.AlignHCenter
                     Layout.fillWidth: true
                     implicitHeight: 38
-                    radius: Theme.radiusWidget
-                    color: setupMa.containsMouse ? Theme.surfaceHover : Theme.textPrimary
+                    radius: Theme.isGotham ? 0 : Theme.radiusWidget
+                    color: Theme.isGotham
+                        ? (setupMa.containsMouse ? Theme.accent : Theme.surfaceActive)
+                        : (setupMa.containsMouse ? Theme.surfaceHover : Theme.textPrimary)
+                    border.color: Theme.isGotham ? Theme.accent : "transparent"
+                    border.width: Theme.isGotham ? 1 : 0
 
                     Behavior on color {
                         enabled: !Theme.reduceMotion
@@ -187,18 +197,23 @@ Item {
                         spacing: Theme.spacingSmall
 
                         Text {
-                            text: "✦"
-                            color: setupMa.containsMouse ? Theme.accent : Theme.bgDark
+                            text: Theme.isGotham ? "󰒓" : "✦"
+                            color: Theme.isGotham
+                                ? (setupMa.containsMouse ? Theme.accentOn : Theme.accent)
+                                : (setupMa.containsMouse ? Theme.accent : Theme.bgDark)
                             font.family: Theme.fontMono
                             font.pixelSize: 13
                         }
 
                         Text {
-                            text: "Kurulumu aç"
-                            color: setupMa.containsMouse ? Theme.textPrimary : Theme.bgDark
-                            font.family: Theme.fontFamily
-                            font.pixelSize: Theme.fontSizeNormal
+                            text: Theme.isGotham ? "KURULUMU AÇ" : "Kurulumu aç"
+                            color: Theme.isGotham
+                                ? (setupMa.containsMouse ? Theme.accentOn : Theme.accent)
+                                : (setupMa.containsMouse ? Theme.textPrimary : Theme.bgDark)
+                            font.family: Theme.isGotham ? Theme.fontMono : Theme.fontFamily
+                            font.pixelSize: Theme.isGotham ? 11 : Theme.fontSizeNormal
                             font.bold: true
+                            font.letterSpacing: Theme.isGotham ? 1 : 0
                         }
                     }
 
@@ -257,7 +272,7 @@ Item {
 
                         Text {
                             Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
-                            text: isUser ? "SEN" : "ENYXMA AI"
+                            text: isUser ? "SEN" : (Theme.isGotham ? "ORACLE" : "ENYXMA AI")
                             color: isUser ? Theme.textSecondary : Theme.accent
                             font.family: Theme.fontMono
                             font.pixelSize: 9
@@ -270,7 +285,7 @@ Item {
                             Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
                             width: Math.min(bubbleCol.implicitWidth + Theme.spacingMedium * 2, messageListView.width * 0.88)
                             implicitHeight: bubbleCol.implicitHeight + Theme.spacingMedium * 2
-                            radius: Theme.radiusWidget
+                            radius: Theme.isGotham ? 0 : Theme.radiusWidget
                             color: isUser ? Theme.surfaceActive : Theme.surface1
                             border.color: Theme.borderSubtle
                             border.width: Theme.borderWidth
@@ -300,8 +315,8 @@ Item {
         Rectangle {
             Layout.fillWidth: true
             implicitHeight: Math.max(42, inputRow.implicitHeight + 10)
-            radius: Theme.radiusWidget
-            color: Theme.surface1
+            radius: Theme.isGotham ? 0 : Theme.radiusWidget
+            color: Theme.isGotham ? Theme.bgDark : Theme.surface1
             border.color: inputField.activeFocus ? Theme.borderFocus : Theme.borderSubtle
             border.width: Theme.borderWidth
 
@@ -321,7 +336,7 @@ Item {
                 Rectangle {
                     implicitWidth: 30
                     implicitHeight: 30
-                    radius: 15
+                    radius: Theme.isGotham ? 0 : 15
                     color: imgBtnMa.containsMouse ? Theme.surfaceHover : "transparent"
 
                     Text {
@@ -346,7 +361,7 @@ Item {
                     id: inputField
                     Layout.fillWidth: true
                     wrapMode: TextArea.Wrap
-                    placeholderText: "Enyxma'ya mesaj gönder"
+                    placeholderText: Theme.isGotham ? "ORACLE'a komut veya mesaj yazın..." : "Enyxma'ya mesaj gönder"
                     placeholderTextColor: Theme.textMuted
                     color: Theme.textPrimary
                     font.family: Theme.fontFamily
@@ -372,7 +387,7 @@ Item {
                 Rectangle {
                     implicitWidth: 30
                     implicitHeight: 30
-                    radius: 15
+                    radius: Theme.isGotham ? 0 : 15
                     readonly property bool canSend: inputField.text.trim().length > 0
                     color: canSend ? Theme.accent : Theme.surface2
 

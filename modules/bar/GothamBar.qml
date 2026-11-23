@@ -643,8 +643,11 @@ Rectangle {
         // Sistem Tepsisi
         Tray {
             id: tray
+            visible: implicitWidth > 0
+            Layout.fillWidth: false
             Layout.alignment: Qt.AlignVCenter
-            Layout.rightMargin: Theme.spacingSmall
+            Layout.leftMargin: visible ? Theme.spacingXS : 0
+            Layout.rightMargin: visible ? Theme.spacingSmall : 0
         }
     }
 

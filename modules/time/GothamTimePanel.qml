@@ -375,8 +375,8 @@ Item {
                                     Layout.fillWidth: true
 
                                     Text {
-                                        text: "󰖜 07:18   󰖛 18:32"
-                                        color: Theme.textMuted
+                                        text: "HAFTA " + TimeState.weekNumber
+                                        color: Theme.textSecondary
                                         font.family: Theme.fontMono
                                         font.pixelSize: 9
                                     }
@@ -384,7 +384,7 @@ Item {
                                     Item { Layout.fillWidth: true }
 
                                     Text {
-                                        text: "GÜN " + TimeState.dayOfYear
+                                        text: "YILIN " + TimeState.dayOfYear + ". GÜNÜ"
                                         color: Theme.textSecondary
                                         font.family: Theme.fontMono
                                         font.pixelSize: 9

@@ -30,7 +30,7 @@ Item {
         radius: 0
         color: Theme.bgPanel
 
-        // Sol ve alt kenar icin 1px soguk grafit sinir hatlari
+        // Sol ve alt kenar icin 1px keskin sinir hatlari
         Rectangle {
             anchors {
                 left: parent.left
@@ -38,7 +38,7 @@ Item {
                 bottom: parent.bottom
             }
             width: 1
-            color: Theme.borderSubtle
+            color: Theme.borderFocus
         }
 
         Rectangle {
@@ -48,17 +48,17 @@ Item {
                 bottom: parent.bottom
             }
             height: 1
-            color: Theme.borderSubtle
+            color: Theme.borderFocus
         }
 
-        // Ust 1px kontrollu kehribar vurgu hatti
+        // Ust 2px kontrollu kehribar vurgu hatti
         Rectangle {
             anchors {
                 left: parent.left
                 right: parent.right
                 top: parent.top
             }
-            height: 1
+            height: 2
             color: Theme.accent
         }
 
