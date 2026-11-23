@@ -14,7 +14,7 @@ Item {
         anchors.right: parent.right
         anchors.topMargin: 42
         anchors.rightMargin: 12
-        width: 364
+        width: 376
         height: Math.min(parent.height - 64, contentCol.implicitHeight + Theme.spacingMedium * 2)
 
         color: Theme.bgGlass
@@ -130,11 +130,7 @@ Item {
                 }
             }
 
-            Rectangle {
-                Layout.fillWidth: true
-                implicitHeight: 1
-                color: Theme.borderSubtle
-            }
+            Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.borderSubtle }
 
             // ── SEKME 1: PERFORMANS ──────────────────────────────────────
             ColumnLayout {
@@ -142,9 +138,10 @@ Item {
                 visible: PerformanceState.activeTab === "performance"
                 spacing: Theme.spacingSmall
 
-                // CPU
+                // Islemci
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: 6
                     Text {
                         text: PerformanceState.cpuModel
                         color: Theme.textPrimary
@@ -155,9 +152,9 @@ Item {
                         Layout.fillWidth: true
                     }
                     Text {
-                        visible: PerformanceState.cpuCores > 0
-                        text: PerformanceState.cpuCores + "T"
-                        color: Theme.textMuted
+                        visible: PerformanceState.cpuTempC > 0
+                        text: PerformanceState.cpuTempC + "°C"
+                        color: PerformanceState.cpuTempC > 80 ? Theme.danger : Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 11
                     }
@@ -185,32 +182,9 @@ Item {
 
                 Sparkline {
                     Layout.fillWidth: true
-                    implicitHeight: 24
+                    implicitHeight: 22
                     value: PerformanceState.cpuPercent
                     active: PerformanceState.isOpen && PerformanceState.activeTab === "performance"
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text { text: "Yük 1 · 5 · 15"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
-                    Text { text: PerformanceState.load1 + " · " + PerformanceState.load5 + " · " + PerformanceState.load15; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11 }
-                }
-
-                // En Ust Islemler
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    visible: PerformanceState.topProcesses.length > 0
-                    spacing: 2
-
-                    Repeater {
-                        model: PerformanceState.topProcesses
-                        delegate: RowLayout {
-                            required property var modelData
-                            Layout.fillWidth: true
-                            Text { text: modelData.name; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; elide: Text.ElideRight; Layout.fillWidth: true }
-                            Text { text: modelData.cpu; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11 }
-                        }
-                    }
                 }
 
                 Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.borderSubtle }
@@ -218,7 +192,14 @@ Item {
                 // Bellek
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: 6
                     Text { text: "Bellek"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true; Layout.fillWidth: true }
+                    Text {
+                        text: PerformanceState.memUsedGiB.toFixed(1) + " / " + PerformanceState.memTotalGiB.toFixed(1) + " GB"
+                        color: Theme.textSecondary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 11
+                    }
                     Text { text: PerformanceState.memPercent + "%"; color: PerformanceState.memPercent > 85 ? Theme.danger : Theme.accent; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true }
                 }
 
@@ -235,19 +216,20 @@ Item {
                     }
                 }
 
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text { text: "Kullanılan: " + PerformanceState.memUsedGiB.toFixed(1) + " GiB"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
-                    Text { text: "Boş: " + PerformanceState.memAvailGiB.toFixed(1) + " GiB"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10 }
-                    Text { text: "/ " + PerformanceState.memTotalGiB.toFixed(1) + " GiB"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10 }
-                }
-
                 Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.borderSubtle }
 
-                // GPU
+                // Ekran Karti
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: 6
                     Text { text: PerformanceState.gpuModel; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; elide: Text.ElideRight; Layout.fillWidth: true }
+                    Text {
+                        visible: PerformanceState.gpuTempC > 0
+                        text: PerformanceState.gpuTempC + "°C"
+                        color: PerformanceState.gpuTempC > 82 ? Theme.danger : Theme.textSecondary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 11
+                    }
                     Text { text: PerformanceState.gpuPercent + "%"; color: PerformanceState.gpuPercent > 80 ? Theme.danger : Theme.accent; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true }
                 }
 
@@ -266,24 +248,159 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
+                    spacing: 6
                     Text { text: "VRAM"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
                     Text {
-                        text: PerformanceState.vramTotalGiB > 0 ? (PerformanceState.vramUsedGiB.toFixed(1) + " / " + PerformanceState.vramTotalGiB.toFixed(1) + " GiB") : (PerformanceState.vramPercent + "%")
-                        color: Theme.textPrimary
+                        text: PerformanceState.vramTotalGiB > 0 ? (PerformanceState.vramUsedGiB.toFixed(1) + " / " + PerformanceState.vramTotalGiB.toFixed(1) + " GB") : "-"
+                        color: Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 11
                     }
+                    Text {
+                        text: PerformanceState.vramPercent + "%"
+                        color: PerformanceState.vramPercent > 85 ? Theme.danger : Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: 11
+                        font.bold: true
+                    }
                 }
 
-                Rectangle {
+                Rectangle { Layout.fillWidth: true; implicitHeight: 1; color: Theme.borderSubtle }
+
+                // Uygulamalar (Gruplanmis, Siralanabilir, Kapatilabilir)
+                RowLayout {
                     Layout.fillWidth: true
-                    implicitHeight: 30
-                    radius: Theme.radiusButton
-                    color: btopMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive
-                    border.color: btopMa.containsMouse ? Theme.accent : Theme.borderSubtle
-                    border.width: Theme.borderWidth
-                    Text { anchors.centerIn: parent; text: "btop'u Aç"; color: Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: Theme.fontSizeNormal; font.bold: true }
-                    MouseArea { id: btopMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: PerformanceState.openBtop() }
+                    spacing: 4
+
+                    Text {
+                        text: "Uygulamalar"
+                        color: Theme.textPrimary
+                        font.family: Theme.fontMono
+                        font.pixelSize: Theme.fontSizeSmall
+                        font.bold: true
+                        Layout.fillWidth: true
+                    }
+
+                    Repeater {
+                        model: [
+                            { key: "cpu", label: "CPU" },
+                            { key: "mem", label: "RAM" }
+                        ]
+                        delegate: Rectangle {
+                            required property var modelData
+                            readonly property bool active: PerformanceState.sortBy === modelData.key
+                            implicitWidth: 42
+                            implicitHeight: 20
+                            radius: Theme.radiusButton
+                            color: active ? Theme.surfaceActive : Theme.surface1
+                            border.color: active ? Theme.accent : Theme.borderSubtle
+                            border.width: 1
+                            Text {
+                                anchors.centerIn: parent
+                                text: modelData.label
+                                color: parent.active ? Theme.accent : Theme.textSecondary
+                                font.family: Theme.fontMono
+                                font.pixelSize: 10
+                                font.bold: parent.active
+                            }
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: PerformanceState.setSortBy(modelData.key)
+                            }
+                        }
+                    }
+                }
+
+                // Sutun Basliklari
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 6
+                    Text { text: "Uygulama"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
+                    Text { text: "CPU"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 42 }
+                    Text { text: "RAM"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 56 }
+                    Item { Layout.preferredWidth: 20 }
+                }
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 3
+
+                    Repeater {
+                        model: PerformanceState.topProcesses
+                        delegate: Rectangle {
+                            required property var modelData
+                            Layout.fillWidth: true
+                            implicitHeight: 26
+                            radius: Theme.radiusButton
+                            color: Theme.surface1
+                            border.color: Theme.borderSubtle
+                            border.width: 1
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 8
+                                anchors.rightMargin: 6
+                                spacing: 6
+
+                                Text {
+                                    text: modelData.name
+                                    color: Theme.textPrimary
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 11
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+
+                                Text {
+                                    text: modelData.cpuText
+                                    color: PerformanceState.sortBy === "cpu" ? Theme.accent : Theme.textSecondary
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 11
+                                    horizontalAlignment: Text.AlignRight
+                                    Layout.preferredWidth: 42
+                                }
+
+                                Text {
+                                    text: modelData.memText
+                                    color: PerformanceState.sortBy === "mem" ? Theme.accent : Theme.textSecondary
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 11
+                                    horizontalAlignment: Text.AlignRight
+                                    Layout.preferredWidth: 56
+                                }
+
+                                Rectangle {
+                                    implicitWidth: 20
+                                    implicitHeight: 18
+                                    radius: Theme.radiusButton
+                                    visible: modelData.canKill
+                                    color: killMa.containsMouse ? Theme.surfaceHover : "transparent"
+                                    border.color: killMa.containsMouse ? Theme.danger : Theme.borderSubtle
+                                    border.width: 1
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: "×"
+                                        color: killMa.containsMouse ? Theme.danger : Theme.textMuted
+                                        font.family: Theme.fontMono
+                                        font.pixelSize: 11
+                                    }
+                                    MouseArea {
+                                        id: killMa
+                                        anchors.fill: parent
+                                        hoverEnabled: true
+                                        cursorShape: Qt.PointingHandCursor
+                                        onClicked: PerformanceState.killApp(modelData.pids)
+                                    }
+                                }
+
+                                Item {
+                                    visible: !modelData.canKill
+                                    Layout.preferredWidth: 20
+                                }
+                            }
+                        }
+                    }
                 }
             }
 
@@ -293,7 +410,6 @@ Item {
                 visible: PerformanceState.activeTab === "storage"
                 spacing: Theme.spacingSmall
 
-                // Ana Disk Ozeti
                 Rectangle {
                     Layout.fillWidth: true
                     implicitHeight: rootSumCol.implicitHeight + 14
@@ -364,7 +480,7 @@ Item {
                 ListView {
                     id: driveList
                     Layout.fillWidth: true
-                    Layout.preferredHeight: Math.min(240, Math.max(48, contentHeight))
+                    Layout.preferredHeight: Math.min(260, Math.max(48, contentHeight))
                     clip: true
                     spacing: 6
                     model: StorageState.drives
@@ -375,7 +491,7 @@ Item {
                         implicitHeight: drvCol.implicitHeight + 12
                         radius: Theme.radiusButton
                         color: drvMa.containsMouse && modelData.mounted ? Theme.surfaceHover : Theme.surface1
-                        border.color: modelData.mounted ? Theme.borderSubtle : Theme.borderSubtle
+                        border.color: Theme.borderSubtle
                         border.width: 1
 
                         MouseArea {
@@ -403,18 +519,13 @@ Item {
                                     elide: Text.ElideRight
                                     Layout.fillWidth: true
                                 }
-                                Text {
-                                    text: StorageState.formatCapacity(modelData.size)
-                                    color: Theme.accent
-                                    font.family: Theme.fontMono
-                                    font.pixelSize: 11
-                                }
+                                Text { text: StorageState.formatCapacity(modelData.size); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11 }
                             }
 
                             RowLayout {
                                 Layout.fillWidth: true
                                 Text {
-                                    text: modelData.media + (modelData.fileSystems ? (" · " + modelData.fileSystems) : "") + " · " + modelData.state + (modelData.percent >= 0 ? (" · %" + modelData.percent) : "")
+                                    text: modelData.media + (modelData.fileSystems ? (" · " + modelData.fileSystems) : "") + " · " + modelData.state + (modelData.mounted && modelData.percent >= 0 ? (" · %" + modelData.percent) : "")
                                     color: Theme.textSecondary
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
@@ -422,7 +533,7 @@ Item {
                                     Layout.fillWidth: true
                                 }
                                 Text {
-                                    visible: modelData.freeBytes >= 0
+                                    visible: modelData.mounted && modelData.freeBytes >= 0
                                     text: StorageState.formatFree(modelData.freeBytes)
                                     color: Theme.textMuted
                                     font.family: Theme.fontMono
@@ -430,7 +541,6 @@ Item {
                                 }
                             }
 
-                            // Cikarilabilir USB aksiyonlari
                             RowLayout {
                                 Layout.fillWidth: true
                                 visible: modelData.removable && modelData.partPath !== ""
@@ -443,13 +553,7 @@ Item {
                                     color: Theme.surfaceActive
                                     border.color: Theme.accent
                                     border.width: 1
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: modelData.mounted ? "Ayır" : "Bağla"
-                                        color: Theme.accent
-                                        font.family: Theme.fontMono
-                                        font.pixelSize: 10
-                                    }
+                                    Text { anchors.centerIn: parent; text: modelData.mounted ? "Ayır" : "Bağla"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
@@ -469,13 +573,7 @@ Item {
                                     color: Theme.surfaceActive
                                     border.color: Theme.borderSubtle
                                     border.width: 1
-                                    Text {
-                                        anchors.centerIn: parent
-                                        text: "Güvenli Çıkar"
-                                        color: Theme.textSecondary
-                                        font.family: Theme.fontMono
-                                        font.pixelSize: 10
-                                    }
+                                    Text { anchors.centerIn: parent; text: "Güvenli Çıkar"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10 }
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
@@ -491,4 +589,3 @@ Item {
         }
     }
 }
-

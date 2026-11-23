@@ -233,16 +233,16 @@ Rectangle {
             color: Theme.borderSubtle
         }
 
-        // 1. CPU + RAM Telemetri Hucresi
+        // 1. CPU + RAM + DISK Tek Birlesik Sistem Telemetri Hucresi
         Rectangle {
-            readonly property bool perfActive: PerformanceState.isOpen && PerformanceState.activeTab === "performance"
+            readonly property bool sysActive: PerformanceState.isOpen
             Layout.fillHeight: true
             implicitWidth: perfRow.implicitWidth + 16
             radius: 0
-            color: perfActive ? Theme.surfaceActive : (perfMa.containsMouse ? Theme.surfaceHover : "transparent")
+            color: sysActive ? Theme.surfaceActive : (perfMa.containsMouse ? Theme.surfaceHover : "transparent")
 
             Rectangle {
-                visible: parent.perfActive
+                visible: parent.sysActive
                 anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
                 height: 2
                 color: Theme.accent
@@ -263,14 +263,14 @@ Rectangle {
 
                 Text {
                     text: root.pad2(PerformanceState.cpuPercent) + "%"
-                    color: PerformanceState.cpuPercent > 80 ? Theme.danger : (PerformanceState.isOpen && PerformanceState.activeTab === "performance" ? Theme.accent : Theme.textPrimary)
+                    color: PerformanceState.cpuPercent > 80 ? Theme.danger : (PerformanceState.isOpen ? Theme.accent : Theme.textPrimary)
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true
                 }
 
                 Text {
-                    text: "MEM"
+                    text: "RAM"
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeXS
@@ -281,7 +281,23 @@ Rectangle {
                     text: perfMa.containsMouse
                         ? (PerformanceState.memUsedGiB.toFixed(1) + "G")
                         : (root.pad2(PerformanceState.memPercent) + "%")
-                    color: PerformanceState.memPercent > 85 ? Theme.danger : (PerformanceState.isOpen && PerformanceState.activeTab === "performance" ? Theme.accent : Theme.textPrimary)
+                    color: PerformanceState.memPercent > 85 ? Theme.danger : (PerformanceState.isOpen ? Theme.accent : Theme.textPrimary)
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeSmall
+                    font.bold: true
+                }
+
+                Text {
+                    text: "DİSK"
+                    color: Theme.textSecondary
+                    font.family: Theme.fontMono
+                    font.pixelSize: Theme.fontSizeXS
+                    font.bold: true
+                }
+
+                Text {
+                    text: root.pad2(StorageState.rootPercent) + "%"
+                    color: StorageState.rootPercent > 85 ? Theme.danger : (PerformanceState.isOpen ? Theme.accent : Theme.textPrimary)
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true
@@ -294,58 +310,6 @@ Rectangle {
                 hoverEnabled: true
                 cursorShape: Qt.PointingHandCursor
                 onClicked: PerformanceState.toggle()
-            }
-        }
-
-        // Dikey Izgara Ayirici
-        Rectangle {
-            Layout.fillHeight: true
-            Layout.preferredWidth: 1
-            color: Theme.borderSubtle
-        }
-
-        // 2. Depolama Hucresi
-        Rectangle {
-            Layout.fillHeight: true
-            implicitWidth: dskRow.implicitWidth + 16
-            radius: 0
-            color: StorageState.isOpen ? Theme.surfaceActive : (dskMa.containsMouse ? Theme.surfaceHover : "transparent")
-
-            Rectangle {
-                visible: StorageState.isOpen
-                anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
-                height: 2
-                color: Theme.accent
-            }
-
-            RowLayout {
-                id: dskRow
-                anchors.centerIn: parent
-                spacing: 4
-
-                Text {
-                    text: "DSK"
-                    color: Theme.textSecondary
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontSizeXS
-                    font.bold: true
-                }
-
-                Text {
-                    text: root.pad2(StorageState.rootPercent) + "%"
-                    color: StorageState.isOpen ? Theme.accent : Theme.textPrimary
-                    font.family: Theme.fontMono
-                    font.pixelSize: Theme.fontSizeSmall
-                    font.bold: true
-                }
-            }
-
-            MouseArea {
-                id: dskMa
-                anchors.fill: parent
-                hoverEnabled: true
-                cursorShape: Qt.PointingHandCursor
-                onClicked: StorageState.toggle()
             }
         }
 

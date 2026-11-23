@@ -96,14 +96,9 @@ Rectangle {
             Layout.fillWidth: true
         }
 
-        // Performans: CPU ve RAM
+        // Performans ve Depolama: CPU, RAM ve Disk
         PerformanceWidget {
             id: performanceWidget
-        }
-
-        // Depolama: Kok Disk
-        StorageWidget {
-            id: storageWidget
         }
 
         // Ag Durumu ve RX/TX

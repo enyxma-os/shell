@@ -286,10 +286,18 @@ Singleton {
 
                     var chosenVol = primaryVol || fallbackBoot || firstMountable
                     var primaryMount = chosenVol ? chosenVol.mount : ""
-                    var usage = chosenVol ? chosenVol.percent : -1
-                    var freeBytes = chosenVol ? chosenVol.freeBytes : -1
-                    var usedBytes = chosenVol ? chosenVol.usedBytes : -1
+                    var usage = (chosenVol && primaryMount !== "") ? chosenVol.percent : -1
+                    var freeBytes = (chosenVol && primaryMount !== "") ? chosenVol.freeBytes : -1
+                    var usedBytes = (chosenVol && primaryMount !== "") ? chosenVol.usedBytes : -1
                     var partPath = chosenVol ? chosenVol.path : ""
+
+                    // Ana sistem diskiyle (df) ayni Btrfs/kok havuzunu tutarli kil
+                    if (root.isAvailable && primaryMount !== "" &&
+                        (primaryMount === root.rootMount || primaryMount === "/home" || primaryMount === "/nix" || primaryMount === "/persist")) {
+                        usage = root.rootPercent
+                        freeBytes = Math.max(0, root.rootTotalBytes - root.rootUsedBytes)
+                        usedBytes = root.rootUsedBytes
+                    }
 
                     var tran = textValue(dev.tran).toUpperCase()
                     var removable = isTruthy(dev.rm) || isTruthy(dev.hotplug) || tran === "USB"

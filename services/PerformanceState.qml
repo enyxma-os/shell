@@ -2,29 +2,14 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "."
 
-/**
- * PerformanceState — CPU / RAM / GPU telemetrisi.
- *
- * P1 "SIFIR POLLING" DÜZELTMESİ:
- *   Eski kod panel kapalıyken bile 3 sn'de bir `bash -c awk …; ps …; ls -d …`
- *   çalıştırıyordu → günde ~28.800 process.
- *
- *   Yeni tasarım:
- *   • Bar göstergeleri (CPU %, RAM %, load) → /proc dosyaları FileView ile
- *     okunur: fork YOK, sadece dosya okuma (2 sn).
- *   • Ağır işler (`ps` ile top process, GPU sysfs, `lspci`) yalnızca panel
- *     açıkken çalışır (`isOpen` kapısı) → günde birkaç yüz process.
- *   • Statik bilgi (kernel, CPU/GPU modeli) açılışta TEK kez.
- *
- *   `drives`/GPU verisi panel kapalıyken donar; bu bilinçli bir tercih:
- *   bar yalnızca CPU/RAM gösterir, panel açıldığında tazelenir.
- */
 Singleton {
     id: root
 
     property bool isOpen: false
     property string activeTab: "performance" // performance | storage
+    property string sortBy: "cpu" // cpu | mem
 
     function openTab(tab): void {
         var next = (tab === "storage") ? "storage" : "performance"
@@ -46,24 +31,27 @@ Singleton {
         }
     }
 
+    function setSortBy(mode): void {
+        var next = (mode === "mem") ? "mem" : "cpu"
+        if (root.sortBy === next) return
+        root.sortBy = next
+        if (root._lastPsText !== "") {
+            root.parseTop(root._lastPsText)
+        }
+    }
+
     function toggle(): void { root.toggleTab("performance") }
     function open(): void { root.openTab("performance") }
     function close(): void { root.isOpen = false }
 
-    function openBtop(): void {
-        root.close()
-        Quickshell.execDetached(["enyxma-launch", "foot", "btop"])
-    }
-
-    // ── Metrikler ───────────────────────────────────────────────────
+    // ── Donanim Metrikleri ──────────────────────────────────────────
     property int cpuPercent: 0
     property string cpuModel: "İşlemci"
     property int cpuCores: 0
+    property int cpuTempC: 0
     property string kernel: ""
-    property string load1: "0.00"
-    property string load5: "0.00"
-    property string load15: "0.00"
     property var topProcesses: []
+    property string _lastPsText: ""
 
     property int memPercent: 0
     property real memUsedGiB: 0.0
@@ -72,14 +60,29 @@ Singleton {
 
     property int gpuPercent: 0
     property string gpuModel: "Ekran Kartı"
+    property int gpuTempC: 0
     property int vramPercent: 0
     property real vramUsedGiB: 0.0
     property real vramTotalGiB: 0.0
 
     property real _prevTotal: 0
     property real _prevIdle: 0
+    property real _vramUsedBytes: 0
+    property real _vramTotalBytes: 0
 
-    // ── Statik sistem bilgisi: açılışta 1 kez ───────────────────────
+    function formatMemKiB(kib) {
+        var mb = (Number(kib) || 0) / 1024.0
+        if (mb >= 1024.0) return (mb / 1024.0).toFixed(1) + " GB"
+        return Math.round(mb) + " MB"
+    }
+
+    function updateVramPercent() {
+        if (root._vramTotalBytes > 0) {
+            root.vramPercent = Math.max(0, Math.min(100, Math.round((root._vramUsedBytes * 100) / root._vramTotalBytes)))
+        }
+    }
+
+    // ── Statik sistem bilgisi: acilista 1 kez ───────────────────────
     Process {
         id: staticInfoProc
         command: ["uname", "-r"]
@@ -91,21 +94,53 @@ Singleton {
 
     Process {
         id: gpuModelProc
-        command: ["lspci", "-mm"]
+        command: ["lspci", "-mm", "-d", "::0300"]
+        running: true
+        stdout: StdioCollector {
+            onStreamFinished: {
+                var lines = String(this.text || "").trim().split("\n")
+                for (var i = 0; i < lines.length; i++) {
+                    var l = lines[i]
+                    var cols = l.match(/"([^"]*)"/g)
+                    if (!cols || cols.length < 3) continue
+                    var vendor = cols[1].replace(/"/g, "")
+                    var dev = cols[2].replace(/"/g, "")
+                    var bracketMatch = dev.match(/\[([^\]]+)\]/)
+                    var cleanDev = bracketMatch ? bracketMatch[1].trim() : dev.trim()
+                    var prefix = vendor.indexOf("AMD") >= 0 ? "AMD "
+                        : (vendor.indexOf("NVIDIA") >= 0 ? "NVIDIA "
+                        : (vendor.indexOf("Intel") >= 0 ? "Intel " : ""))
+                    root.gpuModel = prefix + cleanDev
+                    return
+                }
+            }
+        }
+    }
+
+    property string _cpuTempPath: ""
+    property string _gpuTempPath: ""
+
+    Process {
+        id: hwmonDetectProc
+        command: ["find", "/sys/class/hwmon", "-maxdepth", "2", "-name", "name", "-exec", "head", "-n", "1", "{}", "+"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = String(this.text || "").split("\n")
+                var curDir = ""
                 for (var i = 0; i < lines.length; i++) {
-                    var l = lines[i]
-                    if (l.indexOf("\"VGA compatible controller\"") >= 0 || l.indexOf("\"3D controller\"") >= 0 || l.indexOf("\"Display controller\"") >= 0) {
-                        var cols = l.match(/"([^"]*)"/g)
-                        if (cols && cols.length >= 4) {
-                            var vendor = cols[2].replace(/"/g, "").replace(/\s*\[[^\]]*\]/g, "").trim()
-                            var dev = cols[3].replace(/"/g, "").replace(/\s*\[([^\]]+)\]/g, " $1").trim()
-                            root.gpuModel = (vendor.indexOf("AMD") >= 0 ? "AMD " : (vendor.indexOf("NVIDIA") >= 0 ? "NVIDIA " : (vendor.indexOf("Intel") >= 0 ? "Intel " : ""))) + dev
-                            return
+                    var l = lines[i].trim()
+                    if (l.indexOf("==> ") === 0) {
+                        var pathPart = l.substring(4, l.length - 4).trim()
+                        curDir = pathPart.replace(/\/name$/, "")
+                    } else if (curDir !== "" && l !== "") {
+                        var name = l.toLowerCase()
+                        if ((name === "k10temp" || name === "coretemp" || name === "zenpower" || name === "cpu_thermal") && root._cpuTempPath === "") {
+                            root._cpuTempPath = curDir + "/temp1_input"
+                        } else if ((name === "amdgpu" || name === "nouveau" || name === "i915" || name === "xe") && root._gpuTempPath === "") {
+                            root._gpuTempPath = curDir + "/temp1_input"
                         }
+                        curDir = ""
                     }
                 }
             }
@@ -126,7 +161,9 @@ Singleton {
         for (var i = 0; i < lines.length; i++) {
             if (lines[i].indexOf("model name") === 0 || lines[i].indexOf("model name\t") === 0) {
                 var idx = lines[i].indexOf(":")
-                if (idx > 0 && model === "") model = lines[i].substring(idx + 1).trim()
+                if (idx > 0 && model === "") {
+                    model = lines[i].substring(idx + 1).replace(/\s+\d+-Core Processor/i, "").trim()
+                }
             } else if (lines[i].indexOf("processor") === 0) {
                 cores++
             }
@@ -148,13 +185,6 @@ Singleton {
         path: "/proc/meminfo"
         printErrors: false
         onLoaded: root.parseMem(memFile.text())
-    }
-
-    FileView {
-        id: loadFile
-        path: "/proc/loadavg"
-        printErrors: false
-        onLoaded: root.parseLoad(loadFile.text())
     }
 
     function parseStat(text) {
@@ -192,16 +222,7 @@ Singleton {
         root.memTotalGiB = total / 1048576
     }
 
-    function parseLoad(text) {
-        var f = String(text || "").trim().split(/\s+/)
-        if (f.length >= 3) {
-            root.load1 = f[0]
-            root.load5 = f[1]
-            root.load15 = f[2]
-        }
-    }
-
-    // 2 sn: fork yok, sadece 3 dosya okuması (panel açık/kapalı fark etmez).
+    // 2 sn: fork yok, sadece dosya okuma
     Timer {
         interval: 2000
         running: true
@@ -210,38 +231,110 @@ Singleton {
         onTriggered: {
             statFile.reload()
             memFile.reload()
-            loadFile.reload()
         }
     }
 
-    // 30 sn'de bir meminfo (RAM yavaş değişir) — ayrı sayaç gereksiz,
-    // aynı timer yeterli; ayrı bant genişliği maliyeti yok.
-
-    // ── Ağır işler: yalnızca panel açıkken ──────────────────────────
+    // ── Agir isler: yalnizca panel acikken ──────────────────────────
     property string gpuDeviceDir: ""
 
     Process {
         id: heavyProc
         running: false
-        command: ["ps", "-eo", "comm,%cpu", "--sort=-%cpu", "--no-headers"]
+        command: ["ps", "-eo", "pid=,comm=,%cpu=,rss="]
         stdout: StdioCollector { id: heavyOut }
-        onExited: (code) => root.parseTop(heavyOut.text)
+        onExited: (code) => {
+            root._lastPsText = heavyOut.text
+            root.parseTop(heavyOut.text)
+        }
+    }
+
+    function humanAppName(comm) {
+        var c = String(comm || "").trim()
+        var low = c.toLowerCase()
+        if (low === "chromium" || low === "chrome" || low.indexOf("chromium-") === 0) return "Chromium"
+        if (low === "antigravity-ide" || low.indexOf("antigravity") === 0) return "Antigravity IDE"
+        if (low === ".quickshell-wra" || low === "quickshell") return "Enyxma Shell"
+        if (low === "firefox" || low === ".firefox-wrappe") return "Firefox"
+        if (low === "kitty") return "Kitty"
+        if (low === "foot") return "Foot"
+        if (low === "hyprland") return "Hyprland"
+        if (low === "thunar") return "Thunar"
+        if (low === "keepassxc") return "KeePassXC"
+        if (low === "discord" || low === "vesktop") return "Discord"
+        if (low === "obs") return "OBS Studio"
+        if (low === "mpv") return "mpv"
+        return c
     }
 
     function parseTop(text) {
         var lines = String(text || "").split("\n")
-        var list = []
-        for (var i = 0; i < lines.length && list.length < 3; i++) {
+        var groups = {}
+        var threadCount = Math.max(1, root.cpuCores)
+        for (var i = 0; i < lines.length; i++) {
             var l = lines[i].trim()
             if (!l) continue
             var parts = l.split(/\s+/)
-            if (parts.length < 2) continue
-            list.push({ name: parts[0], cpu: parts[1] + "%" })
+            if (parts.length < 4) continue
+            var pid = parts[0]
+            var comm = parts[1]
+            var rawCpu = parseFloat(parts[2]) || 0
+            var rssKiB = parseFloat(parts[3]) || 0
+            if (rawCpu <= 0 && rssKiB < 10240) continue
+
+            var appName = root.humanAppName(comm)
+            var low = comm.toLowerCase()
+            var protectedApp = (low === "hyprland" || low === ".quickshell-wra" || low === "quickshell" || low === "systemd" || low === "dbus-daemon")
+
+            if (!groups[appName]) {
+                groups[appName] = {
+                    name: appName,
+                    cpu: 0,
+                    rssKiB: 0,
+                    pids: [],
+                    canKill: !protectedApp
+                }
+            }
+            groups[appName].cpu += (rawCpu / threadCount)
+            groups[appName].rssKiB += rssKiB
+            groups[appName].pids.push(pid)
+            if (protectedApp) groups[appName].canKill = false
         }
-        root.topProcesses = list
+
+        var list = []
+        var keys = Object.keys(groups)
+        for (var k = 0; k < keys.length; k++) {
+            var g = groups[keys[k]]
+            list.push({
+                name: g.name,
+                cpuVal: g.cpu,
+                cpuText: (g.cpu >= 10 ? g.cpu.toFixed(0) : g.cpu.toFixed(1)) + "%",
+                rssKiB: g.rssKiB,
+                memText: root.formatMemKiB(g.rssKiB),
+                pids: g.pids,
+                canKill: g.canKill
+            })
+        }
+
+        list.sort(function(a, b) {
+            if (root.sortBy === "mem") return b.rssKiB - a.rssKiB
+            return b.cpuVal - a.cpuVal
+        })
+
+        root.topProcesses = list.slice(0, 6)
     }
 
-    // GPU: /sys/class/drm/card*/device/* — yalnızca panel açıkken okunur.
+    function killApp(pids) {
+        if (!pids || pids.length === 0 || killProc.running) return
+        killProc.exec(["kill", "-TERM"].concat(pids))
+    }
+
+    Process {
+        id: killProc
+        running: false
+        onExited: (code) => root.refreshHeavy()
+    }
+
+    // GPU & Sicaklik: yalnizca panel acikken okunur
     FileView {
         id: gpuBusyFile
         path: ""
@@ -253,7 +346,11 @@ Singleton {
         id: vramUsedFile
         path: ""
         printErrors: false
-        onLoaded: root.vramUsedGiB = (parseFloat(vramUsedFile.text().trim()) || 0) / 1073741824
+        onLoaded: {
+            root._vramUsedBytes = parseFloat(vramUsedFile.text().trim()) || 0
+            root.vramUsedGiB = root._vramUsedBytes / 1073741824
+            root.updateVramPercent()
+        }
     }
 
     FileView {
@@ -261,18 +358,37 @@ Singleton {
         path: ""
         printErrors: false
         onLoaded: {
-            var t = parseFloat(vramTotalFile.text().trim()) || 0
-            root.vramTotalGiB = t / 1073741824
-            if (t > 0) root.vramPercent = Math.round((root.vramUsedGiB * 1073741824 * 100) / t)
+            root._vramTotalBytes = parseFloat(vramTotalFile.text().trim()) || 0
+            root.vramTotalGiB = root._vramTotalBytes / 1073741824
+            root.updateVramPercent()
+        }
+    }
+
+    FileView {
+        id: cpuTempFile
+        path: ""
+        printErrors: false
+        onLoaded: {
+            var mc = parseInt(cpuTempFile.text().trim()) || 0
+            if (mc > 0) root.cpuTempC = Math.round(mc / 1000)
+        }
+    }
+
+    FileView {
+        id: gpuTempFile
+        path: ""
+        printErrors: false
+        onLoaded: {
+            var mc = parseInt(gpuTempFile.text().trim()) || 0
+            if (mc > 0) root.gpuTempC = Math.round(mc / 1000)
         }
     }
 
     function refreshHeavy() {
-        if (heavyProc.running) return
-        heavyProc.running = true
-        // GPU yolu ilk açılışta bir kez keşfedilir (tek `ls` benzeri iş).
+        if (!heavyProc.running) heavyProc.running = true
         if (root.gpuDeviceDir === "") gpuDetectProc.running = true
         else pollGpu()
+        pollTemps()
     }
 
     Timer {
@@ -285,7 +401,6 @@ Singleton {
     Process {
         id: gpuDetectProc
         running: false
-        // Kabuk yok: glob'u `find` çözer; yalnızca card<N>/device yollarını seç.
         command: ["find", "/sys/class/drm", "-maxdepth", "2", "-name", "device", "-type", "d"]
         stdout: StdioCollector {
             onStreamFinished: {
@@ -295,7 +410,6 @@ Singleton {
                     var cand = lines[i].trim()
                     if (/^\/sys\/class\/drm\/card\d+\/device$/.test(cand)) {
                         chosen = cand
-                        // Harici kart genelde card1+ olur; buldugumuz ilk gecerli karti al
                         if (cand.indexOf("card0") < 0) break
                     }
                 }
@@ -317,12 +431,22 @@ Singleton {
         vramTotalFile.reload()
     }
 
+    function pollTemps() {
+        if (root._cpuTempPath !== "") {
+            cpuTempFile.path = root._cpuTempPath
+            cpuTempFile.reload()
+        }
+        if (root._gpuTempPath !== "") {
+            gpuTempFile.path = root._gpuTempPath
+            gpuTempFile.reload()
+        }
+    }
+
     IpcHandler {
         target: "performance"
         function toggle(): void { root.toggle() }
         function open(): void { root.open() }
         function close(): void { root.close() }
-        function btop(): void { root.openBtop() }
         function refresh(): void { root.refreshHeavy() }
     }
 }

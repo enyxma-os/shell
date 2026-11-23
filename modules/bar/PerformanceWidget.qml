@@ -7,7 +7,7 @@ EnyxmaPill {
     id: root
 
     readonly property bool isHovered: mouseArea.containsMouse
-    readonly property bool isOpen: PerformanceState.isOpen && PerformanceState.activeTab === "performance"
+    readonly property bool isOpen: PerformanceState.isOpen
 
     implicitHeight: 24
     onClicked: PerformanceState.toggle()
@@ -72,6 +72,32 @@ EnyxmaPill {
             text: root.isHovered
                 ? (PerformanceState.memUsedGiB.toFixed(1) + "/" + PerformanceState.memTotalGiB.toFixed(0) + "G")
                 : (PerformanceState.memPercent + "%")
+            color: Theme.textPrimary
+            font.family: Theme.fontMono
+            font.pixelSize: Theme.fontSizeSmall
+        }
+
+        // İnce Ayırıcı Nokta
+        Text {
+            Layout.alignment: Qt.AlignVCenter
+            text: "·"
+            color: Theme.textMuted
+            font.family: Theme.fontMono
+            font.pixelSize: Theme.fontSizeSmall
+        }
+
+        // ── Disk Bölümü ──
+        Text {
+            Layout.alignment: Qt.AlignVCenter
+            text: "󰋊"
+            color: root.isOpen ? Theme.accent : (StorageState.rootPercent > 85 ? Theme.danger : Theme.textPrimary)
+            font.family: Theme.fontMono
+            font.pixelSize: Theme.fontSizeSmall
+        }
+
+        Text {
+            Layout.alignment: Qt.AlignVCenter
+            text: StorageState.rootPercent + "%"
             color: Theme.textPrimary
             font.family: Theme.fontMono
             font.pixelSize: Theme.fontSizeSmall
