@@ -21,7 +21,7 @@
         bluez
         matugen
         imagemagick
-        networkmanager iw iproute2
+        networkmanager networkmanagerapplet iw iproute2
         brightnessctl hyprsunset ddcutil
         hyprland
         util-linux pciutils

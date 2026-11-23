@@ -24,11 +24,25 @@ Singleton {
 
     function toggle() {
         isOpen = !isOpen
-        if (isOpen) refreshDetails()
-        else if (speedRunning) cancelSpeedTest()
+        if (isOpen) {
+            refreshAll()
+        } else if (speedRunning) {
+            cancelSpeedTest()
+        }
     }
-    function open() { isOpen = true; refreshDetails() }
-    function close() { isOpen = false; if (speedRunning) cancelSpeedTest() }
+    function open() {
+        isOpen = true
+        refreshAll()
+    }
+    function close() {
+        isOpen = false
+        if (speedRunning) cancelSpeedTest()
+    }
+
+    function refreshAll() {
+        refreshDetails()
+        refreshDevicesAndRadio()
+    }
 
     // ── Ağ durumu ────────────────────────────────────────────────────
     property bool isConnected: false
@@ -39,6 +53,22 @@ Singleton {
     property int signalStrength: 0
     property string frequency: ""
     property string linkSpeed: ""
+
+    // ── Wi-Fi, Profiller ve VPN ──────────────────────────────────────
+    property bool hasWifiDevice: false
+    property string wifiDeviceName: ""
+    property bool wifiEnabled: false
+    property var wifiNetworks: []
+    property bool isScanning: false
+    property string connectingSsid: ""
+    property bool actionBusy: false
+    property string actionError: ""
+    property var vpnProfiles: []
+    property var savedWifiMap: ({})
+    property bool dnsPendingApply: false
+    property string copiedHint: ""
+
+    signal passwordRequired(string ssid)
 
     // ── DNS ──────────────────────────────────────────────────────────
     property string dnsProvider: "dhcp"
@@ -54,6 +84,58 @@ Singleton {
     property real prevRx: -1
     property real prevTx: -1
     property real prevMs: 0
+
+    function formatRate(bps) {
+        var v = Math.max(0, Number(bps) || 0)
+        if (v < 1024) return Math.round(v) + " B/s"
+        if (v < 1024 * 1024) return (v / 1024).toFixed(1) + " KB/s"
+        return (v / (1024 * 1024)).toFixed(1) + " MB/s"
+    }
+
+    function bandFromFreq(freqStr) {
+        var m = String(freqStr || "").match(/([\d.]+)/)
+        if (!m) return ""
+        var mhz = parseFloat(m[1]) || 0
+        if (mhz >= 5925) return "6 GHz"
+        if (mhz >= 4900) return "5 GHz"
+        if (mhz >= 2400) return "2.4 GHz"
+        return ""
+    }
+
+    Timer {
+        id: copyHintTimer
+        interval: 1500
+        repeat: false
+        onTriggered: root.copiedHint = ""
+    }
+
+    function copyText(text, label) {
+        if (!text || String(text).length === 0) return
+        Quickshell.execDetached(["wl-copy", "--", String(text)])
+        root.copiedHint = label ? (label + " kopyalandı") : "Kopyalandı"
+        copyHintTimer.restart()
+    }
+
+    // nmcli -t -e yes ayristiricisi (\: ve \\ kacislarini cozer)
+    function splitNmcliLine(line) {
+        var fields = []
+        var cur = ""
+        var s = String(line || "")
+        for (var i = 0; i < s.length; i++) {
+            var ch = s.charAt(i)
+            if (ch === "\\" && i + 1 < s.length) {
+                cur += s.charAt(i + 1)
+                i++
+            } else if (ch === ":") {
+                fields.push(cur)
+                cur = ""
+            } else {
+                cur += ch
+            }
+        }
+        fields.push(cur)
+        return fields
+    }
 
     function trafficLevel(bps) {
         var value = Math.max(0, Number(bps) || 0)
@@ -284,7 +366,263 @@ Singleton {
         id: monitorProc
         command: ["nmcli", "monitor"]
         running: true
-        stdout: SplitParser { splitMarker: "\n"; onRead: line => root.refreshDetails() }
+        stdout: SplitParser {
+            splitMarker: "\n"
+            onRead: line => {
+                root.refreshDetails()
+                if (root.isOpen) root.refreshDevicesAndRadio()
+            }
+        }
+    }
+
+    // ── Cihaz, Radyo, Kayıtlı Profil ve VPN Keşfi ────────────────────
+    property int _devStep: 0
+    property string _radioState: ""
+    property string _devListRaw: ""
+
+    function refreshDevicesAndRadio() {
+        if (devProc.running) return
+        root._devStep = 0
+        devProc.command = ["nmcli", "radio", "wifi"]
+        devProc.running = true
+    }
+
+    function advanceDev(code, text) {
+        var t = String(text || "").trim()
+        switch (root._devStep) {
+        case 0:
+            root.wifiEnabled = (t === "enabled")
+            root._devStep = 1
+            devProc.command = ["nmcli", "-t", "-e", "yes", "-f", "TYPE,DEVICE,STATE", "dev"]
+            devProc.running = true
+            return
+        case 1:
+            parseDeviceList(t)
+            root._devStep = 2
+            devProc.command = ["nmcli", "-t", "-e", "yes", "-f", "NAME,TYPE,ACTIVE,DEVICE", "con", "show"]
+            devProc.running = true
+            return
+        case 2:
+            parseConnectionProfiles(t)
+            if (root.isOpen && root.hasWifiDevice && root.wifiEnabled && root.wifiNetworks.length === 0) {
+                root.scanWifi(false)
+            }
+            return
+        }
+    }
+
+    Process {
+        id: devProc
+        running: false
+        stdout: StdioCollector { id: devOut }
+        onExited: (code, status) => root.advanceDev(code, devOut.text)
+    }
+
+    function parseDeviceList(text) {
+        var foundWifi = false
+        var wifiDev = ""
+        var lines = String(text || "").split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim()
+            if (!line) continue
+            var f = root.splitNmcliLine(line)
+            if (f.length >= 2 && f[0] === "wifi") {
+                foundWifi = true
+                if (!wifiDev) wifiDev = f[1]
+            }
+        }
+        root.hasWifiDevice = foundWifi
+        root.wifiDeviceName = wifiDev
+        if (!foundWifi || !root.wifiEnabled) {
+            root.wifiNetworks = []
+        }
+    }
+
+    function parseConnectionProfiles(text) {
+        var saved = {}
+        var vpns = []
+        var lines = String(text || "").split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim()
+            if (!line) continue
+            var f = root.splitNmcliLine(line)
+            if (f.length < 3) continue
+            var name = f[0]
+            var ctype = f[1]
+            var active = (f[2] === "yes")
+            var dev = f.length >= 4 ? f[3] : ""
+            if (ctype === "802-11-wireless" || ctype === "wifi") {
+                saved[name] = true
+            } else if (ctype === "vpn" || ctype === "wireguard") {
+                vpns.push({ name: name, type: ctype, active: active, device: dev })
+            }
+        }
+        root.savedWifiMap = saved
+        root.vpnProfiles = vpns
+    }
+
+    // ── Wi-Fi Tarama ─────────────────────────────────────────────────
+    function scanWifi(rescan) {
+        if (!root.hasWifiDevice || !root.wifiEnabled) return
+        if (wifiScanProc.running) return
+        root.isScanning = true
+        wifiScanProc.command = [
+            "nmcli", "-t", "-e", "yes",
+            "-f", "IN-USE,SSID,SIGNAL,SECURITY,FREQ",
+            "device", "wifi", "list", "--rescan", rescan ? "yes" : "auto"
+        ]
+        wifiScanProc.running = true
+    }
+
+    Process {
+        id: wifiScanProc
+        running: false
+        stdout: StdioCollector { id: wifiScanOut }
+        onExited: (code, status) => {
+            root.isScanning = false
+            if (code === 0) {
+                root.parseWifiList(wifiScanOut.text)
+            }
+        }
+    }
+
+    function parseWifiList(text) {
+        var bySsid = {}
+        var lines = String(text || "").split("\n")
+        for (var i = 0; i < lines.length; i++) {
+            var line = lines[i].trim()
+            if (!line) continue
+            var f = root.splitNmcliLine(line)
+            if (f.length < 4) continue
+            var inUse = (f[0] === "*")
+            var ssid = f[1]
+            if (!ssid || ssid.length === 0) continue
+            var sig = parseInt(f[2], 10)
+            if (isNaN(sig)) sig = 0
+            var sec = (f[3] || "").trim()
+            var freq = f.length >= 5 ? f[4] : ""
+            var band = root.bandFromFreq(freq)
+            var isSaved = !!root.savedWifiMap[ssid]
+            var prev = bySsid[ssid]
+            if (!prev || inUse || (!prev.inUse && sig > prev.signal)) {
+                bySsid[ssid] = {
+                    ssid: ssid,
+                    signal: sig,
+                    security: sec,
+                    secured: (sec !== "" && sec !== "--"),
+                    band: band,
+                    inUse: inUse,
+                    saved: isSaved
+                }
+            }
+        }
+        var list = []
+        var keys = Object.keys(bySsid)
+        for (var k = 0; k < keys.length; k++) {
+            list.push(bySsid[keys[k]])
+        }
+        list.sort(function(a, b) {
+            if (a.inUse !== b.inUse) return a.inUse ? -1 : 1
+            if (a.saved !== b.saved) return a.saved ? -1 : 1
+            return b.signal - a.signal
+        })
+        root.wifiNetworks = list
+    }
+
+    // ── Wi-Fi Radyo & Bağlantı İşlemleri ─────────────────────────────
+    function toggleWifi() {
+        if (radioProc.running) return
+        root.actionError = ""
+        radioProc.command = ["nmcli", "radio", "wifi", root.wifiEnabled ? "off" : "on"]
+        radioProc.running = true
+    }
+
+    Process {
+        id: radioProc
+        running: false
+        onExited: (code) => {
+            root.refreshAll()
+        }
+    }
+
+    function connectWifi(ssid, password) {
+        if (!ssid || root.actionBusy) return
+        root.actionBusy = true
+        root.actionError = ""
+        root.connectingSsid = ssid
+        if (root.savedWifiMap[ssid] && (!password || password.length === 0)) {
+            actionProc.command = ["nmcli", "con", "up", ssid]
+        } else if (password && password.length > 0) {
+            actionProc.command = ["nmcli", "device", "wifi", "connect", ssid, "password", password]
+        } else {
+            actionProc.command = ["nmcli", "device", "wifi", "connect", ssid]
+        }
+        actionProc.running = true
+    }
+
+    function connectHiddenWifi(ssid, password) {
+        if (!ssid || root.actionBusy) return
+        root.actionBusy = true
+        root.actionError = ""
+        root.connectingSsid = ssid
+        if (password && password.length > 0) {
+            actionProc.command = ["nmcli", "device", "wifi", "connect", ssid, "password", password, "hidden", "yes"]
+        } else {
+            actionProc.command = ["nmcli", "device", "wifi", "connect", ssid, "hidden", "yes"]
+        }
+        actionProc.running = true
+    }
+
+    function disconnectActive() {
+        if (!root.interfaceName || root.actionBusy) return
+        root.actionBusy = true
+        root.actionError = ""
+        root.connectingSsid = ""
+        actionProc.command = ["nmcli", "dev", "disconnect", root.interfaceName]
+        actionProc.running = true
+    }
+
+    function forgetNetwork(name) {
+        if (!name || root.actionBusy) return
+        root.actionBusy = true
+        root.actionError = ""
+        root.connectingSsid = ""
+        actionProc.command = ["nmcli", "con", "delete", name]
+        actionProc.running = true
+    }
+
+    function toggleVpn(name, currentlyActive) {
+        if (!name || root.actionBusy) return
+        root.actionBusy = true
+        root.actionError = ""
+        root.connectingSsid = ""
+        actionProc.command = ["nmcli", "con", currentlyActive ? "down" : "up", name]
+        actionProc.running = true
+    }
+
+    Process {
+        id: actionProc
+        running: false
+        stderr: StdioCollector { id: actionErrOut }
+        onExited: (code, status) => {
+            var failedSsid = root.connectingSsid
+            root.actionBusy = false
+            root.connectingSsid = ""
+            if (code === 0) {
+                root.actionError = ""
+                root.refreshAll()
+                if (root.hasWifiDevice && root.wifiEnabled) root.scanWifi(false)
+            } else {
+                var msg = (actionErrOut.text || "").trim()
+                var low = msg.toLowerCase()
+                if (failedSsid && (low.indexOf("secrets") >= 0 || low.indexOf("password") >= 0 || low.indexOf("parola") >= 0 || low.indexOf("802-11-wireless-security") >= 0)) {
+                    root.actionError = "Parola gerekli veya hatalı: " + failedSsid
+                    root.passwordRequired(failedSsid)
+                } else {
+                    root.actionError = msg !== "" ? msg.split("\n")[0] : ("İşlem başarısız, kod " + code)
+                }
+            }
+        }
     }
 
     // ── Trafik: /proc/net/dev (fork YOK) ─────────────────────────────
@@ -364,14 +702,11 @@ Singleton {
             root.dnsBusy = false
             if (code === 0) {
                 root.dnsError = ""
-                // NOT: `nmcli con up` bilinçli olarak çağrılmıyor — aktif
-                // bağlantıyı düşürüp kullanıcıya haber vermeden kesinti
-                // yaratıyordu. Yeni DNS bir sonraki bağlanmada etkin olur;
-                // kullanıcı isterse panelden "Yeniden bağlan" aksiyonu alır.
+                root.dnsPendingApply = true
                 root.refreshDetails()
             } else {
                 var msg = (dnsErrOut.text || "").trim()
-                root.dnsError = msg !== "" ? msg.split("\n")[0] : ("DNS değiştirilemedi (kod " + code + ")")
+                root.dnsError = msg !== "" ? msg.split("\n")[0] : ("DNS değiştirilemedi, kod " + code)
             }
         }
     }
@@ -385,13 +720,16 @@ Singleton {
     Process {
         id: reconnectProc
         running: false
-        onExited: (code) => { root.dnsBusy = false; root.refreshDetails() }
+        onExited: (code) => {
+            root.dnsBusy = false
+            if (code === 0) root.dnsPendingApply = false
+            root.refreshDetails()
+        }
     }
 
     // ── Ağ ayarları ──────────────────────────────────────────────────
     function openSettings() {
-        // nm-connection-editor yoksa nmtui'ye düş: `sh -c` yerine sıralı deneme.
-        settingsProc.exec(["nm-connection-editor"])
+        settingsProc.exec(["enyxma-launch", "nm-connection-editor"])
     }
 
     Process {
