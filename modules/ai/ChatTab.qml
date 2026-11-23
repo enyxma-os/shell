@@ -36,7 +36,7 @@ Item {
             spacing: Theme.spacingSmall
 
             Text {
-                text: "ENYXMA AI"
+                text: Theme.isGotham ? "ORACLE // SOHBET" : "ENYXMA AI"
                 color: Theme.textSecondary
                 font.family: Theme.fontDisplay
                 font.pixelSize: Theme.fontSizeSmall
@@ -50,7 +50,7 @@ Item {
             Rectangle {
                 implicitWidth: 26
                 implicitHeight: 26
-                radius: 13
+                radius: Theme.isGotham ? 2 : 13
                 color: histMa.containsMouse ? Theme.surfaceHover : "transparent"
                 visible: AIState.messages.length > 0
 
@@ -75,7 +75,7 @@ Item {
             Rectangle {
                 implicitWidth: 26
                 implicitHeight: 26
-                radius: 13
+                radius: Theme.isGotham ? 2 : 13
                 color: newChatMa.containsMouse ? Theme.surfaceHover : "transparent"
 
                 Text {
@@ -102,7 +102,7 @@ Item {
             Rectangle {
                 implicitWidth: 26
                 implicitHeight: 26
-                radius: 13
+                radius: Theme.isGotham ? 2 : 13
                 color: closeMa.containsMouse ? Theme.surfaceHover : "transparent"
 
                 Text {
