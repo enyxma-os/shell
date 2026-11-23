@@ -28,9 +28,21 @@ Singleton {
     property int hyprGapsOut: 8
     property int hyprBorderSize: 2
     property bool hyprBlur: true
+    property real hyprActiveOpacity: 1.0
+    property real hyprInactiveOpacity: 0.95
+    property bool hyprShadow: true
+    property bool hyprAnimations: true
+    property int hyprVrr: 0 // 0=Kapali, 1=Her Zaman, 2=Tam Ekran
 
-    // ── Ekran ve Monitorler ──────────────────────────────────────────
+    // ── Ekran, Gece Isigi ve Monitorler ──────────────────────────────
     property var monitors: []
+    property bool nightLightEnabled: false
+    property int nightLightTemp: 4500
+
+    // ── Bildirim ve Varsayilan Uygulamalar ───────────────────────────
+    property int notifTimeoutSec: 5
+    property string defaultTerminal: "kitty"
+    property string defaultFileManager: "nautilus"
 
     // ── Klavye ve Fare ───────────────────────────────────────────────
     property string kbLayout: "tr"
@@ -73,13 +85,13 @@ Singleton {
         { tab: "overview",   title: "Genel Bakış",               keywords: "sistem donanım cpu gpu ram disk özet ağ" },
         { tab: "appearance", title: "Tema — Dinamik / Gotham",   keywords: "tema matugen gotham brutalist görünüm renk" },
         { tab: "appearance", title: "Duvar Kağıdı Galerisi",     keywords: "wallpaper duvar kağıdı arka plan" },
-        { tab: "appearance", title: "Hyprland Pencere Stili",    keywords: "köşe yuvarlaklık rounding boşluk gaps kenarlık border bulanıklık blur" },
+        { tab: "appearance", title: "Hyprland Pencere Stili",    keywords: "köşe yuvarlaklık rounding boşluk gaps kenarlık border bulanıklık blur opaklık opacity gölge shadow animasyon" },
         { tab: "appearance", title: "Hareket ve Bar Yüksekliği", keywords: "animasyon reduce motion üst çubuk yükseklik" },
         { tab: "bar",        title: "Üst Çubuk Modülleri",       keywords: "çalışma alanları saat telemetri ağ ses güç ai bildirim tepsi" },
-        { tab: "display",    title: "Ekran ve Monitör",          keywords: "çözünürlük yenileme hızı hz ölçek scale monitör" },
+        { tab: "display",    title: "Ekran, VRR ve Gece Işığı",  keywords: "çözünürlük yenileme hızı hz ölçek scale monitör vrr adaptive sync gece ışığı hyprsunset kelvin" },
         { tab: "input",      title: "Klavye ve Fare",            keywords: "klavye düzeni tr us de tekrar hızı gecikme fare hassasiyet kaydırma" },
         { tab: "shortcuts",  title: "Klavye Kısayolları",        keywords: "kısayol tuş atama binds super" },
-        { tab: "system",     title: "Sistem ve Modüller",        keywords: "settings.json sıfırla ses karıştırıcı bluetooth qr odak konteyner" }
+        { tab: "system",     title: "Sistem, Bildirim ve Uygulamalar", keywords: "settings.json sıfırla ses karıştırıcı bluetooth qr odak konteyner bildirim süresi dnd varsayılan terminal" }
     ]
 
     // ── Kisayol Rehberi ──────────────────────────────────────────────
@@ -145,6 +157,16 @@ Singleton {
             hyprGapsOut: root.hyprGapsOut,
             hyprBorderSize: root.hyprBorderSize,
             hyprBlur: root.hyprBlur,
+            hyprActiveOpacity: root.hyprActiveOpacity,
+            hyprInactiveOpacity: root.hyprInactiveOpacity,
+            hyprShadow: root.hyprShadow,
+            hyprAnimations: root.hyprAnimations,
+            hyprVrr: root.hyprVrr,
+            nightLightEnabled: root.nightLightEnabled,
+            nightLightTemp: root.nightLightTemp,
+            notifTimeoutSec: root.notifTimeoutSec,
+            defaultTerminal: root.defaultTerminal,
+            defaultFileManager: root.defaultFileManager,
             kbLayout: root.kbLayout,
             kbRepeatRate: root.kbRepeatRate,
             kbRepeatDelay: root.kbRepeatDelay,
@@ -229,22 +251,100 @@ Singleton {
 
     function applyHyprStyle() {
         if (!root.customHyprStyle) return
+        var actOp = Number(root.hyprActiveOpacity).toFixed(2)
+        var inactOp = Number(root.hyprInactiveOpacity).toFixed(2)
         var luaExpr = "hl.config({ general = { gaps_in = " + root.hyprGapsIn
             + ", gaps_out = " + root.hyprGapsOut
             + ", border_size = " + root.hyprBorderSize
             + " }, decoration = { rounding = " + root.hyprRounding
-            + ", blur = { enabled = " + (root.hyprBlur ? "true" : "false") + " } } })"
+            + ", active_opacity = " + actOp
+            + ", inactive_opacity = " + inactOp
+            + ", shadow = { enabled = " + (root.hyprShadow ? "true" : "false")
+            + " }, blur = { enabled = " + (root.hyprBlur ? "true" : "false")
+            + " } }, animations = { enabled = " + (root.hyprAnimations ? "true" : "false")
+            + " }, misc = { vrr = " + root.hyprVrr + " } })"
         var cmds = [
             "keyword decoration:rounding " + root.hyprRounding,
             "keyword general:gaps_in " + root.hyprGapsIn,
             "keyword general:gaps_out " + root.hyprGapsOut,
             "keyword general:border_size " + root.hyprBorderSize,
-            "keyword decoration:blur:enabled " + (root.hyprBlur ? "true" : "false")
+            "keyword decoration:active_opacity " + actOp,
+            "keyword decoration:inactive_opacity " + inactOp,
+            "keyword decoration:shadow:enabled " + (root.hyprShadow ? "true" : "false"),
+            "keyword decoration:blur:enabled " + (root.hyprBlur ? "true" : "false"),
+            "keyword animations:enabled " + (root.hyprAnimations ? "true" : "false"),
+            "keyword misc:vrr " + root.hyprVrr
         ]
         hyprStyleProc.fallbackBatch = cmds.join(" ; ")
         hyprStyleProc.command = ["hyprctl", "eval", luaExpr]
         hyprStyleProc.running = false
         hyprStyleProc.running = true
+    }
+
+    Process {
+        id: hyprVrrProc
+        running: false
+        property int fallbackMode: 0
+        stdout: StdioCollector { id: hyprVrrOut }
+        onExited: (code) => {
+            if (code === 0 && (hyprVrrOut.text || "").trim() === "ok") return
+            Quickshell.execDetached(["hyprctl", "keyword", "misc:vrr", String(fallbackMode)])
+        }
+    }
+
+    function applyVrr(mode) {
+        var next = Math.max(0, Math.min(2, Math.round(mode)))
+        recordUndo("VRR modu güncellendi")
+        root.hyprVrr = next
+        save()
+        hyprVrrProc.fallbackMode = next
+        hyprVrrProc.command = ["hyprctl", "eval", "hl.config({ misc = { vrr = " + next + " } })"]
+        hyprVrrProc.running = false
+        hyprVrrProc.running = true
+    }
+
+    Process {
+        id: nightLightKillProc
+        running: false
+        command: ["pkill", "-x", "hyprsunset"]
+        onExited: {
+            if (root.nightLightEnabled) {
+                Quickshell.execDetached(["hyprsunset", "-t", String(root.nightLightTemp)])
+            }
+        }
+    }
+
+    function applyNightLight() {
+        nightLightKillProc.running = false
+        nightLightKillProc.running = true
+    }
+
+    function toggleNightLight() {
+        recordUndo(root.nightLightEnabled ? "Gece ışığı kapatıldı" : "Gece ışığı açıldı")
+        root.nightLightEnabled = !root.nightLightEnabled
+        applyNightLight()
+        save()
+    }
+
+    function setNightLightTemp(kelvin) {
+        var next = Math.max(3000, Math.min(6000, Math.round(kelvin)))
+        recordUndo("Gece ışığı sıcaklığı güncellendi")
+        root.nightLightTemp = next
+        if (!root.nightLightEnabled) root.nightLightEnabled = true
+        applyNightLight()
+        save()
+    }
+
+    function setNotifTimeout(sec) {
+        recordUndo("Bildirim süresi güncellendi")
+        root.notifTimeoutSec = Math.max(2, Math.min(20, Math.round(sec)))
+        save()
+    }
+
+    function setDefaultApp(prop, value, label) {
+        recordUndo(label)
+        root[prop] = String(value)
+        save()
     }
 
     function resetHyprStyle() {
@@ -394,6 +494,16 @@ Singleton {
         hyprGapsOut = 8
         hyprBorderSize = 2
         hyprBlur = true
+        hyprActiveOpacity = 1.0
+        hyprInactiveOpacity = 0.95
+        hyprShadow = true
+        hyprAnimations = true
+        hyprVrr = 0
+        nightLightEnabled = false
+        nightLightTemp = 4500
+        notifTimeoutSec = 5
+        defaultTerminal = "kitty"
+        defaultFileManager = "nautilus"
         kbLayout = "tr"
         kbRepeatRate = 35
         kbRepeatDelay = 250
@@ -464,6 +574,16 @@ Singleton {
             if (typeof d.hyprGapsOut === "number") root.hyprGapsOut = Math.max(0, Math.min(32, Math.round(d.hyprGapsOut)))
             if (typeof d.hyprBorderSize === "number") root.hyprBorderSize = Math.max(0, Math.min(6, Math.round(d.hyprBorderSize)))
             if (typeof d.hyprBlur === "boolean") root.hyprBlur = d.hyprBlur
+            if (typeof d.hyprActiveOpacity === "number") root.hyprActiveOpacity = Math.max(0.70, Math.min(1.0, d.hyprActiveOpacity))
+            if (typeof d.hyprInactiveOpacity === "number") root.hyprInactiveOpacity = Math.max(0.65, Math.min(1.0, d.hyprInactiveOpacity))
+            if (typeof d.hyprShadow === "boolean") root.hyprShadow = d.hyprShadow
+            if (typeof d.hyprAnimations === "boolean") root.hyprAnimations = d.hyprAnimations
+            if (typeof d.hyprVrr === "number") root.hyprVrr = Math.max(0, Math.min(2, Math.round(d.hyprVrr)))
+            if (typeof d.nightLightEnabled === "boolean") root.nightLightEnabled = d.nightLightEnabled
+            if (typeof d.nightLightTemp === "number") root.nightLightTemp = Math.max(3000, Math.min(6000, Math.round(d.nightLightTemp)))
+            if (typeof d.notifTimeoutSec === "number") root.notifTimeoutSec = Math.max(2, Math.min(20, Math.round(d.notifTimeoutSec)))
+            if (typeof d.defaultTerminal === "string" && d.defaultTerminal.length > 0) root.defaultTerminal = d.defaultTerminal
+            if (typeof d.defaultFileManager === "string" && d.defaultFileManager.length > 0) root.defaultFileManager = d.defaultFileManager
             if (typeof d.kbLayout === "string" && d.kbLayout.length > 0) root.kbLayout = d.kbLayout
             if (typeof d.kbRepeatRate === "number") root.kbRepeatRate = Math.max(15, Math.min(80, Math.round(d.kbRepeatRate)))
             if (typeof d.kbRepeatDelay === "number") root.kbRepeatDelay = Math.max(150, Math.min(600, Math.round(d.kbRepeatDelay)))
@@ -485,6 +605,7 @@ Singleton {
             if (typeof d.enableContainerMonitor === "boolean") root.enableContainerMonitor = d.enableContainerMonitor
             if (root.customHyprStyle) root.applyHyprStyle()
             root.applyInputSettings()
+            if (root.nightLightEnabled) root.applyNightLight()
         } catch (e) {
             console.warn("SettingsState: JSON okunamadi:", e)
         }

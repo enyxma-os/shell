@@ -32,22 +32,7 @@ PanelWindow {
     color: "transparent"
     visible: contentHost.opacity > 0.0
 
-    // Gece Isigi durumu — tema degisiminde korunur
-    property bool nightLightActive: false
-
-    Process {
-        id: nightLightProc
-        running: false
-    }
-
-    function toggleNightLight() {
-        root.nightLightActive = !root.nightLightActive
-        if (root.nightLightActive) {
-            Quickshell.execDetached(["hyprsunset", "-t", "4500"])
-        } else {
-            nightLightProc.exec(["pkill", "-x", "hyprsunset"])
-        }
-    }
+    // Gece Isigi durumu — SettingsState uzerinden merkezi yonetilir
 
     Connections {
         target: SystemState
@@ -93,8 +78,8 @@ PanelWindow {
             id: dynamicCcComponent
             DynamicControlCenter {
                 anchors.fill: parent
-                nightLightActive: root.nightLightActive
-                onToggleNightLightRequested: root.toggleNightLight()
+                nightLightActive: SettingsState.nightLightEnabled
+                onToggleNightLightRequested: SettingsState.toggleNightLight()
             }
         }
 
@@ -102,8 +87,8 @@ PanelWindow {
             id: gothamCcComponent
             GothamControlCenter {
                 anchors.fill: parent
-                nightLightActive: root.nightLightActive
-                onToggleNightLightRequested: root.toggleNightLight()
+                nightLightActive: SettingsState.nightLightEnabled
+                onToggleNightLightRequested: SettingsState.toggleNightLight()
             }
         }
     }

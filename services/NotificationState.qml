@@ -113,7 +113,7 @@ Singleton {
         if (p.expireTimeout === 0) return 0            // asla kapatma
         if (p.expireTimeout > 0) return p.expireTimeout
         if (p.urgency === NotificationUrgency.Critical) return 0
-        return 5000
+        return Math.max(2000, SettingsState.notifTimeoutSec * 1000)
     }
 
     Timer {

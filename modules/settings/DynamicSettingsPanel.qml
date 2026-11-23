@@ -816,6 +816,52 @@ Item {
                             MouseArea { id: blurMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setHyprSetting("hyprBlur", !SettingsState.hyprBlur, "Bulanıklık güncellendi") }
                         }
 
+                        DynamicStepperRow {
+                            title: "Aktif Pencere Opaklığı"
+                            subtitle: "Odaktaki pencerenin saydamlık oranı"
+                            valueText: Math.round(SettingsState.hyprActiveOpacity * 100) + "%"
+                            onDecrement: SettingsState.setHyprSetting("hyprActiveOpacity", Math.max(0.75, Math.round((SettingsState.hyprActiveOpacity - 0.05) * 100) / 100), "Aktif opaklık güncellendi")
+                            onIncrement: SettingsState.setHyprSetting("hyprActiveOpacity", Math.min(1.00, Math.round((SettingsState.hyprActiveOpacity + 0.05) * 100) / 100), "Aktif opaklık güncellendi")
+                        }
+
+                        DynamicStepperRow {
+                            title: "Pasif Pencere Opaklığı"
+                            subtitle: "Arka plandaki pencerelerin saydamlık oranı"
+                            valueText: Math.round(SettingsState.hyprInactiveOpacity * 100) + "%"
+                            onDecrement: SettingsState.setHyprSetting("hyprInactiveOpacity", Math.max(0.70, Math.round((SettingsState.hyprInactiveOpacity - 0.05) * 100) / 100), "Pasif opaklık güncellendi")
+                            onIncrement: SettingsState.setHyprSetting("hyprInactiveOpacity", Math.min(1.00, Math.round((SettingsState.hyprInactiveOpacity + 0.05) * 100) / 100), "Pasif opaklık güncellendi")
+                        }
+
+                        Rectangle {
+                            width: parent.width; height: 52; radius: Theme.radiusButton
+                            color: shadowMa.containsMouse ? Theme.surfaceHover : Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
+                            RowLayout {
+                                anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
+                                Column {
+                                    Layout.fillWidth: true; spacing: 2
+                                    Text { text: "Pencere Gölgesi"; color: Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true }
+                                    Text { text: "Pencerelerin altında derinlik gölgesi oluşturur"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                }
+                                DynamicSwitch { checked: SettingsState.hyprShadow }
+                            }
+                            MouseArea { id: shadowMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setHyprSetting("hyprShadow", !SettingsState.hyprShadow, "Pencere gölgesi güncellendi") }
+                        }
+
+                        Rectangle {
+                            width: parent.width; height: 52; radius: Theme.radiusButton
+                            color: animMa.containsMouse ? Theme.surfaceHover : Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
+                            RowLayout {
+                                anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
+                                Column {
+                                    Layout.fillWidth: true; spacing: 2
+                                    Text { text: "Hyprland Animasyonları"; color: Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true }
+                                    Text { text: "Pencere açılış ve çalışma alanı geçiş efektlerini kontrol eder"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                }
+                                DynamicSwitch { checked: SettingsState.hyprAnimations }
+                            }
+                            MouseArea { id: animMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setHyprSetting("hyprAnimations", !SettingsState.hyprAnimations, "Hyprland animasyonları güncellendi") }
+                        }
+
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
                         Text { text: "Davranış ve Çubuk Geometrisi"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
 
@@ -985,6 +1031,79 @@ Item {
                                             }
                                         }
                                     }
+                                }
+                            }
+                        }
+
+                        Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
+
+                        Text { text: "Adaptif Yenileme — VRR"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+
+                        RowLayout {
+                            width: parent.width; spacing: 8
+                            Repeater {
+                                model: [
+                                    { mode: 0, label: "Kapalı" },
+                                    { mode: 1, label: "Her Zaman" },
+                                    { mode: 2, label: "Tam Ekran" }
+                                ]
+                                delegate: Rectangle {
+                                    id: vrrChip
+                                    required property var modelData
+                                    readonly property bool active: SettingsState.hyprVrr === modelData.mode
+                                    Layout.fillWidth: true; implicitHeight: 32; radius: Theme.radiusButton
+                                    color: active ? Theme.surfaceActive : (vrrMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                                    border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                    Text { anchors.centerIn: parent; text: vrrChip.modelData.label; color: vrrChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: vrrChip.active }
+                                    MouseArea { id: vrrMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.applyVrr(vrrChip.modelData.mode) }
+                                }
+                            }
+                        }
+
+                        Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
+
+                        Text { text: "Gece Işığı — Hyprsunset"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+
+                        Rectangle {
+                            width: parent.width; height: 52; radius: Theme.radiusButton
+                            color: nlMa.containsMouse ? Theme.surfaceHover : Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
+                            RowLayout {
+                                anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
+                                Column {
+                                    Layout.fillWidth: true; spacing: 2
+                                    Text { text: "Gece Işığı Filtresi"; color: Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true }
+                                    Text { text: "Mavi ışığı azaltarak göz yorgunluğunu düşürür"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                }
+                                DynamicSwitch { checked: SettingsState.nightLightEnabled }
+                            }
+                            MouseArea { id: nlMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.toggleNightLight() }
+                        }
+
+                        DynamicStepperRow {
+                            title: "Renk Sıcaklığı"
+                            subtitle: "Düşük Kelvin değeri daha sıcak kehribar tonu verir"
+                            valueText: SettingsState.nightLightTemp + " K"
+                            onDecrement: SettingsState.setNightLightTemp(SettingsState.nightLightTemp - 250)
+                            onIncrement: SettingsState.setNightLightTemp(SettingsState.nightLightTemp + 250)
+                        }
+
+                        RowLayout {
+                            width: parent.width; spacing: 8
+                            Repeater {
+                                model: [
+                                    { temp: 3500, label: "3500K · Sıcak" },
+                                    { temp: 4500, label: "4500K · Dengeli" },
+                                    { temp: 5500, label: "5500K · Hafif" }
+                                ]
+                                delegate: Rectangle {
+                                    id: nlPreset
+                                    required property var modelData
+                                    readonly property bool active: SettingsState.nightLightTemp === modelData.temp
+                                    Layout.fillWidth: true; implicitHeight: 30; radius: Theme.radiusSmall
+                                    color: active ? Theme.surfaceActive : (nlPMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                                    border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                    Text { anchors.centerIn: parent; text: nlPreset.modelData.label; color: nlPreset.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: nlPreset.active }
+                                    MouseArea { id: nlPMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setNightLightTemp(nlPreset.modelData.temp) }
                                 }
                             }
                         }
@@ -1188,6 +1307,80 @@ Item {
                                 MouseArea {
                                     id: pluginMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
                                     onClicked: SettingsState.toggleBoolSetting(pluginRow.modelData.prop, pluginRow.modelData.label + " güncellendi")
+                                }
+                            }
+                        }
+
+                        Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
+                        Text { text: "Bildirim Tercihleri"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+
+                        Rectangle {
+                            width: parent.width; height: 52; radius: Theme.radiusButton
+                            color: dndMa.containsMouse ? Theme.surfaceHover : Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
+                            RowLayout {
+                                anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
+                                Column {
+                                    Layout.fillWidth: true; spacing: 2
+                                    Text { text: "Rahatsız Etme Modu"; color: Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true }
+                                    Text { text: "Açılır bildirimleri susturup yalnızca geçmişe kaydeder"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                }
+                                DynamicSwitch { checked: NotificationState.dnd }
+                            }
+                            MouseArea { id: dndMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: NotificationState.dnd = !NotificationState.dnd }
+                        }
+
+                        RowLayout {
+                            width: parent.width; spacing: 8
+                            Repeater {
+                                model: [ 3, 5, 8, 12 ]
+                                delegate: Rectangle {
+                                    id: ntChip
+                                    required property int modelData
+                                    readonly property bool active: SettingsState.notifTimeoutSec === modelData
+                                    Layout.fillWidth: true; implicitHeight: 30; radius: Theme.radiusSmall
+                                    color: active ? Theme.surfaceActive : (ntMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                                    border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                    Text { anchors.centerIn: parent; text: ntChip.modelData + " sn"; color: ntChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: ntChip.active }
+                                    MouseArea { id: ntMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setNotifTimeout(ntChip.modelData) }
+                                }
+                            }
+                        }
+
+                        Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
+                        Text { text: "Varsayılan Uygulamalar"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+
+                        RowLayout {
+                            width: parent.width; spacing: 8
+                            Text { text: "Terminal"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; Layout.preferredWidth: 110 }
+                            Repeater {
+                                model: [ "kitty", "foot" ]
+                                delegate: Rectangle {
+                                    id: termChip
+                                    required property string modelData
+                                    readonly property bool active: SettingsState.defaultTerminal === modelData
+                                    Layout.fillWidth: true; implicitHeight: 30; radius: Theme.radiusSmall
+                                    color: active ? Theme.surfaceActive : (termMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                                    border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                    Text { anchors.centerIn: parent; text: termChip.modelData; color: termChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: termChip.active }
+                                    MouseArea { id: termMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setDefaultApp("defaultTerminal", termChip.modelData, "Varsayılan terminal güncellendi") }
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            width: parent.width; spacing: 8
+                            Text { text: "Dosya Yöneticisi"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; Layout.preferredWidth: 110 }
+                            Repeater {
+                                model: [ "nautilus", "yazi", "thunar" ]
+                                delegate: Rectangle {
+                                    id: fmChip
+                                    required property string modelData
+                                    readonly property bool active: SettingsState.defaultFileManager === modelData
+                                    Layout.fillWidth: true; implicitHeight: 30; radius: Theme.radiusSmall
+                                    color: active ? Theme.surfaceActive : (fmMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                                    border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                    Text { anchors.centerIn: parent; text: fmChip.modelData; color: fmChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: fmChip.active }
+                                    MouseArea { id: fmMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setDefaultApp("defaultFileManager", fmChip.modelData, "Varsayılan dosya yöneticisi güncellendi") }
                                 }
                             }
                         }
