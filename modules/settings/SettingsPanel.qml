@@ -58,6 +58,12 @@ PanelWindow {
             event.accepted = true
         }
 
+        Rectangle {
+            anchors.fill: parent
+            color: Theme.scrim
+            opacity: 0.52
+        }
+
         MouseArea {
             anchors.fill: parent
             onClicked: SettingsState.close()
@@ -84,3 +90,4 @@ PanelWindow {
         }
     }
 }
+
