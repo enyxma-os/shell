@@ -4,21 +4,40 @@ import Quickshell.Io
 import QtQuick
 
 /**
- * SettingsState — Enyxma Shell merkezi kalici ayar yoneticisi.
+ * SettingsState — Enyxma Shell merkezi kalici ayar ve sistem kontrol yoneticisi.
  *
  * Tek kaynak: ~/.config/enyxma/settings.json
- * Yalnizca SettingsState okur ve yazar; her degisiklik canli uygulanir.
+ * Faz 3: Genel bakis, canli Hyprland pencere geometrisi, ekran/monitor,
+ * klavye/fare ayarlari, global arama dizini ve tek tikla Geri Al destegi.
  */
 Singleton {
     id: root
 
     property bool isOpen: false
-    property string activeTab: "appearance" // appearance | bar | shortcuts | system
+    property string activeTab: "overview" // overview | appearance | bar | display | input | shortcuts | system
 
     // ── Gorunum ve Bar ───────────────────────────────────────────────
     property bool reduceMotion: false
     property bool barVisible: true
     property int barHeightOffset: 0
+
+    // ── Hyprland Pencere Geometrisi ──────────────────────────────────
+    property bool customHyprStyle: false
+    property int hyprRounding: 8
+    property int hyprGapsIn: 4
+    property int hyprGapsOut: 8
+    property int hyprBorderSize: 2
+    property bool hyprBlur: true
+
+    // ── Ekran ve Monitorler ──────────────────────────────────────────
+    property var monitors: []
+
+    // ── Klavye ve Fare ───────────────────────────────────────────────
+    property string kbLayout: "tr"
+    property int kbRepeatRate: 35
+    property int kbRepeatDelay: 250
+    property real mouseSensitivity: 0.0
+    property bool naturalScroll: false
 
     // ── Ust Cubuk Modulleri ──────────────────────────────────────────
     property bool showWorkspaces: true
@@ -31,12 +50,37 @@ Singleton {
     property bool showNotifications: true
     property bool showTray: true
 
-    // ── Yerlesik Eklenti Anahtarlari (gelecek moduller icin hazir) ────
+    // ── Yerlesik Eklenti Anahtarlari ─────────────────────────────────
     property bool enableAudioMixer: true
     property bool enableBluetoothPanel: true
     property bool enableWifiQr: true
     property bool enableFocusTimer: false
     property bool enableContainerMonitor: false
+
+    // ── Geri Al / Undo ───────────────────────────────────────────────
+    property string undoLabel: ""
+    property var _undoSnapshot: null
+
+    Timer {
+        id: undoTimer
+        interval: 5500
+        repeat: false
+        onTriggered: root.undoLabel = ""
+    }
+
+    // ── Global Ayar Arama Dizini ─────────────────────────────────────
+    readonly property var searchEntries: [
+        { tab: "overview",   title: "Genel Bakış",               keywords: "sistem donanım cpu gpu ram disk özet ağ" },
+        { tab: "appearance", title: "Tema — Dinamik / Gotham",   keywords: "tema matugen gotham brutalist görünüm renk" },
+        { tab: "appearance", title: "Duvar Kağıdı Galerisi",     keywords: "wallpaper duvar kağıdı arka plan" },
+        { tab: "appearance", title: "Hyprland Pencere Stili",    keywords: "köşe yuvarlaklık rounding boşluk gaps kenarlık border bulanıklık blur" },
+        { tab: "appearance", title: "Hareket ve Bar Yüksekliği", keywords: "animasyon reduce motion üst çubuk yükseklik" },
+        { tab: "bar",        title: "Üst Çubuk Modülleri",       keywords: "çalışma alanları saat telemetri ağ ses güç ai bildirim tepsi" },
+        { tab: "display",    title: "Ekran ve Monitör",          keywords: "çözünürlük yenileme hızı hz ölçek scale monitör" },
+        { tab: "input",      title: "Klavye ve Fare",            keywords: "klavye düzeni tr us de tekrar hızı gecikme fare hassasiyet kaydırma" },
+        { tab: "shortcuts",  title: "Klavye Kısayolları",        keywords: "kısayol tuş atama binds super" },
+        { tab: "system",     title: "Sistem ve Modüller",        keywords: "settings.json sıfırla ses karıştırıcı bluetooth qr odak konteyner" }
+    ]
 
     // ── Kisayol Rehberi ──────────────────────────────────────────────
     property var shortcuts: defaultShortcuts()
@@ -77,28 +121,218 @@ Singleton {
     function open(tab) {
         if (tab && String(tab).length > 0) activeTab = String(tab)
         isOpen = true
+        refreshMonitors()
     }
 
     function toggle() {
-        isOpen = !isOpen
+        if (isOpen) close()
+        else open("")
     }
 
     function close() {
         isOpen = false
     }
 
+    // ── Undo Yardimcilari ────────────────────────────────────────────
+    function snapshotPayload() {
+        return {
+            reduceMotion: root.reduceMotion,
+            barVisible: root.barVisible,
+            barHeightOffset: root.barHeightOffset,
+            customHyprStyle: root.customHyprStyle,
+            hyprRounding: root.hyprRounding,
+            hyprGapsIn: root.hyprGapsIn,
+            hyprGapsOut: root.hyprGapsOut,
+            hyprBorderSize: root.hyprBorderSize,
+            hyprBlur: root.hyprBlur,
+            kbLayout: root.kbLayout,
+            kbRepeatRate: root.kbRepeatRate,
+            kbRepeatDelay: root.kbRepeatDelay,
+            mouseSensitivity: root.mouseSensitivity,
+            naturalScroll: root.naturalScroll,
+            showWorkspaces: root.showWorkspaces,
+            showClock: root.showClock,
+            showSystemStats: root.showSystemStats,
+            showNetwork: root.showNetwork,
+            showVolume: root.showVolume,
+            showPower: root.showPower,
+            showAi: root.showAi,
+            showNotifications: root.showNotifications,
+            showTray: root.showTray,
+            enableAudioMixer: root.enableAudioMixer,
+            enableBluetoothPanel: root.enableBluetoothPanel,
+            enableWifiQr: root.enableWifiQr,
+            enableFocusTimer: root.enableFocusTimer,
+            enableContainerMonitor: root.enableContainerMonitor
+        }
+    }
+
+    function recordUndo(label) {
+        root._undoSnapshot = snapshotPayload()
+        root.undoLabel = String(label || "Ayar güncellendi")
+        undoTimer.restart()
+    }
+
+    function undoLast() {
+        if (!root._undoSnapshot) return
+        var snap = root._undoSnapshot
+        root._undoSnapshot = null
+        root.undoLabel = ""
+        undoTimer.stop()
+        loadFromJson(JSON.stringify(snap))
+        if (root.customHyprStyle) applyHyprStyle()
+        else Quickshell.execDetached(["hyprctl", "reload"])
+        applyInputSettings()
+        save()
+    }
+
+    // ── Ayar Degistirme Fonksiyonlari ────────────────────────────────
+    function toggleBoolSetting(prop, label) {
+        recordUndo(label)
+        root[prop] = !root[prop]
+        save()
+    }
+
     function adjustBarHeight(delta) {
         var next = Math.max(-4, Math.min(8, root.barHeightOffset + delta))
         if (next !== root.barHeightOffset) {
+            recordUndo("Üst çubuk yüksekliği değişti")
             root.barHeightOffset = next
             root.save()
         }
     }
 
+    function setHyprSetting(prop, value, label) {
+        recordUndo(label)
+        root.customHyprStyle = true
+        root[prop] = value
+        applyHyprStyle()
+        save()
+    }
+
+    function applyHyprStyle() {
+        if (!root.customHyprStyle) return
+        var cmds = [
+            "keyword decoration:rounding " + root.hyprRounding,
+            "keyword general:gaps_in " + root.hyprGapsIn,
+            "keyword general:gaps_out " + root.hyprGapsOut,
+            "keyword general:border_size " + root.hyprBorderSize,
+            "keyword decoration:blur:enabled " + (root.hyprBlur ? "true" : "false")
+        ]
+        Quickshell.execDetached(["hyprctl", "--batch", cmds.join(" ; ")])
+    }
+
+    function resetHyprStyle() {
+        recordUndo("Pencere stili tema varsayılanına döndü")
+        root.customHyprStyle = false
+        save()
+        Quickshell.execDetached(["hyprctl", "reload"])
+    }
+
+    function setInputSetting(prop, value, label) {
+        recordUndo(label)
+        root[prop] = value
+        applyInputSettings()
+        save()
+    }
+
+    function applyInputSettings() {
+        var sens = Number(root.mouseSensitivity).toFixed(2)
+        var cmds = [
+            "keyword input:kb_layout " + root.kbLayout,
+            "keyword input:repeat_rate " + root.kbRepeatRate,
+            "keyword input:repeat_delay " + root.kbRepeatDelay,
+            "keyword input:sensitivity " + sens,
+            "keyword input:touchpad:natural_scroll " + (root.naturalScroll ? "true" : "false")
+        ]
+        Quickshell.execDetached(["hyprctl", "--batch", cmds.join(" ; ")])
+    }
+
+    // ── Ekran ve Monitor Yonetimi ────────────────────────────────────
+    function refreshMonitors() {
+        if (monitorsProc.running) return
+        monitorsProc.running = true
+    }
+
+    Timer {
+        id: monitorRefreshDelay
+        interval: 300
+        repeat: false
+        onTriggered: root.refreshMonitors()
+    }
+
+    function applyMonitorMode(name, modeSpec, posX, posY, scaleVal) {
+        var spec = name + "," + modeSpec + "," + posX + "x" + posY + "," + Number(scaleVal).toFixed(2)
+        Quickshell.execDetached(["hyprctl", "keyword", "monitor", spec])
+        monitorRefreshDelay.restart()
+    }
+
+    function setMonitorScale(name, width, height, hz, posX, posY, scaleVal) {
+        applyMonitorMode(name, width + "x" + height + "@" + Math.round(hz), posX, posY, scaleVal)
+    }
+
+    Process {
+        id: monitorsProc
+        running: false
+        command: ["hyprctl", "monitors", "-j"]
+        stdout: StdioCollector { id: monitorsOut }
+        onExited: (code) => {
+            if (code !== 0) return
+            try {
+                var arr = JSON.parse(monitorsOut.text || "[]")
+                if (!Array.isArray(arr)) return
+                var out = []
+                for (var i = 0; i < arr.length; i++) {
+                    var m = arr[i]
+                    var rawModes = Array.isArray(m.availableModes) ? m.availableModes : []
+                    var seenModes = {}
+                    var topModes = []
+                    for (var j = 0; j < rawModes.length; j++) {
+                        var raw = String(rawModes[j])
+                        var pm = raw.match(/^(\d+x\d+)@([0-9.]+)Hz$/)
+                        if (!pm) continue
+                        var label = pm[1] + " @ " + Math.round(parseFloat(pm[2])) + "Hz"
+                        var spec = pm[1] + "@" + Math.round(parseFloat(pm[2]))
+                        if (seenModes[spec]) continue
+                        seenModes[spec] = true
+                        topModes.push({ label: label, spec: spec })
+                        if (topModes.length >= 6) break
+                    }
+                    out.push({
+                        name: m.name || "",
+                        model: m.model || m.description || "",
+                        width: m.width || 1920,
+                        height: m.height || 1080,
+                        refreshRate: m.refreshRate || 60,
+                        scale: m.scale || 1.0,
+                        x: m.x || 0,
+                        y: m.y || 0,
+                        modes: topModes
+                    })
+                }
+                root.monitors = out
+            } catch (e) {
+                console.warn("SettingsState: monitor JSON okunamadi:", e)
+            }
+        }
+    }
+
     function resetDefaults() {
+        recordUndo("Varsayılan ayarlara dönüldü")
         reduceMotion = false
         barVisible = true
         barHeightOffset = 0
+        customHyprStyle = false
+        hyprRounding = 8
+        hyprGapsIn = 4
+        hyprGapsOut = 8
+        hyprBorderSize = 2
+        hyprBlur = true
+        kbLayout = "tr"
+        kbRepeatRate = 35
+        kbRepeatDelay = 250
+        mouseSensitivity = 0.0
+        naturalScroll = false
         showWorkspaces = true
         showClock = true
         showSystemStats = true
@@ -113,6 +347,8 @@ Singleton {
         enableWifiQr = true
         enableFocusTimer = false
         enableContainerMonitor = false
+        applyInputSettings()
+        Quickshell.execDetached(["hyprctl", "reload"])
         save()
     }
 
@@ -121,7 +357,7 @@ Singleton {
         Quickshell.execDetached(["enyxma-launch", "xdg-open", root.configPath])
     }
 
-    // Dizin hazirligi (1 kez)
+    // Dizin hazirligi
     Process {
         id: mkdirProc
         command: ["mkdir", "-p", root.configDir]
@@ -156,6 +392,17 @@ Singleton {
             if (typeof d.reduceMotion === "boolean") root.reduceMotion = d.reduceMotion
             if (typeof d.barVisible === "boolean") root.barVisible = d.barVisible
             if (typeof d.barHeightOffset === "number") root.barHeightOffset = Math.max(-4, Math.min(8, Math.round(d.barHeightOffset)))
+            if (typeof d.customHyprStyle === "boolean") root.customHyprStyle = d.customHyprStyle
+            if (typeof d.hyprRounding === "number") root.hyprRounding = Math.max(0, Math.min(24, Math.round(d.hyprRounding)))
+            if (typeof d.hyprGapsIn === "number") root.hyprGapsIn = Math.max(0, Math.min(24, Math.round(d.hyprGapsIn)))
+            if (typeof d.hyprGapsOut === "number") root.hyprGapsOut = Math.max(0, Math.min(32, Math.round(d.hyprGapsOut)))
+            if (typeof d.hyprBorderSize === "number") root.hyprBorderSize = Math.max(0, Math.min(6, Math.round(d.hyprBorderSize)))
+            if (typeof d.hyprBlur === "boolean") root.hyprBlur = d.hyprBlur
+            if (typeof d.kbLayout === "string" && d.kbLayout.length > 0) root.kbLayout = d.kbLayout
+            if (typeof d.kbRepeatRate === "number") root.kbRepeatRate = Math.max(15, Math.min(80, Math.round(d.kbRepeatRate)))
+            if (typeof d.kbRepeatDelay === "number") root.kbRepeatDelay = Math.max(150, Math.min(600, Math.round(d.kbRepeatDelay)))
+            if (typeof d.mouseSensitivity === "number") root.mouseSensitivity = Math.max(-0.8, Math.min(0.8, d.mouseSensitivity))
+            if (typeof d.naturalScroll === "boolean") root.naturalScroll = d.naturalScroll
             if (typeof d.showWorkspaces === "boolean") root.showWorkspaces = d.showWorkspaces
             if (typeof d.showClock === "boolean") root.showClock = d.showClock
             if (typeof d.showSystemStats === "boolean") root.showSystemStats = d.showSystemStats
@@ -170,6 +417,8 @@ Singleton {
             if (typeof d.enableWifiQr === "boolean") root.enableWifiQr = d.enableWifiQr
             if (typeof d.enableFocusTimer === "boolean") root.enableFocusTimer = d.enableFocusTimer
             if (typeof d.enableContainerMonitor === "boolean") root.enableContainerMonitor = d.enableContainerMonitor
+            if (root.customHyprStyle) root.applyHyprStyle()
+            root.applyInputSettings()
         } catch (e) {
             console.warn("SettingsState: JSON okunamadi:", e)
         }
@@ -177,26 +426,7 @@ Singleton {
 
     function save() {
         try {
-            var payload = {
-                reduceMotion: root.reduceMotion,
-                barVisible: root.barVisible,
-                barHeightOffset: root.barHeightOffset,
-                showWorkspaces: root.showWorkspaces,
-                showClock: root.showClock,
-                showSystemStats: root.showSystemStats,
-                showNetwork: root.showNetwork,
-                showVolume: root.showVolume,
-                showPower: root.showPower,
-                showAi: root.showAi,
-                showNotifications: root.showNotifications,
-                showTray: root.showTray,
-                enableAudioMixer: root.enableAudioMixer,
-                enableBluetoothPanel: root.enableBluetoothPanel,
-                enableWifiQr: root.enableWifiQr,
-                enableFocusTimer: root.enableFocusTimer,
-                enableContainerMonitor: root.enableContainerMonitor
-            }
-            settingsFile.setText(JSON.stringify(payload, null, 2))
+            settingsFile.setText(JSON.stringify(snapshotPayload(), null, 2))
         } catch (e) {
             console.warn("SettingsState: JSON yazilamadi:", e)
         }
@@ -277,4 +507,3 @@ Singleton {
         function reset(): void { root.resetDefaults() }
     }
 }
-
