@@ -252,6 +252,30 @@ Item {
                             }
                         }
                         Rectangle {
+                            visible: SettingsState.enableWifiQr && NetworkState.isConnected && NetworkState.connectionType === "wifi"
+                            implicitWidth: 46
+                            implicitHeight: 18
+                            radius: 0
+                            color: NetworkState.qrOpen ? Theme.accent : (qrBtnMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive)
+                            border.color: NetworkState.qrOpen || qrBtnMa.containsMouse ? Theme.accent : Theme.borderSubtle
+                            border.width: 1
+                            Text {
+                                anchors.centerIn: parent
+                                text: "󰐲 QR"
+                                color: NetworkState.qrOpen ? Theme.accentOn : Theme.accent
+                                font.family: Theme.fontMono
+                                font.pixelSize: 10
+                                font.bold: true
+                            }
+                            MouseArea {
+                                id: qrBtnMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: NetworkState.openWifiQr()
+                            }
+                        }
+                        Rectangle {
                             implicitWidth: 44
                             implicitHeight: 18
                             radius: 0
@@ -283,6 +307,71 @@ Item {
                         Text { text: "RX " + NetworkState.formatRate(NetworkState.rxRate); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11 }
                         Text { text: "|"; color: Theme.borderSubtle; font.family: Theme.fontMono; font.pixelSize: 11 }
                         Text { text: "TX " + NetworkState.formatRate(NetworkState.txRate); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
+                    }
+
+                    // Wi-Fi QR Paylasim Karti
+                    Rectangle {
+                        visible: SettingsState.enableWifiQr && NetworkState.qrOpen && NetworkState.isConnected && NetworkState.connectionType === "wifi"
+                        Layout.fillWidth: true
+                        implicitHeight: qrCol.implicitHeight + 16
+                        radius: 0
+                        color: Theme.bgDark
+                        border.color: Theme.accent
+                        border.width: 1
+
+                        ColumnLayout {
+                            id: qrCol
+                            anchors.fill: parent
+                            anchors.margins: 8
+                            spacing: 6
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "WI-FI QR // " + NetworkState.qrSsid
+                                    color: Theme.accent
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    elide: Text.ElideRight
+                                    Layout.fillWidth: true
+                                }
+                                Text {
+                                    text: "×"
+                                    color: Theme.textSecondary
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 13
+                                    MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: NetworkState.closeWifiQr() }
+                                }
+                            }
+
+                            Rectangle {
+                                Layout.alignment: Qt.AlignHCenter
+                                implicitWidth: 164
+                                implicitHeight: 164
+                                radius: 0
+                                color: Theme.textPrimary
+
+                                Image {
+                                    anchors.fill: parent
+                                    anchors.margins: 6
+                                    visible: !NetworkState.qrBusy && NetworkState.qrImagePath !== ""
+                                    source: NetworkState.qrImagePath
+                                    cache: false
+                                    smooth: false
+                                    fillMode: Image.PreserveAspectFit
+                                }
+
+                                Text {
+                                    anchors.centerIn: parent
+                                    visible: NetworkState.qrBusy || NetworkState.qrError !== ""
+                                    text: NetworkState.qrBusy ? "Üretiliyor..." : NetworkState.qrError
+                                    color: Theme.bgDark
+                                    font.family: Theme.fontMono
+                                    font.pixelSize: 10
+                                }
+                            }
+                        }
                     }
                 }
             }

@@ -164,7 +164,17 @@ Item {
                         anchors.fill: parent
                         hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
-                        onClicked: BluetoothState.togglePower()
+                        acceptedButtons: Qt.LeftButton | Qt.RightButton
+                        onClicked: (mouse) => {
+                            if (mouse.button === Qt.RightButton) {
+                                BluetoothState.togglePower()
+                            } else if (SettingsState.enableBluetoothPanel) {
+                                SystemState.closeControlCenter()
+                                BluetoothState.open()
+                            } else {
+                                BluetoothState.togglePower()
+                            }
+                        }
                     }
 
                     RowLayout {
@@ -194,7 +204,7 @@ Item {
                             }
 
                             Text {
-                                text: BluetoothState.busy ? "…" : BluetoothState.statusText
+                                text: BluetoothState.busy ? "…" : BluetoothState.connectedSummary
                                 color: BluetoothState.enabled ? Theme.accent : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: Theme.fontSizeXS

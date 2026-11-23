@@ -277,3 +277,4 @@ Singleton {
         function reset(): void { root.resetDefaults() }
     }
 }
+

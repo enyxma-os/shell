@@ -16,6 +16,8 @@ import "./modules/time"
 import "./modules/wallpaper"
 import "./modules/overview"
 import "./modules/settings"
+import "./modules/audio"
+import "./modules/bluetooth"
 
 /**
  * Enyxma Shell — kök katman.
@@ -202,6 +204,24 @@ ShellRoot {
     Variants {
         model: ScreenState.overlayScreens
         SettingsPanel {
+            property var modelData
+            screen: modelData
+        }
+    }
+
+    // ── 19. Ses Karıştırıcı Paneli (odaklı ekran) ─────────────────────
+    Variants {
+        model: ScreenState.overlayScreens
+        AudioPanel {
+            property var modelData
+            screen: modelData
+        }
+    }
+
+    // ── 20. Bluetooth Yönetim Paneli (odaklı ekran) ───────────────────
+    Variants {
+        model: ScreenState.overlayScreens
+        BluetoothPanel {
             property var modelData
             screen: modelData
         }

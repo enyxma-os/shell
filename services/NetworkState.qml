@@ -36,6 +36,7 @@ Singleton {
     }
     function close() {
         isOpen = false
+        qrOpen = false
         if (speedRunning) cancelSpeedTest()
     }
 
@@ -68,6 +69,68 @@ Singleton {
     property var savedWifiMap: ({})
     property bool dnsPendingApply: false
     property string copiedHint: ""
+
+    // ── Wi-Fi QR Paylasimi ────────────────────────────────────────────
+    property bool qrOpen: false
+    property bool qrBusy: false
+    property string qrImagePath: ""
+    property int qrRevision: 0
+    property string qrError: ""
+    property string qrSsid: ""
+
+    function escapeWifiQr(s) {
+        return String(s || "").replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/:/g, "\\:").replace(/"/g, "\\\"")
+    }
+
+    function openWifiQr() {
+        if (!root.isConnected || root.connectionType !== "wifi") return
+        if (qrOpen && qrSsid === (root.ssid || root.connectionName)) {
+            qrOpen = false
+            return
+        }
+        qrOpen = true
+        qrBusy = true
+        qrError = ""
+        qrSsid = root.ssid || root.connectionName
+        qrPskProc.command = ["nmcli", "-s", "-g", "802-11-wireless-security.psk", "connection", "show", root.connectionName]
+        qrPskProc.running = true
+    }
+
+    function closeWifiQr() {
+        qrOpen = false
+    }
+
+    Process {
+        id: qrPskProc
+        running: false
+        stdout: StdioCollector { id: qrPskOut }
+        onExited: (code) => {
+            var psk = (code === 0 ? (qrPskOut.text || "").trim() : "")
+            var auth = psk !== "" ? "WPA" : "nopass"
+            var payload = "WIFI:T:" + auth + ";S:" + root.escapeWifiQr(root.qrSsid) + ";" + (psk !== "" ? ("P:" + root.escapeWifiQr(psk) + ";") : "") + ";"
+            var home = Quickshell.env("HOME") || "/tmp"
+            var outPath = home + "/.cache/enyxma-wifi-qr.png"
+            qrGenProc._outPath = outPath
+            qrGenProc.command = ["qrencode", "-t", "PNG", "-s", "8", "-m", "2", "-o", outPath, "--", payload]
+            qrGenProc.running = true
+        }
+    }
+
+    Process {
+        id: qrGenProc
+        running: false
+        property string _outPath: ""
+        onExited: (code) => {
+            root.qrBusy = false
+            if (code !== 0) {
+                root.qrError = "QR kodu üretilemedi"
+                root.qrImagePath = ""
+                return
+            }
+            root.qrRevision++
+            root.qrImagePath = "file://" + _outPath + "?v=" + root.qrRevision
+        }
+    }
 
     signal passwordRequired(string ssid)
 

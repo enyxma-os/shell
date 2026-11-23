@@ -402,13 +402,13 @@ Rectangle {
             Layout.fillHeight: true
             implicitWidth: volRow.implicitWidth + 16
             radius: 0
-            color: AudioState.muted ? Theme.surfaceActive : (volMa.containsMouse ? Theme.surfaceHover : "transparent")
+            color: (AudioState.isOpen || AudioState.muted) ? Theme.surfaceActive : (volMa.containsMouse ? Theme.surfaceHover : "transparent")
 
             Rectangle {
-                visible: AudioState.muted
+                visible: AudioState.isOpen || AudioState.muted
                 anchors { left: parent.left; right: parent.right; bottom: parent.bottom }
                 height: 2
-                color: Theme.danger
+                color: AudioState.muted ? Theme.danger : Theme.accent
             }
 
             RowLayout {
@@ -418,7 +418,7 @@ Rectangle {
 
                 Text {
                     text: "VOL"
-                    color: AudioState.muted ? Theme.danger : Theme.textSecondary
+                    color: AudioState.muted ? Theme.danger : (AudioState.isOpen ? Theme.accent : Theme.textSecondary)
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeXS
                     font.bold: true
@@ -426,7 +426,7 @@ Rectangle {
 
                 Text {
                     text: AudioState.muted ? "MUTE" : (root.pad2(Math.round(AudioState.volume * 100)) + "%")
-                    color: AudioState.muted ? Theme.danger : Theme.textPrimary
+                    color: AudioState.muted ? Theme.danger : (AudioState.isOpen ? Theme.accent : Theme.textPrimary)
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall
                     font.bold: true
@@ -440,7 +440,8 @@ Rectangle {
                 cursorShape: Qt.PointingHandCursor
                 acceptedButtons: Qt.LeftButton | Qt.RightButton
                 onClicked: (mouse) => {
-                    if (mouse.button === Qt.RightButton) SystemState.toggleControlCenter()
+                    if (mouse.button === Qt.RightButton) AudioState.toggleMute()
+                    else if (SettingsState.enableAudioMixer) AudioState.toggle()
                     else AudioState.toggleMute()
                 }
             }

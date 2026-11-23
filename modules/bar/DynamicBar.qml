@@ -110,21 +110,24 @@ Rectangle {
             visible: SettingsState.showNetwork
         }
 
-        // Ses Duzeyi ve Mute
+        // Ses Duzeyi ve Karistirici
         EnyxmaPill {
             id: volumePill
             visible: SettingsState.showVolume
             implicitHeight: 24
-            isActive: AudioState.muted
+            isActive: AudioState.isOpen || AudioState.muted
 
-            onClicked: AudioState.toggleMute()
-            onRightClicked: SystemState.toggleControlCenter()
+            onClicked: {
+                if (SettingsState.enableAudioMixer) AudioState.toggle()
+                else AudioState.toggleMute()
+            }
+            onRightClicked: AudioState.toggleMute()
 
             Text {
                 text: AudioState.muted
                     ? "󰝟 SESSİZ"
                     : ((AudioState.volume > 0.66 ? "󰕾 " : (AudioState.volume > 0.33 ? "󰖀 " : "󰕿 ")) + Math.round(AudioState.volume * 100) + "%")
-                color: AudioState.muted ? Theme.danger : Theme.textPrimary
+                color: AudioState.muted ? Theme.danger : (AudioState.isOpen ? Theme.accent : Theme.textPrimary)
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall
             }

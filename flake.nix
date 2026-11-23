@@ -19,6 +19,8 @@
         bash coreutils procps findutils gnugrep gnused gawk
         wl-clipboard cliphist libnotify
         bluez
+        wireplumber
+        qrencode
         matugen
         imagemagick
         networkmanager networkmanagerapplet iw iproute2
