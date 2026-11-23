@@ -132,6 +132,18 @@ EOF
             SHELL_DIR="''${ENYXMA_SHELL_DIR:-$HOME/.local/share/enyxma-shell/runtime}"
             CFG="$SHELL_DIR/matugen.toml"
 
+            safe_write() {
+              local target="$1"
+              if [ -L "$target" ] && [ ! -w "$target" ]; then
+                cat >/dev/null
+                return 0
+              fi
+              mkdir -p "$(dirname "$target")"
+              if ! cat > "$target" 2>/dev/null; then
+                return 0
+              fi
+            }
+
             extract_vibrant_hex() {
               ffmpeg -v error -i "$1" -vf "scale=64:64" -f rawvideo -pix_fmt rgb24 - | od -An -tu1 -w3 -v | awk '
               NF == 3 {
@@ -170,7 +182,7 @@ EOF
             apply_gotham_preset() {
               mkdir -p "$HOME/.cache" "$HOME/.config/hypr" "$HOME/.config/kitty" "$HOME/.config/foot" "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0" "$HOME/.config/btop/themes" "$HOME/.config/yazi"
 
-              cat > "$HOME/.cache/enyxma-GeneratedColors.qml.next" << 'EOF'
+              safe_write "$HOME/.cache/enyxma-GeneratedColors.qml.next" << 'EOF'
 // Enyxma OS — Gotham 2.0 Brutalist Sabit Paleti
 pragma Singleton
 import QtQuick
@@ -211,7 +223,7 @@ QtObject {
 }
 EOF
 
-              cat > "$HOME/.config/hypr/colors.lua" << 'EOF'
+              safe_write "$HOME/.config/hypr/colors.lua" << 'EOF'
 -- Enyxma OS Gotham 2.0 Hyprland Paleti
 return {
     preset = "gotham",
@@ -230,7 +242,7 @@ return {
 }
 EOF
 
-              cat > "$HOME/.config/kitty/kitty.conf" << 'EOF'
+              safe_write "$HOME/.config/kitty/kitty.conf" << 'EOF'
 # Enyxma OS — Gotham 2.0 Kitty Yapilandirmasi
 font_family      JetBrainsMono Nerd Font
 bold_font        auto
@@ -279,7 +291,7 @@ color7  #94a3b8
 color15 #e2e8f0
 EOF
 
-              cat > "$HOME/.config/foot/foot.ini" << 'EOF'
+              safe_write "$HOME/.config/foot/foot.ini" << 'EOF'
 # Enyxma OS — Gotham 2.0 Foot Yapilandirmasi
 [main]
 font=JetBrainsMono Nerd Font:size=11
@@ -321,7 +333,7 @@ bright7=e2e8f0
 EOF
 
               for gtk_dir in "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"; do
-                cat > "$gtk_dir/gtk.css" << 'EOF'
+                safe_write "$gtk_dir/gtk.css" << 'EOF'
 /* Enyxma OS — Gotham 2.0 GTK 3 ve GTK 4 Renkleri */
 @define-color accent_color #f0b429;
 @define-color accent_bg_color #f0b429;
@@ -350,7 +362,7 @@ EOF
 EOF
               done
 
-              cat > "$HOME/.config/hypr/hyprlock.conf" << 'EOF'
+              safe_write "$HOME/.config/hypr/hyprlock.conf" << 'EOF'
 # Enyxma OS — Gotham 2.0 Hyprlock Yapilandirmasi
 general {
     disable_loading_bar = true
@@ -429,7 +441,7 @@ label {
 }
 EOF
 
-              cat > "$HOME/.config/starship.toml" << 'EOF'
+              safe_write "$HOME/.config/starship.toml" << 'EOF'
 # Enyxma OS — Gotham 2.0 Starship Yapilandirmasi
 add_newline = false
 format = "$username$hostname$directory$git_branch$git_status$cmd_duration$line_break$character"
@@ -455,7 +467,7 @@ success_symbol = "[❯](#f0b429 bold)"
 error_symbol = "[❯](#e11d48 bold)"
 EOF
 
-              cat > "$HOME/.config/btop/themes/enyxma.theme" << 'EOF'
+              safe_write "$HOME/.config/btop/themes/enyxma.theme" << 'EOF'
 # Enyxma OS — Gotham 2.0 btop Temasi
 theme[main_bg]=""
 theme[main_fg]="#e2e8f0"
@@ -510,7 +522,7 @@ theme[process_mid]="#94a3b8"
 theme[process_end]="#e11d48"
 EOF
 
-              cat > "$HOME/.config/yazi/theme.toml" << 'EOF'
+              safe_write "$HOME/.config/yazi/theme.toml" << 'EOF'
 # Enyxma OS — Gotham 2.0 Yazi Temasi
 [mgr]
 cwd = { fg = "#f0b429", bold = true }
@@ -547,9 +559,9 @@ EOF
               apply_gotham_preset
             elif [ "$MODE" = "image" ]; then
               HEX=$(extract_vibrant_hex "$TARGET")
-              matugen -c "$CFG" -t scheme-vibrant color hex "$HEX"
+              matugen -c "$CFG" -t scheme-vibrant color hex "$HEX" || true
             else
-              matugen -c "$CFG" -t scheme-vibrant color hex "$TARGET"
+              matugen -c "$CFG" -t scheme-vibrant color hex "$TARGET" || true
             fi
 
             CUR_THEME="Bibata-Modern-Ice"
@@ -585,7 +597,7 @@ EOF
 
             for gtk_dir in "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"; do
               mkdir -p "$gtk_dir"
-              cat > "$gtk_dir/settings.ini" << EOF
+              safe_write "$gtk_dir/settings.ini" << EOF
 [Settings]
 gtk-application-prefer-dark-theme=1
 gtk-cursor-theme-name=$CUR_THEME
@@ -595,7 +607,7 @@ EOF
             done
 
             mkdir -p "$HOME/.icons/default"
-            cat > "$HOME/.icons/default/index.theme" << EOF
+            safe_write "$HOME/.icons/default/index.theme" << EOF
 [Icon Theme]
 Inherits=$CUR_THEME
 EOF
