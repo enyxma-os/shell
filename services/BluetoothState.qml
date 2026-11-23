@@ -81,6 +81,12 @@ Singleton {
                 return
             }
             const text = out.text || ""
+            if (text.indexOf("No default controller available") >= 0) {
+                root.state = "unsupported"
+                root.lastError = "Bluetooth adaptörü bulunamadı"
+                root.devices = []
+                return
+            }
             let powered = "unknown"
             let name = ""
             const lines = text.split("\n")
@@ -246,7 +252,7 @@ Singleton {
 
     Timer {
         id: verifyTimer
-        interval: 350
+        interval: 450
         repeat: false
         onTriggered: root.refresh()
     }
@@ -256,10 +262,26 @@ Singleton {
             if (!root.supported) root.lastError = "BlueZ aracı yok"
             return
         }
+        const targetOn = !root.enabled
         root.busy = true
-        root.state = root.enabled ? "off" : "on"
-        powerProc.exec(["bluetoothctl", "power", root.enabled ? "off" : "on"])
-        verifyTimer.restart()
+        root.lastError = ""
+        root.state = targetOn ? "on" : "off"
+        if (targetOn) {
+            unblockProc.running = true
+        } else {
+            powerProc.command = ["bluetoothctl", "power", "off"]
+            powerProc.running = true
+        }
+    }
+
+    Process {
+        id: unblockProc
+        running: false
+        command: ["rfkill", "unblock", "bluetooth"]
+        onExited: {
+            powerProc.command = ["bluetoothctl", "power", "on"]
+            powerProc.running = true
+        }
     }
 
     Process {
@@ -267,9 +289,9 @@ Singleton {
         running: false
         onExited: (code) => {
             if (code !== 0) {
-                root.lastError = "Güç değiştirilemedi"
-                root.refresh()
+                root.lastError = "Bluetooth gücü değiştirilemedi"
             }
+            verifyTimer.restart()
         }
     }
 
