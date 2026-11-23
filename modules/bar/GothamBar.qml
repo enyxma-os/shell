@@ -22,6 +22,7 @@ Rectangle {
     // Merkez: Iki Katmanli Taktiksel Kronometre
     GothamClockWidget {
         id: clockWidget
+        visible: SettingsState.showClock
         anchors.centerIn: parent
         z: 2
     }
@@ -96,6 +97,7 @@ Rectangle {
 
         // 2. Calisma Alanlari: Gotham Mimari Hucre Izgarasi
         Item {
+            visible: SettingsState.showWorkspaces
             Layout.fillHeight: true
             Layout.leftMargin: Theme.spacingSmall
             Layout.rightMargin: Theme.spacingSmall
@@ -228,6 +230,7 @@ Rectangle {
 
         // Dikey Izgara Ayirici
         Rectangle {
+            visible: SettingsState.showSystemStats
             Layout.fillHeight: true
             Layout.preferredWidth: 1
             color: Theme.borderSubtle
@@ -235,6 +238,7 @@ Rectangle {
 
         // 1. CPU + RAM + DISK Tek Birlesik Sistem Telemetri Hucresi
         Rectangle {
+            visible: SettingsState.showSystemStats
             readonly property bool sysActive: PerformanceState.isOpen
             Layout.fillHeight: true
             implicitWidth: perfRow.implicitWidth + 16
@@ -315,6 +319,7 @@ Rectangle {
 
         // Dikey Izgara Ayirici
         Rectangle {
+            visible: SettingsState.showNetwork
             Layout.fillHeight: true
             Layout.preferredWidth: 1
             color: Theme.borderSubtle
@@ -322,6 +327,7 @@ Rectangle {
 
         // 3. Ag Hucresi
         Rectangle {
+            visible: SettingsState.showNetwork
             Layout.fillHeight: true
             implicitWidth: netRow.implicitWidth + 16
             radius: 0
@@ -384,6 +390,7 @@ Rectangle {
 
         // Dikey Izgara Ayirici
         Rectangle {
+            visible: SettingsState.showVolume
             Layout.fillHeight: true
             Layout.preferredWidth: 1
             color: Theme.borderSubtle
@@ -391,6 +398,7 @@ Rectangle {
 
         // 4. Ses Hucresi
         Rectangle {
+            visible: SettingsState.showVolume
             Layout.fillHeight: true
             implicitWidth: volRow.implicitWidth + 16
             radius: 0
@@ -440,6 +448,7 @@ Rectangle {
 
         // Dikey Izgara Ayirici
         Rectangle {
+            visible: SettingsState.showPower
             Layout.fillHeight: true
             Layout.preferredWidth: 1
             color: Theme.borderSubtle
@@ -447,6 +456,7 @@ Rectangle {
 
         // 5. SYS // PWR Kontrol Merkezi Hucresi
         Rectangle {
+            visible: SettingsState.showPower
             Layout.fillHeight: true
             implicitWidth: sysRow.implicitWidth + 16
             radius: 0
@@ -493,6 +503,7 @@ Rectangle {
 
         // Dikey Izgara Ayirici
         Rectangle {
+            visible: SettingsState.showAi
             Layout.fillHeight: true
             Layout.preferredWidth: 1
             color: Theme.borderSubtle
@@ -500,6 +511,7 @@ Rectangle {
 
         // 6. ORACLE // AI Hucresi
         Rectangle {
+            visible: SettingsState.showAi
             Layout.fillHeight: true
             implicitWidth: aiRow.implicitWidth + 16
             radius: 0
@@ -545,6 +557,7 @@ Rectangle {
 
         // Dikey Izgara Ayirici
         Rectangle {
+            visible: SettingsState.showNotifications
             Layout.fillHeight: true
             Layout.preferredWidth: 1
             color: Theme.borderSubtle
@@ -552,6 +565,7 @@ Rectangle {
 
         // 7. Bildirim Hucresi
         Rectangle {
+            visible: SettingsState.showNotifications
             Layout.fillHeight: true
             implicitWidth: notifRow.implicitWidth + 16
             radius: 0
@@ -608,7 +622,7 @@ Rectangle {
         // Sistem Tepsisi
         Tray {
             id: tray
-            visible: implicitWidth > 0
+            visible: SettingsState.showTray && implicitWidth > 0
             Layout.fillWidth: false
             Layout.alignment: Qt.AlignVCenter
             Layout.leftMargin: visible ? Theme.spacingXS : 0

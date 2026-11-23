@@ -30,7 +30,7 @@ Singleton {
     readonly property bool isGotham: root.preset === "gotham"
 
     // Motion Control
-    readonly property bool reduceMotion: false
+    readonly property bool reduceMotion: SettingsState.reduceMotion
     readonly property int animFast: 150
     readonly property int animNormal: 240
     readonly property int animSlow: 350
@@ -87,7 +87,7 @@ Singleton {
     readonly property int radiusSmall: root.isGotham ? 1 : 6
     readonly property int barMarginTop: root.isGotham ? 0 : 4
     readonly property int barMarginSide: root.isGotham ? 0 : 8
-    readonly property int barHeight: root.isGotham ? 34 : 36
+    readonly property int barHeight: (root.isGotham ? 34 : 36) + SettingsState.barHeightOffset
     readonly property int spacingXS: 4
     readonly property int spacingSmall: 8
     readonly property int spacingMedium: 12

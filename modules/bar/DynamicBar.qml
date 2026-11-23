@@ -20,6 +20,7 @@ Rectangle {
     // ── MERKEZ: Dinamik Saat ve Tarih Bileseni ──
     DynamicClockWidget {
         id: clockWidget
+        visible: SettingsState.showClock
         anchors.centerIn: parent
         z: 2
     }
@@ -56,6 +57,7 @@ Rectangle {
         // Calisma Alanlari
         DynamicWorkspaces {
             id: workspaces
+            visible: SettingsState.showWorkspaces
         }
 
         // Duvar Kagidi Secici
@@ -99,16 +101,19 @@ Rectangle {
         // Performans ve Depolama: CPU, RAM ve Disk
         PerformanceWidget {
             id: performanceWidget
+            visible: SettingsState.showSystemStats
         }
 
         // Ag Durumu ve RX/TX
         NetworkWidget {
             id: networkWidget
+            visible: SettingsState.showNetwork
         }
 
         // Ses Duzeyi ve Mute
         EnyxmaPill {
             id: volumePill
+            visible: SettingsState.showVolume
             implicitHeight: 24
             isActive: AudioState.muted
 
@@ -128,11 +133,13 @@ Rectangle {
         // Pil ve Guc Durumu / Kontrol Merkezi
         SystemMetrics {
             id: systemMetrics
+            visible: SettingsState.showPower
         }
 
         // Enyxma AI Asistani
         EnyxmaPill {
             id: aiTogglePill
+            visible: SettingsState.showAi
             implicitHeight: 24
             isActive: AIState.isOpen
             onClicked: AIState.toggle()
@@ -149,11 +156,13 @@ Rectangle {
         // Bildirim Merkezi
         NotificationWidget {
             id: notificationWidget
+            visible: SettingsState.showNotifications
         }
 
         // Sistem Tepsisi
         Tray {
             id: tray
+            visible: SettingsState.showTray && implicitWidth > 0
         }
     }
 }

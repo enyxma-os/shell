@@ -68,5 +68,6 @@ Singleton {
         OverviewState?.close()
         WallpaperState?.closePicker()
         MediaBrowserState?.close()
+        SettingsState?.close()
     }
 }

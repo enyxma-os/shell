@@ -26,6 +26,7 @@ Singleton {
         { id: "screenshot-studio", title: "Ekran Alıntısı ve Çizim Stüdyosu",      subtitle: "Bölge seçimi, ok, kutu, sansür ve çerçeveleme aracı",              icon: "󰄀", badge: "SUPER + SHIFT + S" },
         { id: "overview",          title: "Genel Bakış — Masaüstü Şeridi",         subtitle: "Tüm açık pencereleri ve çalışma alanlarını yönetir",               icon: "󰕮", badge: "SUPER + TAB" },
         { id: "control-center",    title: "Kontrol Merkezi",                       subtitle: "Ses, parlaklık, gece ışığı, Bluetooth ve hızlı ayarlar",           icon: "󰒓", badge: "SUPER + D" },
+        { id: "enyxma-settings",   title: "Enyxma Ayarlar",                        subtitle: "Görünüm, üst çubuk modülleri, kısayollar ve sistem tercihleri",   icon: "󰒓", badge: "SUPER + I" },
         { id: "ai-assistant",      title: "Enyxma AI Kenar Çubuğu",                subtitle: "Yapay zeka sohbet, araçlar ve kullanım paneli",                    icon: "󰧑", badge: "SUPER + S" },
         { id: "performance-panel", title: "Sistem Performans ve Telemetri Paneli",  subtitle: "Canlı CPU, RAM ve süreç kaynak kullanımı",                         icon: "󰍛", badge: "TELEMETRİ" },
         { id: "network-panel",     title: "Ağ ve Bağlantı Yönetimi",               subtitle: "Wi-Fi, Ethernet ve veri akışı bilgileri",                          icon: "󰤨", badge: "AĞ" },
@@ -158,6 +159,9 @@ Singleton {
             break
         case "control-center":
             SystemState.openControlCenter()
+            break
+        case "enyxma-settings":
+            SettingsState.open("")
             break
         case "ai-assistant":
             AIState.open()

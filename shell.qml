@@ -10,12 +10,12 @@ import "./modules/cc"
 import "./modules/notifications"
 import "./modules/launcher"
 import "./modules/network"
-import "./modules/storage"
 import "./modules/performance"
 import "./modules/media"
 import "./modules/time"
 import "./modules/wallpaper"
 import "./modules/overview"
+import "./modules/settings"
 
 /**
  * Enyxma Shell — kök katman.
@@ -48,7 +48,7 @@ ShellRoot {
             id: barWindow
             property var modelData
             screen: modelData
-            visible: SystemState.isBarVisible
+            visible: SystemState.isBarVisible && SettingsState.barVisible
 
             WlrLayershell.namespace: "enyxma-bar"
             WlrLayershell.layer: WlrLayer.Top
@@ -193,6 +193,15 @@ ShellRoot {
     Variants {
         model: ScreenState.overlayScreens
         Overview {
+            property var modelData
+            screen: modelData
+        }
+    }
+
+    // ── 18. Enyxma Ayarlar Penceresi (odaklı ekran) ───────────────────
+    Variants {
+        model: ScreenState.overlayScreens
+        SettingsPanel {
             property var modelData
             screen: modelData
         }
