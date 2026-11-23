@@ -121,25 +121,8 @@ Singleton {
         dimLevel = Math.max(0.0, Math.min(1.0, level))
     }
 
-    // Matugen kabuksuz doğrudan süreç çağrısı
-    Process {
-        id: matugenProc
-        workingDirectory: root.shellDir
-        running: false
-        onExited: (code) => {
-            if (code === 0) {
-                root.reloadTheme()
-            } else {
-                console.warn("WallpaperState: matugen başarısız, çıkış kodu: " + code)
-            }
-        }
-    }
-
     function runThemeApply(args) {
-        if (matugenProc.running) {
-            matugenProc.running = false
-        }
-        matugenProc.exec(args)
+        Quickshell.execDetached(args)
     }
 
     function generateThemeFromImage(rawPath) {

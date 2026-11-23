@@ -112,6 +112,10 @@
           themeApply = pkgs.writeShellScript "enyxma-theme-apply" ''
             set -euo pipefail
             export PATH="${binPath}:$PATH"
+            export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
+            mkdir -p "$HOME/.cache"
+            exec 9>"$XDG_RUNTIME_DIR/enyxma-theme-apply.lock"
+            flock 9
             mkdir -p "$HOME/.config/btop/themes" "$HOME/.config/yazi"
             if [ ! -f "$HOME/.config/btop/btop.conf" ]; then
               cat > "$HOME/.config/btop/btop.conf" << 'EOF'
@@ -164,9 +168,9 @@ EOF
             }
 
             apply_gotham_preset() {
-              mkdir -p "$SHELL_DIR/services" "$HOME/.config/hypr" "$HOME/.config/kitty" "$HOME/.config/foot" "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0" "$HOME/.config/btop/themes" "$HOME/.config/yazi"
+              mkdir -p "$HOME/.cache" "$HOME/.config/hypr" "$HOME/.config/kitty" "$HOME/.config/foot" "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0" "$HOME/.config/btop/themes" "$HOME/.config/yazi"
 
-              cat > "$SHELL_DIR/services/GeneratedColors.qml" << 'EOF'
+              cat > "$HOME/.cache/enyxma-GeneratedColors.qml.next" << 'EOF'
 // Enyxma OS — Gotham 2.0 Brutalist Sabit Paleti
 pragma Singleton
 import QtQuick
@@ -526,7 +530,6 @@ inactive = { fg = "#94a3b8", bg = "#11141c" }
 EOF
             }
 
-            export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
             RUNTIME_HYPR="$XDG_RUNTIME_DIR/hypr"
             if [ -d "$RUNTIME_HYPR" ]; then
               if [ -z "''${HYPRLAND_INSTANCE_SIGNATURE:-}" ] || [ ! -S "$RUNTIME_HYPR/$HYPRLAND_INSTANCE_SIGNATURE/.socket.sock" ]; then
@@ -606,6 +609,11 @@ EOF
 
             pkill -USR1 -x kitty >/dev/null 2>&1 || true
             pkill -USR2 -x btop >/dev/null 2>&1 || true
+
+            if [ -f "$HOME/.cache/enyxma-GeneratedColors.qml.next" ]; then
+              mkdir -p "$SHELL_DIR/services"
+              mv -f "$HOME/.cache/enyxma-GeneratedColors.qml.next" "$SHELL_DIR/services/GeneratedColors.qml"
+            fi
           '';
         in
         {
