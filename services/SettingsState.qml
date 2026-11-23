@@ -210,8 +210,30 @@ Singleton {
         save()
     }
 
+    function escapeLuaStr(s) {
+        return String(s || "").replace(/\\/g, "\\\\").replace(/"/g, "\\\"")
+    }
+
+    Process {
+        id: hyprStyleProc
+        running: false
+        property string fallbackBatch: ""
+        stdout: StdioCollector { id: hyprStyleOut }
+        onExited: (code) => {
+            if (code === 0 && (hyprStyleOut.text || "").trim() === "ok") return
+            if (fallbackBatch !== "") {
+                Quickshell.execDetached(["hyprctl", "--batch", fallbackBatch])
+            }
+        }
+    }
+
     function applyHyprStyle() {
         if (!root.customHyprStyle) return
+        var luaExpr = "hl.config({ general = { gaps_in = " + root.hyprGapsIn
+            + ", gaps_out = " + root.hyprGapsOut
+            + ", border_size = " + root.hyprBorderSize
+            + " }, decoration = { rounding = " + root.hyprRounding
+            + ", blur = { enabled = " + (root.hyprBlur ? "true" : "false") + " } } })"
         var cmds = [
             "keyword decoration:rounding " + root.hyprRounding,
             "keyword general:gaps_in " + root.hyprGapsIn,
@@ -219,7 +241,10 @@ Singleton {
             "keyword general:border_size " + root.hyprBorderSize,
             "keyword decoration:blur:enabled " + (root.hyprBlur ? "true" : "false")
         ]
-        Quickshell.execDetached(["hyprctl", "--batch", cmds.join(" ; ")])
+        hyprStyleProc.fallbackBatch = cmds.join(" ; ")
+        hyprStyleProc.command = ["hyprctl", "eval", luaExpr]
+        hyprStyleProc.running = false
+        hyprStyleProc.running = true
     }
 
     function resetHyprStyle() {
@@ -236,8 +261,26 @@ Singleton {
         save()
     }
 
+    Process {
+        id: hyprInputProc
+        running: false
+        property string fallbackBatch: ""
+        stdout: StdioCollector { id: hyprInputOut }
+        onExited: (code) => {
+            if (code === 0 && (hyprInputOut.text || "").trim() === "ok") return
+            if (fallbackBatch !== "") {
+                Quickshell.execDetached(["hyprctl", "--batch", fallbackBatch])
+            }
+        }
+    }
+
     function applyInputSettings() {
         var sens = Number(root.mouseSensitivity).toFixed(2)
+        var luaExpr = "hl.config({ input = { kb_layout = \"" + escapeLuaStr(root.kbLayout)
+            + "\", repeat_rate = " + root.kbRepeatRate
+            + ", repeat_delay = " + root.kbRepeatDelay
+            + ", sensitivity = " + sens
+            + ", touchpad = { natural_scroll = " + (root.naturalScroll ? "true" : "false") + " } } })"
         var cmds = [
             "keyword input:kb_layout " + root.kbLayout,
             "keyword input:repeat_rate " + root.kbRepeatRate,
@@ -245,7 +288,10 @@ Singleton {
             "keyword input:sensitivity " + sens,
             "keyword input:touchpad:natural_scroll " + (root.naturalScroll ? "true" : "false")
         ]
-        Quickshell.execDetached(["hyprctl", "--batch", cmds.join(" ; ")])
+        hyprInputProc.fallbackBatch = cmds.join(" ; ")
+        hyprInputProc.command = ["hyprctl", "eval", luaExpr]
+        hyprInputProc.running = false
+        hyprInputProc.running = true
     }
 
     // ── Ekran ve Monitor Yonetimi ────────────────────────────────────
@@ -256,15 +302,35 @@ Singleton {
 
     Timer {
         id: monitorRefreshDelay
-        interval: 300
+        interval: 350
         repeat: false
         onTriggered: root.refreshMonitors()
     }
 
+    Process {
+        id: hyprMonitorProc
+        running: false
+        property string fallbackSpec: ""
+        stdout: StdioCollector { id: hyprMonitorOut }
+        onExited: (code) => {
+            if (!(code === 0 && (hyprMonitorOut.text || "").trim() === "ok") && fallbackSpec !== "") {
+                Quickshell.execDetached(["hyprctl", "keyword", "monitor", fallbackSpec])
+            }
+            monitorRefreshDelay.restart()
+        }
+    }
+
     function applyMonitorMode(name, modeSpec, posX, posY, scaleVal) {
-        var spec = name + "," + modeSpec + "," + posX + "x" + posY + "," + Number(scaleVal).toFixed(2)
-        Quickshell.execDetached(["hyprctl", "keyword", "monitor", spec])
-        monitorRefreshDelay.restart()
+        var scaleStr = Number(scaleVal).toFixed(2)
+        var posStr = posX + "x" + posY
+        var luaExpr = "hl.monitor({ output = \"" + escapeLuaStr(name)
+            + "\", mode = \"" + escapeLuaStr(modeSpec)
+            + "\", position = \"" + posStr
+            + "\", scale = " + scaleStr + " })"
+        hyprMonitorProc.fallbackSpec = name + "," + modeSpec + "," + posStr + "," + scaleStr
+        hyprMonitorProc.command = ["hyprctl", "eval", luaExpr]
+        hyprMonitorProc.running = false
+        hyprMonitorProc.running = true
     }
 
     function setMonitorScale(name, width, height, hz, posX, posY, scaleVal) {
