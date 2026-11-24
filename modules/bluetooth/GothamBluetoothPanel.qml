@@ -90,7 +90,7 @@ Item {
                     Text {
                         id: pwrTxt
                         anchors.centerIn: parent
-                        text: BluetoothState.enabled ? "[AÇIK]" : "[KAPALI]"
+                        text: BluetoothState.enabled ? "AÇIK" : "KAPALI"
                         color: BluetoothState.enabled ? Theme.accent : Theme.textMuted
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -115,7 +115,7 @@ Item {
 
                     Text {
                         anchors.centerIn: parent
-                        text: BluetoothState.isScanning ? "[...]" : "[TARA]"
+                        text: BluetoothState.isScanning ? "..." : "TARA"
                         color: BluetoothState.isScanning ? Theme.accent : Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -226,7 +226,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "[BLUETOOTH AÇ]"
+                            text: "BLUETOOTH AÇ"
                             color: Theme.accent
                             font.family: Theme.fontMono
                             font.pixelSize: 10

@@ -43,9 +43,9 @@ Item {
         width: 368
         height: Math.min(parent.height - 64, contentCol.implicitHeight + 28)
 
-        color: Theme.bgGlass
+        color: Theme.bgPanel
         radius: 0
-        border.color: Theme.borderSubtle
+        border.color: Theme.borderFocus
         border.width: 1
 
         MouseArea {
@@ -97,7 +97,7 @@ Item {
                     Text {
                         id: wifiBadgeTxt
                         anchors.centerIn: parent
-                        text: NetworkState.wifiEnabled ? "[WI-FI: AÇIK]" : "[WI-FI: KAPALI]"
+                        text: NetworkState.wifiEnabled ? "WI-FI AÇIK" : "WI-FI KAPALI"
                         color: NetworkState.wifiEnabled ? Theme.accent : Theme.textMuted
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -122,7 +122,7 @@ Item {
 
                     Text {
                         anchors.centerIn: parent
-                        text: NetworkState.isScanning ? "[...]" : "[TARA]"
+                        text: NetworkState.isScanning ? "..." : "TARA"
                         color: NetworkState.isScanning ? Theme.accent : Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -284,7 +284,7 @@ Item {
                             border.width: 1
                             Text {
                                 anchors.centerIn: parent
-                                text: "[KES]"
+                                text: "KES"
                                 color: discMa.containsMouse ? Theme.danger : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: 10

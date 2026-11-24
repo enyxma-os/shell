@@ -1107,6 +1107,79 @@ Item {
                                 }
                             }
                         }
+
+                        Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
+
+                        Text { text: "Güç ve Otomatik Kilit — Hypridle"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+
+                        Rectangle {
+                            width: parent.width; height: 52; radius: Theme.radiusButton
+                            color: idleEnMa.containsMouse ? Theme.surfaceHover : Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
+                            RowLayout {
+                                anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
+                                Column {
+                                    Layout.fillWidth: true; spacing: 2
+                                    Text { text: "Otomatik Kilit ve Uyku"; color: Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true }
+                                    Text { text: "Etkinlik olmadığında ekran kilidi ve güç tasarrufu uygular"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                }
+                                DynamicSwitch { checked: SettingsState.idleEnabled }
+                            }
+                            MouseArea { id: idleEnMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleEnabled", !SettingsState.idleEnabled, "Otomatik kilit durumu güncellendi") }
+                        }
+
+                        RowLayout {
+                            width: parent.width; spacing: 6
+                            Text { text: "Ekranı Kilitle"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; Layout.preferredWidth: 118 }
+                            Repeater {
+                                model: [ 0, 3, 5, 10, 15 ]
+                                delegate: Rectangle {
+                                    id: lockChip
+                                    required property int modelData
+                                    readonly property bool active: SettingsState.idleLockMin === modelData
+                                    Layout.fillWidth: true; implicitHeight: 28; radius: Theme.radiusSmall
+                                    color: active ? Theme.surfaceActive : (lockMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                                    border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                    Text { anchors.centerIn: parent; text: lockChip.modelData === 0 ? "Kapalı" : (lockChip.modelData + " dk"); color: lockChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: lockChip.active }
+                                    MouseArea { id: lockMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleLockMin", lockChip.modelData, "Kilit süresi güncellendi") }
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            width: parent.width; spacing: 6
+                            Text { text: "Ekranı Kapat"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; Layout.preferredWidth: 118 }
+                            Repeater {
+                                model: [ 0, 5, 10, 15, 30 ]
+                                delegate: Rectangle {
+                                    id: dpmsChip
+                                    required property int modelData
+                                    readonly property bool active: SettingsState.idleScreenOffMin === modelData
+                                    Layout.fillWidth: true; implicitHeight: 28; radius: Theme.radiusSmall
+                                    color: active ? Theme.surfaceActive : (dpmsMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                                    border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                    Text { anchors.centerIn: parent; text: dpmsChip.modelData === 0 ? "Kapalı" : (dpmsChip.modelData + " dk"); color: dpmsChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: dpmsChip.active }
+                                    MouseArea { id: dpmsMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleScreenOffMin", dpmsChip.modelData, "Ekran kapatma süresi güncellendi") }
+                                }
+                            }
+                        }
+
+                        RowLayout {
+                            width: parent.width; spacing: 6
+                            Text { text: "Sistemi Uyut"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; Layout.preferredWidth: 118 }
+                            Repeater {
+                                model: [ 0, 15, 30, 60 ]
+                                delegate: Rectangle {
+                                    id: suspChip
+                                    required property int modelData
+                                    readonly property bool active: SettingsState.idleSuspendMin === modelData
+                                    Layout.fillWidth: true; implicitHeight: 28; radius: Theme.radiusSmall
+                                    color: active ? Theme.surfaceActive : (suspMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                                    border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                    Text { anchors.centerIn: parent; text: suspChip.modelData === 0 ? "Kapalı" : (suspChip.modelData + " dk"); color: suspChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: suspChip.active }
+                                    MouseArea { id: suspMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleSuspendMin", suspChip.modelData, "Uyku süresi güncellendi") }
+                                }
+                            }
+                        }
                     }
                 }
 

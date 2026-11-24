@@ -39,10 +39,14 @@ Singleton {
     property bool nightLightEnabled: false
     property int nightLightTemp: 4500
 
-    // ── Bildirim ve Varsayilan Uygulamalar ───────────────────────────
+    // ── Bildirim, Guc ve Varsayilan Uygulamalar ──────────────────────
     property int notifTimeoutSec: 5
     property string defaultTerminal: "kitty"
     property string defaultFileManager: "nautilus"
+    property bool idleEnabled: true
+    property int idleLockMin: 5
+    property int idleScreenOffMin: 10
+    property int idleSuspendMin: 0
 
     // ── Klavye ve Fare ───────────────────────────────────────────────
     property string kbLayout: "tr"
@@ -89,6 +93,7 @@ Singleton {
         { tab: "appearance", title: "Hareket ve Bar Yüksekliği", keywords: "animasyon reduce motion üst çubuk yükseklik" },
         { tab: "bar",        title: "Üst Çubuk Modülleri",       keywords: "çalışma alanları saat telemetri ağ ses güç ai bildirim tepsi" },
         { tab: "display",    title: "Ekran, VRR ve Gece Işığı",  keywords: "çözünürlük yenileme hızı hz ölçek scale monitör vrr adaptive sync gece ışığı hyprsunset kelvin" },
+        { tab: "display",    title: "Otomatik Kilit ve Uyku",    keywords: "hypridle kilit ekran kapat uyku suspend timeout güç" },
         { tab: "input",      title: "Klavye ve Fare",            keywords: "klavye düzeni tr us de tekrar hızı gecikme fare hassasiyet kaydırma" },
         { tab: "shortcuts",  title: "Klavye Kısayolları",        keywords: "kısayol tuş atama binds super" },
         { tab: "system",     title: "Sistem, Bildirim ve Uygulamalar", keywords: "settings.json sıfırla ses karıştırıcı bluetooth qr odak konteyner bildirim süresi dnd varsayılan terminal" }
@@ -167,6 +172,10 @@ Singleton {
             notifTimeoutSec: root.notifTimeoutSec,
             defaultTerminal: root.defaultTerminal,
             defaultFileManager: root.defaultFileManager,
+            idleEnabled: root.idleEnabled,
+            idleLockMin: root.idleLockMin,
+            idleScreenOffMin: root.idleScreenOffMin,
+            idleSuspendMin: root.idleSuspendMin,
             kbLayout: root.kbLayout,
             kbRepeatRate: root.kbRepeatRate,
             kbRepeatDelay: root.kbRepeatDelay,
@@ -347,6 +356,78 @@ Singleton {
         save()
     }
 
+    // ── Hypridle Canli Guc ve Otomatik Kilit ─────────────────────────
+    FileView {
+        id: hypridleFile
+        path: root.configDir + "/hypridle.conf"
+        printErrors: false
+        blockLoading: false
+    }
+
+    function buildHypridleConf() {
+        var lines = [
+            "# Enyxma OS — Otomatik uretilen hypridle yapilandirmasi",
+            "general {",
+            "    lock_cmd = pidof hyprlock || hyprlock",
+            "    before_sleep_cmd = loginctl lock-session",
+            "    after_sleep_cmd = hyprctl dispatch dpms on",
+            "    ignore_dbus_inhibit = false",
+            "}",
+            ""
+        ]
+        if (root.idleLockMin > 0) {
+            lines.push("listener {")
+            lines.push("    timeout = " + (root.idleLockMin * 60))
+            lines.push("    on-timeout = loginctl lock-session")
+            lines.push("}")
+            lines.push("")
+        }
+        if (root.idleScreenOffMin > 0) {
+            lines.push("listener {")
+            lines.push("    timeout = " + (root.idleScreenOffMin * 60))
+            lines.push("    on-timeout = hyprctl dispatch dpms off")
+            lines.push("    on-resume = hyprctl dispatch dpms on")
+            lines.push("}")
+            lines.push("")
+        }
+        if (root.idleSuspendMin > 0) {
+            lines.push("listener {")
+            lines.push("    timeout = " + (root.idleSuspendMin * 60))
+            lines.push("    on-timeout = systemctl suspend")
+            lines.push("}")
+            lines.push("")
+        }
+        return lines.join("\n")
+    }
+
+    Process {
+        id: idleKillProc
+        running: false
+        command: ["pkill", "-x", "hypridle"]
+        onExited: {
+            if (root.idleEnabled) {
+                Quickshell.execDetached(["hypridle", "-c", root.configDir + "/hypridle.conf"])
+            }
+        }
+    }
+
+    function applyIdleSettings() {
+        try {
+            hypridleFile.setText(buildHypridleConf())
+        } catch (e) {
+            console.warn("SettingsState: hypridle.conf yazilamadi:", e)
+        }
+        idleKillProc.running = false
+        idleKillProc.running = true
+    }
+
+    function setIdleSetting(prop, value, label) {
+        recordUndo(label)
+        root[prop] = value
+        applyIdleSettings()
+        save()
+    }
+
     function resetHyprStyle() {
         recordUndo("Pencere stili tema varsayılanına döndü")
         root.customHyprStyle = false
@@ -504,6 +585,10 @@ Singleton {
         notifTimeoutSec = 5
         defaultTerminal = "kitty"
         defaultFileManager = "nautilus"
+        idleEnabled = true
+        idleLockMin = 5
+        idleScreenOffMin = 10
+        idleSuspendMin = 0
         kbLayout = "tr"
         kbRepeatRate = 35
         kbRepeatDelay = 250
@@ -584,6 +669,10 @@ Singleton {
             if (typeof d.notifTimeoutSec === "number") root.notifTimeoutSec = Math.max(2, Math.min(20, Math.round(d.notifTimeoutSec)))
             if (typeof d.defaultTerminal === "string" && d.defaultTerminal.length > 0) root.defaultTerminal = d.defaultTerminal
             if (typeof d.defaultFileManager === "string" && d.defaultFileManager.length > 0) root.defaultFileManager = d.defaultFileManager
+            if (typeof d.idleEnabled === "boolean") root.idleEnabled = d.idleEnabled
+            if (typeof d.idleLockMin === "number") root.idleLockMin = Math.max(0, Math.min(60, Math.round(d.idleLockMin)))
+            if (typeof d.idleScreenOffMin === "number") root.idleScreenOffMin = Math.max(0, Math.min(120, Math.round(d.idleScreenOffMin)))
+            if (typeof d.idleSuspendMin === "number") root.idleSuspendMin = Math.max(0, Math.min(240, Math.round(d.idleSuspendMin)))
             if (typeof d.kbLayout === "string" && d.kbLayout.length > 0) root.kbLayout = d.kbLayout
             if (typeof d.kbRepeatRate === "number") root.kbRepeatRate = Math.max(15, Math.min(80, Math.round(d.kbRepeatRate)))
             if (typeof d.kbRepeatDelay === "number") root.kbRepeatDelay = Math.max(150, Math.min(600, Math.round(d.kbRepeatDelay)))
@@ -606,6 +695,7 @@ Singleton {
             if (root.customHyprStyle) root.applyHyprStyle()
             root.applyInputSettings()
             if (root.nightLightEnabled) root.applyNightLight()
+            root.applyIdleSettings()
         } catch (e) {
             console.warn("SettingsState: JSON okunamadi:", e)
         }
