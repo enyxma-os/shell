@@ -661,7 +661,7 @@ Item {
                 // Gizli Ag
                 Text {
                     visible: NetworkState.hasWifiDevice && NetworkState.wifiEnabled
-                    text: root.hiddenOpen ? "▾ [GİZLİ AĞA BAĞLAN]" : "▸ [GİZLİ AĞA BAĞLAN]"
+                    text: root.hiddenOpen ? "▾ GİZLİ AĞA BAĞLAN" : "▸ GİZLİ AĞA BAĞLAN"
                     color: hiddenMa.containsMouse ? Theme.accent : Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -1044,7 +1044,7 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    text: "[GELİŞMİŞ AĞ AYARLARI]"
+                    text: "GELİŞMİŞ AĞ AYARLARI"
                     color: Theme.textPrimary
                     font.family: Theme.fontMono
                     font.pixelSize: 11

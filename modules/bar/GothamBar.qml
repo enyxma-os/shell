@@ -585,6 +585,18 @@ Rectangle {
             }
         }
 
+        // Yerel Bar Eklentileri (~/.config/enyxma/plugins)
+        Repeater {
+            model: PluginState.activeBarPlugins
+            delegate: Loader {
+                required property var modelData
+                source: "file://" + modelData.entryPath
+                asynchronous: true
+                Layout.alignment: Qt.AlignVCenter
+                Layout.leftMargin: 4
+            }
+        }
+
         // Dikey Izgara Ayirici
         Rectangle {
             visible: SettingsState.showAi

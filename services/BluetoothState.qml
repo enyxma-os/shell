@@ -67,6 +67,19 @@ Singleton {
         else open()
     }
 
+    Timer {
+        id: errorClearTimer
+        interval: 5000
+        repeat: false
+        onTriggered: root.lastError = ""
+    }
+
+    function setError(msg) {
+        root.lastError = String(msg || "")
+        if (root.lastError !== "") errorClearTimer.restart()
+        else errorClearTimer.stop()
+    }
+
     Process {
         id: showProc
         running: false
@@ -239,12 +252,20 @@ Singleton {
     Process {
         id: actionProc
         running: false
+        stdout: StdioCollector { id: actionOut }
         onExited: (code) => {
             root.busyMac = ""
             if (code !== 0) {
-                root.lastError = "Bluetooth işlemi başarısız"
+                var txt = String(actionOut.text || "").toLowerCase()
+                if (txt.indexOf("not available") >= 0 || txt.indexOf("page timeout") >= 0 || txt.indexOf("host is down") >= 0) {
+                    root.setError("Cihaz erişilebilir değil")
+                } else if (txt.indexOf("refused") >= 0 || txt.indexOf("failed") >= 0) {
+                    root.setError("Bağlantı reddedildi")
+                } else {
+                    root.setError("Bluetooth işlemi başarısız")
+                }
             } else {
-                root.lastError = ""
+                root.setError("")
             }
             root.refreshDevices()
         }

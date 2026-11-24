@@ -174,6 +174,17 @@ Rectangle {
             }
         }
 
+        // Yerel Bar Eklentileri (~/.config/enyxma/plugins)
+        Repeater {
+            model: PluginState.activeBarPlugins
+            delegate: Loader {
+                required property var modelData
+                source: "file://" + modelData.entryPath
+                asynchronous: true
+                Layout.alignment: Qt.AlignVCenter
+            }
+        }
+
         // Enyxma AI Asistani
         EnyxmaPill {
             id: aiTogglePill

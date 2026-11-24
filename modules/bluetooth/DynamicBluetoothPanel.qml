@@ -26,7 +26,10 @@ Item {
         anchors.topMargin: Theme.barHeight + Theme.barMarginTop + 8
         anchors.rightMargin: 12
         width: 380
-        height: Math.min(parent.height - Theme.barHeight - 28, 520)
+        height: Math.min(parent.height - Theme.barHeight - 28,
+            (!BluetoothState.supported || !BluetoothState.enabled)
+                ? 200
+                : Math.max(168, 86 + (BluetoothState.lastError !== "" ? 36 : 0) + Math.min(6, Math.max(1, BluetoothState.devices.length)) * 60))
         color: Theme.bgPanel
         radius: Theme.radiusPanel
         border.color: Theme.borderSubtle

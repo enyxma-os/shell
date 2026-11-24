@@ -72,6 +72,7 @@ Singleton {
     property bool enableWifiQr: true
     property bool enableFocusTimer: false
     property bool enableContainerMonitor: false
+    property var enabledPlugins: []
 
     // ── Geri Al / Undo ───────────────────────────────────────────────
     property string undoLabel: ""
@@ -176,6 +177,7 @@ Singleton {
             idleLockMin: root.idleLockMin,
             idleScreenOffMin: root.idleScreenOffMin,
             idleSuspendMin: root.idleSuspendMin,
+            enabledPlugins: root.enabledPlugins,
             kbLayout: root.kbLayout,
             kbRepeatRate: root.kbRepeatRate,
             kbRepeatDelay: root.kbRepeatDelay,
@@ -353,6 +355,23 @@ Singleton {
     function setDefaultApp(prop, value, label) {
         recordUndo(label)
         root[prop] = String(value)
+        save()
+    }
+
+    function isPluginEnabled(id) {
+        var list = root.enabledPlugins || []
+        return list.indexOf(String(id)) >= 0
+    }
+
+    function togglePluginEnabled(id, title) {
+        var pid = String(id || "")
+        if (pid === "") return
+        recordUndo((title || pid) + " eklentisi güncellendi")
+        var list = (root.enabledPlugins || []).slice()
+        var idx = list.indexOf(pid)
+        if (idx >= 0) list.splice(idx, 1)
+        else list.push(pid)
+        root.enabledPlugins = list
         save()
     }
 
@@ -608,6 +627,7 @@ Singleton {
         enableWifiQr = true
         enableFocusTimer = false
         enableContainerMonitor = false
+        enabledPlugins = []
         applyInputSettings()
         Quickshell.execDetached(["hyprctl", "reload"])
         save()
@@ -692,6 +712,7 @@ Singleton {
             if (typeof d.enableWifiQr === "boolean") root.enableWifiQr = d.enableWifiQr
             if (typeof d.enableFocusTimer === "boolean") root.enableFocusTimer = d.enableFocusTimer
             if (typeof d.enableContainerMonitor === "boolean") root.enableContainerMonitor = d.enableContainerMonitor
+            if (Array.isArray(d.enabledPlugins)) root.enabledPlugins = d.enabledPlugins
             if (root.customHyprStyle) root.applyHyprStyle()
             root.applyInputSettings()
             if (root.nightLightEnabled) root.applyNightLight()

@@ -1457,6 +1457,64 @@ Item {
                                 }
                             }
                         }
+
+                        Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
+
+                        RowLayout {
+                            width: parent.width
+                            Text { text: "Yerel Eklenti Yuvası"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
+                            Rectangle {
+                                implicitWidth: 92; implicitHeight: 24; radius: Theme.radiusSmall
+                                color: plOpenMa.containsMouse ? Theme.surfaceHover : Theme.surface1
+                                border.color: plOpenMa.containsMouse ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                Text { anchors.centerIn: parent; text: "Klasörü Aç"; color: Theme.accent; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+                                MouseArea { id: plOpenMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: PluginState.openPluginsDir() }
+                            }
+                            Rectangle {
+                                implicitWidth: 64; implicitHeight: 24; radius: Theme.radiusSmall
+                                color: plRefMa.containsMouse ? Theme.surfaceHover : Theme.surface1
+                                border.color: plRefMa.containsMouse ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                Text { anchors.centerIn: parent; text: "Yenile"; color: Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true }
+                                MouseArea { id: plRefMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: PluginState.refresh() }
+                            }
+                        }
+
+                        Rectangle {
+                            width: parent.width; height: 42; radius: Theme.radiusButton
+                            visible: PluginState.plugins.length === 0
+                            color: Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
+                            Text {
+                                anchors.centerIn: parent
+                                text: "Özel eklenti bulunamadı · " + PluginState.pluginsDir
+                                color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 11; elide: Text.ElideMiddle; width: parent.width - 20; horizontalAlignment: Text.AlignHCenter
+                            }
+                        }
+
+                        Repeater {
+                            model: PluginState.plugins
+                            delegate: Rectangle {
+                                id: lpRow
+                                required property var modelData
+                                readonly property bool isOn: SettingsState.isPluginEnabled(modelData.id)
+                                width: systemCol.width; height: 48; radius: Theme.radiusButton
+                                color: lpMa.containsMouse ? Theme.surfaceHover : Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
+
+                                RowLayout {
+                                    anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
+                                    Text { text: "󰏗"; color: lpRow.isOn ? Theme.accent : Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 15 }
+                                    Column {
+                                        Layout.fillWidth: true; spacing: 2
+                                        Text { width: parent.width; text: lpRow.modelData.name; color: Theme.textPrimary; font.family: Theme.fontFamily; font.pixelSize: 12; font.bold: true; elide: Text.ElideRight }
+                                        Text { width: parent.width; text: lpRow.modelData.description; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; elide: Text.ElideRight }
+                                    }
+                                    DynamicSwitch { checked: lpRow.isOn }
+                                }
+                                MouseArea {
+                                    id: lpMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                    onClicked: SettingsState.togglePluginEnabled(lpRow.modelData.id, lpRow.modelData.name)
+                                }
+                            }
+                        }
                     }
                 }
             }
