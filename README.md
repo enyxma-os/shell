@@ -83,6 +83,7 @@ enyxma.shell.enable = true;
 ├── .gitleaks.toml                  # Gizli anahtar tarama yapılandırması
 ├── AGENTS.md                       # Ajan çalışma ve mimari kuralları
 ├── Justfile                        # Geliştirici ve CI/CD görev otomasyonu
+├── LICENSE                         # GPL-3.0-or-later lisans metni
 ├── README.md                       # Proje dokümantasyonu
 ├── VERSION                         # Sürüm numarası
 ├── flake.lock                      # Bağımlılık kilit dosyası
@@ -180,4 +181,4 @@ nix develop -c just run
 
 ## 📜 Lisans
 
-GPL-3.0-or-later — Enyxma OS masaüstü bileşenidir.
+GPL-3.0-or-later — Ayrıntılar için [LICENSE](./LICENSE) dosyasına bakın. Telif Hakkı © 2026 Enyxma OS Contributors.
