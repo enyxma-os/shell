@@ -122,7 +122,7 @@ Singleton {
 
     Process {
         id: hwmonDetectProc
-        command: ["find", "/sys/class/hwmon", "-maxdepth", "2", "-name", "name", "-exec", "head", "-n", "1", "{}", "+"]
+        command: ["find", "-L", "/sys/class/hwmon", "-maxdepth", "2", "-name", "name", "-exec", "head", "-n", "1", "{}", "+"]
         running: true
         stdout: StdioCollector {
             onStreamFinished: {
@@ -143,6 +143,7 @@ Singleton {
                         curDir = ""
                     }
                 }
+                if (root.isOpen) root.pollTemps()
             }
         }
     }
@@ -257,7 +258,9 @@ Singleton {
         if (low === "firefox" || low === ".firefox-wrappe") return "Firefox"
         if (low === "kitty") return "Kitty"
         if (low === "foot") return "Foot"
-        if (low === "hyprland") return "Hyprland"
+        if (low === "hyprland" || low.indexOf(".hyprland-wrap") === 0) return "Hyprland"
+        if (low.indexOf(".blueman-tray") === 0) return "Blueman"
+        if (low.indexOf(".libvirtd-wrap") === 0) return "libvirtd"
         if (low === "thunar") return "Thunar"
         if (low === "keepassxc") return "KeePassXC"
         if (low === "discord" || low === "vesktop") return "Discord"
@@ -283,7 +286,7 @@ Singleton {
 
             var appName = root.humanAppName(comm)
             var low = comm.toLowerCase()
-            var protectedApp = (low === "hyprland" || low === ".quickshell-wra" || low === "quickshell" || low === "systemd" || low === "dbus-daemon")
+            var protectedApp = (low === "hyprland" || low.indexOf(".hyprland-wrap") === 0 || low === ".quickshell-wra" || low === "quickshell" || low === "systemd" || low === "dbus-daemon")
 
             if (!groups[appName]) {
                 groups[appName] = {
@@ -401,7 +404,7 @@ Singleton {
     Process {
         id: gpuDetectProc
         running: false
-        command: ["find", "/sys/class/drm", "-maxdepth", "2", "-name", "device", "-type", "d"]
+        command: ["find", "-L", "/sys/class/drm", "-maxdepth", "2", "-name", "device", "-type", "d"]
         stdout: StdioCollector {
             onStreamFinished: {
                 var lines = String(this.text || "").trim().split("\n")
