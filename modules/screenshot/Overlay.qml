@@ -123,7 +123,7 @@ Item {
                 running = false;
                 overlay.ready = true;
                 overlay.frozen();
-            } else {
+            } else if (tries >= 2) {
                 shot.captureFrame();
             }
         }
@@ -295,17 +295,25 @@ Item {
     MouseArea {
         id: input
         anchors.fill: parent
-        enabled: overlay.ready
+        enabled: true
         hoverEnabled: true
         acceptedButtons: Qt.LeftButton
-        cursorShape: Qt.CrossCursor
-        onPressed: (m) => overlay.pressedAt(m.x + overlay.sx, m.y + overlay.sy, m.modifiers)
+        cursorShape: overlay.ready ? Qt.CrossCursor : Qt.BlankCursor
+        onPressed: (m) => {
+            if (!overlay.ready) return;
+            overlay.pressedAt(m.x + overlay.sx, m.y + overlay.sy, m.modifiers);
+        }
         onPositionChanged: (m) => {
+            if (!overlay.ready) return;
             if (overlay.capturing) overlay.movedTo(m.x + overlay.sx, m.y + overlay.sy, m.modifiers);
             else overlay.hovered(m.x + overlay.sx, m.y + overlay.sy);
         }
-        onReleased: overlay.released()
+        onReleased: {
+            if (!overlay.ready) return;
+            overlay.released();
+        }
         onWheel: (w) => {
+            if (!overlay.ready) return;
             if (w.angleDelta.y === 0) return;
             overlay.wheeled(w.angleDelta.y > 0 ? 1 : -1);
             w.accepted = true;
