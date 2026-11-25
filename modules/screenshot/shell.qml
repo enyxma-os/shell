@@ -217,6 +217,19 @@ ShellRoot {
 
     function beginDraw(gx, gy) {
         if (!globalSel) return;
+        if (activeTool === "select") {
+            var hitIdx = Hit.hitTest(model.items, gx, gy);
+            if (hitIdx >= 0) {
+                selectedIndex = hitIdx;
+                pressPoint = { x: gx, y: gy };
+                moveOffset = { x: 0, y: 0 };
+                capturing = true;
+            } else {
+                clearSelection();
+            }
+            bumpAnn();
+            return;
+        }
         if (activeTool === "text") {
             placeText(gx, gy);
             return;
@@ -238,10 +251,16 @@ ShellRoot {
             filled: activeFill,
             rough: activeRough
         };
+        capturing = true;
         bumpAnn();
     }
 
     function updateDraw(gx, gy, mods) {
+        if (activeTool === "select" && selectedIndex !== null && pressPoint) {
+            moveOffset = { x: gx - pressPoint.x, y: gy - pressPoint.y };
+            bumpAnn();
+            return;
+        }
         if (!draft) return;
         var p = { x: gx, y: gy };
         if (mods & Qt.ShiftModifier) p = Constrain.constrain(draft.type, draft.points[0], p);
@@ -254,6 +273,23 @@ ShellRoot {
     }
 
     function endDraw() {
+        capturing = false;
+        if (activeTool === "select") {
+            if (selectedIndex !== null && moveOffset
+                && selectedIndex >= 0 && selectedIndex < model.items.length
+                && Math.hypot(moveOffset.x, moveOffset.y) > 1) {
+                model.commit();
+                var item = model.items[selectedIndex];
+                for (var i = 0; i < item.points.length; i++) {
+                    item.points[i].x += moveOffset.x;
+                    item.points[i].y += moveOffset.y;
+                }
+            }
+            moveOffset = null;
+            pressPoint = null;
+            bumpAnn();
+            return;
+        }
         if (!draft) return;
         var d = draft;
         draft = null;

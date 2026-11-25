@@ -305,7 +305,7 @@ Item {
         }
         onPositionChanged: (m) => {
             if (!overlay.ready) return;
-            if (overlay.capturing) overlay.movedTo(m.x + overlay.sx, m.y + overlay.sy, m.modifiers);
+            if (overlay.capturing || pressed) overlay.movedTo(m.x + overlay.sx, m.y + overlay.sy, m.modifiers);
             else overlay.hovered(m.x + overlay.sx, m.y + overlay.sy);
         }
         onReleased: {
