@@ -84,7 +84,7 @@ Singleton {
         stdout: StdioCollector { id: psOut }
         onExited: (code) => {
             if (code !== 0) {
-                root.lastError = root.engine + " servisine erişilemedi"
+                root.lastError = root.engine + I18n.t(" servisine erişilemedi", " service unreachable")
                 root.containers = []
                 return
             }
@@ -137,7 +137,7 @@ Singleton {
         running: false
         onExited: (code) => {
             root.busyId = ""
-            if (code !== 0) root.lastError = "Konteyner işlemi başarısız"
+            if (code !== 0) root.lastError = I18n.t("Konteyner işlemi başarısız", "Container action failed")
             root.refresh()
         }
     }

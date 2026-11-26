@@ -23,7 +23,7 @@ Item {
 
             // ── BÖLÜM: İNDİR ──
             Text {
-                text: "İNDİR"
+                text: I18n.t("İNDİR", "DOWNLOAD")
                 color: Theme.textSecondary
                 font.family: Theme.fontMono
                 font.pixelSize: 9
@@ -51,7 +51,7 @@ Item {
                         spacing: 2
 
                         Text {
-                            text: "Cobalt motoru"
+                            text: I18n.t("Cobalt motoru", "Cobalt engine")
                             color: Theme.textPrimary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeSmall
@@ -59,7 +59,7 @@ Item {
                         }
 
                         Text {
-                            text: "Docker gerekli. `enyxma update` yükler"
+                            text: I18n.t("Docker gerekli. `enyxma update` yükler", "Requires Docker. `enyxma update` installs it")
                             color: Theme.textMuted
                             font.family: Theme.fontFamily
                             font.pixelSize: 9
@@ -142,7 +142,7 @@ Item {
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
                             visible: urlInput.text.length === 0
-                            text: "İndirmek için bir bağlantı yapıştırın"
+                            text: I18n.t("İndirmek için bir bağlantı yapıştırın", "Paste a link to download")
                             color: Theme.textMuted
                             font: urlInput.font
                         }
@@ -158,11 +158,14 @@ Item {
                 spacing: Theme.spacingSmall
 
                 Repeater {
-                    model: [
-                        { id: "auto", label: "Otomatik" },
-                        { id: "audio", label: "Ses" },
-                        { id: "mute", label: "Sessiz" }
-                    ]
+                    model: {
+                        var _l = I18n.lang
+                        return [
+                            { id: "auto", label: I18n.t("Otomatik", "Auto") },
+                            { id: "audio", label: I18n.t("Ses", "Audio") },
+                            { id: "mute", label: I18n.t("Sessiz", "Mute") }
+                        ]
+                    }
 
                     delegate: Rectangle {
                         id: modePill
@@ -225,7 +228,7 @@ Item {
                     }
 
                     Text {
-                        text: ToolsState.isDownloading ? "İndiriliyor..." : "İndir"
+                        text: ToolsState.isDownloading ? I18n.t("İndiriliyor...", "Downloading...") : I18n.t("İndir", "Download")
                         color: parent.parent.canDownload ? Theme.textPrimary : Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
@@ -269,7 +272,7 @@ Item {
                         }
 
                         Text {
-                            text: "YT-DLP TARAFINDAN YAPILDI"
+                            text: I18n.t("YT-DLP TARAFINDAN YAPILDI", "POWERED BY YT-DLP")
                             color: Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: 8
@@ -280,7 +283,7 @@ Item {
 
                     Text {
                         Layout.fillWidth: true
-                        text: "YouTube, Twitter/X, Reddit, TikTok ve daha birçoğu da dahil 1000+ sitede çalışır."
+                        text: I18n.t("YouTube, Twitter/X, Reddit, TikTok ve daha birçoğu da dahil 1000+ sitede çalışır.", "Works on 1000+ sites including YouTube, Twitter/X, Reddit, TikTok, and more.")
                         color: Theme.textSecondary
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
@@ -296,7 +299,7 @@ Item {
                 spacing: Theme.spacingSmall
 
                 Text {
-                    text: "SON İNDİRİLENLER"
+                    text: I18n.t("SON İNDİRİLENLER", "RECENT DOWNLOADS")
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 9
@@ -306,7 +309,7 @@ Item {
 
                 Text {
                     visible: ToolsState.recentDownloads.length === 0
-                    text: "Henüz bir şey indirilmedi. Aldığınız bağlantılar buraya gelir."
+                    text: I18n.t("Henüz bir şey indirilmedi. Aldığınız bağlantılar buraya gelir.", "Nothing downloaded yet. Links you grab will appear here.")
                     color: Theme.textMuted
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -378,7 +381,7 @@ Item {
                 spacing: Theme.spacingSmall
 
                 Text {
-                    text: "DÖNÜŞTÜR VE YÜKLE"
+                    text: I18n.t("DÖNÜŞTÜR VE YÜKLE", "CONVERT & INSTALL")
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 9
@@ -407,7 +410,7 @@ Item {
                         }
 
                         Text {
-                            text: "Videoyu sıkıştır..."
+                            text: I18n.t("Videoyu sıkıştır...", "Compress video...")
                             color: Theme.textPrimary
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall
@@ -444,7 +447,7 @@ Item {
                         }
 
                         Text {
-                            text: "Uygulama kur..."
+                            text: I18n.t("Uygulama kur...", "Install package...")
                             color: Theme.textPrimary
                             font.family: Theme.fontFamily
                             font.pixelSize: Theme.fontSizeSmall

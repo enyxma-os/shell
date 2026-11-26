@@ -273,7 +273,7 @@ Item {
                     spacing: 4
 
                     Text {
-                        text: "Uygulamalar"
+                        text: I18n.t("Uygulamalar", "Applications")
                         color: Theme.textPrimary
                         font.family: Theme.fontMono
                         font.pixelSize: Theme.fontSizeSmall
@@ -316,7 +316,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Text { text: "Uygulama"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
+                    Text { text: I18n.t("Uygulama", "Application"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
                     Text { text: "CPU"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 42 }
                     Text { text: "RAM"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 56 }
                     Item { Layout.preferredWidth: 20 }

@@ -79,11 +79,14 @@ Item {
                 }
                 spacing: 6
 
-                readonly property var tabs: [
-                    { id: "chat", icon: "󰭹", label: "Sohbet" },
-                    { id: "usage", icon: "󰄪", label: "Kullanım" },
-                    { id: "tools", icon: "󰇚", label: "Araçlar" }
-                ]
+                readonly property var tabs: {
+                    var _l = I18n.lang
+                    return [
+                        { id: "chat", icon: "󰭹", label: I18n.t("Sohbet", "Chat") },
+                        { id: "usage", icon: "󰄪", label: I18n.t("Kullanım", "Usage") },
+                        { id: "tools", icon: "󰇚", label: I18n.t("Araçlar", "Tools") }
+                    ]
+                }
 
                 Repeater {
                     model: parent.tabs

@@ -106,7 +106,7 @@ PanelWindow {
                         }
 
                         Text {
-                            text: MediaState.identity || "Medya"
+                            text: MediaState.identity || I18n.t("Medya", "Media")
                             color: Theme.textPrimary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeSmall
@@ -251,7 +251,7 @@ PanelWindow {
                         Layout.fillWidth: true
 
                         Text {
-                            text: MediaState.isPlaying ? "OYNATILIYOR" : "DURAKLATILDI"
+                            text: MediaState.isPlaying ? I18n.t("OYNATILIYOR", "PLAYING") : I18n.t("DURAKLATILDI", "PAUSED")
                             color: MediaState.isPlaying ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeSmall - 1
@@ -305,7 +305,7 @@ PanelWindow {
 
                     // Parça Başlığı
                     Text {
-                        text: MediaState.trackTitle.length > 0 ? MediaState.trackTitle : "Parça Çalmıyor"
+                        text: MediaState.trackTitle.length > 0 ? MediaState.trackTitle : I18n.t("Parça Çalmıyor", "Nothing Playing")
                         color: Theme.textPrimary
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeNormal + 1
@@ -316,7 +316,7 @@ PanelWindow {
 
                     // Sanatçı / Kanal
                     Text {
-                        text: MediaState.artist.length > 0 ? MediaState.artist : (MediaState.hasMedia ? "Bilinmeyen Sanatçı" : "—")
+                        text: MediaState.artist.length > 0 ? MediaState.artist : (MediaState.hasMedia ? I18n.t("Bilinmeyen Sanatçı", "Unknown Artist") : "—")
                         color: Theme.textSecondary
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall

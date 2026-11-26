@@ -4,7 +4,7 @@ set shell := ["bash", "-e", "-o", "pipefail", "-c"]
 default: verify
 
 # ── Ajan Doğrulama Protokolü (AGENTS.md Bölüm 3) ───────────────────────
-verify: check-shell check-leaks check-qmldir lint
+verify: check-shell check-leaks check-qmldir check-imports lint
     @echo "✅ Tüm statik doğrulamalar geçti."
 
 # 1. Kabuk enjeksiyonu / RCE yüzeyi taraması (P0 kapısı)
@@ -39,12 +39,28 @@ check-qmldir:
     @echo "🔍 Singleton qmldir kayıtları..."
     @test -f services/qmldir || { echo "❌ services/qmldir yok"; exit 1; }
     @for f in services/*.qml; do \
-        [ -e "$$f" ] || continue ; \
-        name=`basename "$$f" .qml` ; \
-        grep -q "singleton $$name " services/qmldir || \
-            { echo "❌ HATA: $$name qmldir içinde kayıtlı değil!" ; exit 1 ; } ; \
+        [ -e "$f" ] || continue ; \
+        name=`basename "$f" .qml` ; \
+        grep -q "singleton $name " services/qmldir || \
+            { echo "❌ HATA: $name qmldir içinde kayıtlı değil!" ; exit 1 ; } ; \
     done
     @echo "  ✔ tümü kayıtlı"
+
+# 3b. Singleton ve I18n import kapısı
+check-imports:
+    @echo "🔍 Singleton ve I18n import kontrolleri..."
+    @for f in services/*.qml; do \
+        [ -e "$f" ] || continue ; \
+        if grep -q 'Singleton {' "$f" && ! grep -q '^import Quickshell' "$f"; then \
+            echo "❌ HATA: $f Singleton kullanıyor ama 'import Quickshell' eksik!" ; exit 1 ; \
+        fi ; \
+    done
+    @for f in `find modules widgets -name '*.qml'`; do \
+        if grep -q 'I18n\.t(' "$f" && ! grep -qE '^import "(\.\./\.\./|\.\./)?services"' "$f"; then \
+            echo "❌ HATA: $f I18n.t() kullanıyor ama services import eksik!" ; exit 1 ; \
+        fi ; \
+    done
+    @echo "  ✔ importlar temiz"
 
 # 4. QML sözdizimi — sabit /nix/store yolu YOK (R1: her nixpkgs
 #    güncellemesinde kırılıyordu).

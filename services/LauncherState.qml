@@ -14,31 +14,37 @@ Singleton {
     property bool clipboardLoading: false
     property string pendingClipId: ""
 
-    readonly property var modes: [
-        { id: "apps",      label: "Uygulamalar", icon: "󰀻" },
-        { id: "actions",   label: "Komutlar",    icon: "󰘳" },
-        { id: "clipboard", label: "Pano",        icon: "󰅍" }
-    ]
+    readonly property var modes: {
+        var _l = I18n.lang
+        return [
+            { id: "apps",      label: I18n.t("Uygulamalar", "Apps"),     icon: "󰀻" },
+            { id: "actions",   label: I18n.t("Komutlar", "Commands"),    icon: "󰘳" },
+            { id: "clipboard", label: I18n.t("Pano", "Clipboard"),       icon: "󰅍" }
+        ]
+    }
 
-    readonly property var systemActions: [
-        { id: "theme-cycle",       title: "Tema Değiştir — Dynamic / Gotham",      subtitle: "Aktif masaüstü tasarım kimliğini ve renk motorunu değiştirir",      icon: "󰏘", badge: "SUPER + T" },
-        { id: "wallpaper-picker",  title: "Duvar Kağıdı Koleksiyonu",              subtitle: "Temaya özel duvar kağıdı galerisini açar",                         icon: "󰸉", badge: "SUPER + SHIFT + T" },
-        { id: "screenshot-studio", title: "Ekran Alıntısı ve Çizim Stüdyosu",      subtitle: "Bölge seçimi, ok, kutu, sansür ve çerçeveleme aracı",              icon: "󰄀", badge: "SUPER + SHIFT + S" },
-        { id: "overview",          title: "Genel Bakış — Masaüstü Şeridi",         subtitle: "Tüm açık pencereleri ve çalışma alanlarını yönetir",               icon: "󰕮", badge: "SUPER + TAB" },
-        { id: "control-center",    title: "Kontrol Merkezi",                       subtitle: "Ses, parlaklık, gece ışığı, Bluetooth ve hızlı ayarlar",           icon: "󰒓", badge: "SUPER + D" },
-        { id: "enyxma-settings",   title: "Enyxma Ayarlar",                        subtitle: "Görünüm, üst çubuk modülleri, kısayollar ve sistem tercihleri",   icon: "󰒓", badge: "SUPER + I" },
-        { id: "ai-assistant",      title: "Enyxma AI Kenar Çubuğu",                subtitle: "Yapay zeka sohbet, araçlar ve kullanım paneli",                    icon: "󰧑", badge: "SUPER + S" },
-        { id: "performance-panel", title: "Sistem Performans ve Telemetri Paneli",  subtitle: "Canlı CPU, RAM ve süreç kaynak kullanımı",                         icon: "󰍛", badge: "TELEMETRİ" },
-        { id: "network-panel",     title: "Ağ ve Bağlantı Yönetimi",               subtitle: "Wi-Fi, Ethernet ve veri akışı bilgileri",                          icon: "󰤨", badge: "AĞ" },
-        { id: "storage-panel",     title: "Depolama ve Disk Durumu",               subtitle: "Btrfs bölümleri ve disk doluluk analizi",                          icon: "󰋊", badge: "DİSK" },
-        { id: "media-gallery",     title: "Ekran Görüntüsü ve Medya Galerisi",     subtitle: "Kaydedilen ekran alıntılarını ve videoları görüntüler",            icon: "󰋩", badge: "GALERİ" },
-        { id: "system-update",     title: "Enyxma OS Sistem Güncellemesi",         subtitle: "Uzak depodan son değişiklikleri çeker ve sistemi yeni nesle yükseltir", icon: "󰚰", badge: "enyxma update" },
-        { id: "clipboard-wipe",    title: "Pano Geçmişini Temizle",                subtitle: "Kaydedilen tüm cliphist pano kayıtlarını sıfırlar",                icon: "󰃢", badge: "TEMİZLE" },
-        { id: "lock-screen",       title: "Ekranı Kilitle",                        subtitle: "Hyprlock ile oturumu güvenli şekilde kilitler",                    icon: "󰌾", badge: "SUPER + L" },
-        { id: "suspend-system",    title: "Uyku Moduna Geç",                       subtitle: "Sistemi düşük güç tüketimli askı durumuna alır",                   icon: "󰒲", badge: "UYKU" },
-        { id: "reboot-system",     title: "Sistemi Yeniden Başlat",                subtitle: "Bilgisayarı güvenli biçimde yeniden başlatır",                     icon: "󰑓", badge: "REBOOT" },
-        { id: "poweroff-system",   title: "Sistemi Kapat",                         subtitle: "Tüm servisleri durdurup bilgisayarı kapatır",                      icon: "⏻", badge: "KAPAT" }
-    ]
+    readonly property var systemActions: {
+        var _l = I18n.lang
+        return [
+            { id: "theme-cycle",       title: I18n.t("Tema Değiştir — Dynamic / Gotham", "Cycle Theme — Dynamic / Gotham"),         subtitle: I18n.t("Aktif masaüstü tasarım kimliğini ve renk motorunu değiştirir", "Switches active desktop visual identity and color engine"),      icon: "󰏘", badge: "SUPER + T" },
+            { id: "wallpaper-picker",  title: I18n.t("Duvar Kağıdı Koleksiyonu", "Wallpaper Collection"),                            subtitle: I18n.t("Temaya özel duvar kağıdı galerisini açar", "Opens theme-specific wallpaper gallery"),                                         icon: "󰸉", badge: "SUPER + SHIFT + T" },
+            { id: "screenshot-studio", title: I18n.t("Ekran Alıntısı ve Çizim Stüdyosu", "Screenshot & Annotation Studio"),          subtitle: I18n.t("Bölge seçimi, ok, kutu, sansür ve çerçeveleme aracı", "Region selection, arrows, boxes, redaction, and framing tool"),          icon: "󰄀", badge: "SUPER + SHIFT + S" },
+            { id: "overview",          title: I18n.t("Genel Bakış — Masaüstü Şeridi", "Overview — Workspace Strip"),                 subtitle: I18n.t("Tüm açık pencereleri ve çalışma alanlarını yönetir", "Manages all open windows and workspaces"),                               icon: "󰕮", badge: "SUPER + TAB" },
+            { id: "control-center",    title: I18n.t("Kontrol Merkezi", "Control Center"),                                           subtitle: I18n.t("Ses, parlaklık, gece ışığı, Bluetooth ve hızlı ayarlar", "Volume, brightness, night light, Bluetooth, and quick settings"),       icon: "󰒓", badge: "SUPER + D" },
+            { id: "enyxma-settings",   title: I18n.t("Enyxma Ayarlar", "Enyxma Settings"),                                           subtitle: I18n.t("Görünüm, üst çubuk modülleri, kısayollar ve sistem tercihleri", "Appearance, top bar modules, shortcuts, and system preferences"),   icon: "󰒓", badge: "SUPER + I" },
+            { id: "ai-assistant",      title: I18n.t("Enyxma AI Kenar Çubuğu", "Enyxma AI Sidebar"),                                 subtitle: I18n.t("Yapay zeka sohbet, araçlar ve kullanım paneli", "AI chat, tools, and usage panel"),                                                icon: "󰧑", badge: "SUPER + S" },
+            { id: "performance-panel", title: I18n.t("Sistem Performans ve Telemetri Paneli", "System Performance & Telemetry"),     subtitle: I18n.t("Canlı CPU, RAM ve süreç kaynak kullanımı", "Live CPU, RAM, and process resource usage"),                                       icon: "󰍛", badge: I18n.t("TELEMETRİ", "TELEMETRY") },
+            { id: "network-panel",     title: I18n.t("Ağ ve Bağlantı Yönetimi", "Network & Connection Manager"),                     subtitle: I18n.t("Wi-Fi, Ethernet ve veri akışı bilgileri", "Wi-Fi, Ethernet, and data flow details"),                                         icon: "󰤨", badge: I18n.t("AĞ", "NETWORK") },
+            { id: "storage-panel",     title: I18n.t("Depolama ve Disk Durumu", "Storage & Disk Status"),                            subtitle: I18n.t("Btrfs bölümleri ve disk doluluk analizi", "Btrfs partitions and disk usage analysis"),                                       icon: "󰋊", badge: I18n.t("DİSK", "STORAGE") },
+            { id: "media-gallery",     title: I18n.t("Ekran Görüntüsü ve Medya Galerisi", "Screenshot & Media Gallery"),             subtitle: I18n.t("Kaydedilen ekran alıntılarını ve videoları görüntüler", "Views saved screenshots and videos"),                                       icon: "󰋩", badge: I18n.t("GALERİ", "GALLERY") },
+            { id: "system-update",     title: I18n.t("Enyxma OS Sistem Güncellemesi", "Enyxma OS System Update"),                    subtitle: I18n.t("Uzak depodan son değişiklikleri çeker ve sistemi yeni nesle yükseltir", "Pulls latest changes from remote and upgrades the system"), icon: "󰚰", badge: "enyxma update" },
+            { id: "clipboard-wipe",    title: I18n.t("Pano Geçmişini Temizle", "Clear Clipboard History"),                           subtitle: I18n.t("Kaydedilen tüm cliphist pano kayıtlarını sıfırlar", "Resets all saved cliphist clipboard entries"),                                icon: "󰃢", badge: I18n.t("TEMİZLE", "CLEAR") },
+            { id: "lock-screen",       title: I18n.t("Ekranı Kilitle", "Lock Screen"),                                               subtitle: I18n.t("Hyprlock ile oturumu güvenli şekilde kilitler", "Securely locks the session with Hyprlock"),                                       icon: "󰌾", badge: "SUPER + L" },
+            { id: "suspend-system",    title: I18n.t("Uyku Moduna Geç", "Suspend System"),                                           subtitle: I18n.t("Sistemi düşük güç tüketimli askı durumuna alır", "Puts the system into low-power suspend state"),                                   icon: "󰒲", badge: I18n.t("UYKU", "SUSPEND") },
+            { id: "reboot-system",     title: I18n.t("Sistemi Yeniden Başlat", "Reboot System"),                                     subtitle: I18n.t("Bilgisayarı güvenli biçimde yeniden başlatır", "Safely reboots the computer"),                                                      icon: "󰑓", badge: "REBOOT" },
+            { id: "poweroff-system",   title: I18n.t("Sistemi Kapat", "Power Off System"),                                           subtitle: I18n.t("Tüm servisleri durdurup bilgisayarı kapatır", "Stops all services and powers off the computer"),                                     icon: "⏻", badge: I18n.t("KAPAT", "POWER OFF") }
+        ]
+    }
 
     onIsOpenChanged: {
         WallpaperState.dimLevel = (isOpen || AIState.isOpen) ? 0.3 : 0.0
@@ -228,7 +234,7 @@ Singleton {
                     if (id.length === 0) continue
                     items.push({
                         id: id,
-                        preview: preview.length > 0 ? preview : "İkili veya boş içerik"
+                        preview: preview.length > 0 ? preview : I18n.t("İkili veya boş içerik", "Binary or empty content")
                     })
                 }
                 root.clipboardItems = items
@@ -249,7 +255,7 @@ Singleton {
             onStreamFinished: {
                 if (this.text && this.text.length > 0) {
                     Quickshell.execDetached(["wl-copy", "--", this.text])
-                    Quickshell.execDetached(["notify-send", "-a", "Enyxma", "-t", "1800", "Pano", "Seçilen öğe panoya kopyalandı"])
+                    Quickshell.execDetached(["notify-send", "-a", "Enyxma", "-t", "1800", I18n.t("Pano", "Clipboard"), I18n.t("Seçilen öğe panoya kopyalandı", "Selected item copied to clipboard")])
                 }
             }
         }
@@ -261,7 +267,7 @@ Singleton {
         onExited: (code) => {
             if (code === 0) {
                 root.clipboardItems = []
-                Quickshell.execDetached(["notify-send", "-a", "Enyxma", "-t", "1800", "Pano", "Pano geçmişi temizlendi"])
+                Quickshell.execDetached(["notify-send", "-a", "Enyxma", "-t", "1800", I18n.t("Pano", "Clipboard"), I18n.t("Pano geçmişi temizlendi", "Clipboard history cleared")])
             }
         }
     }
@@ -335,10 +341,10 @@ Singleton {
                 kind: "clipboard",
                 id: clip.id,
                 title: clip.preview,
-                subtitle: "Pano kaydı #" + clip.id,
+                subtitle: I18n.t("Pano kaydı #", "Clipboard entry #") + clip.id,
                 iconName: "",
                 iconGlyph: "󰅍",
-                badge: "KOPYALA",
+                badge: I18n.t("KOPYALA", "COPY"),
                 entry: null
             }))
         }

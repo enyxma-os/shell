@@ -117,10 +117,10 @@ PanelWindow {
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
             text: root.filterText
-                  ? ("Eşleşen medya bulunamadı: \"" + root.filterText + "\"")
+                  ? (I18n.t("Eşleşen medya bulunamadı: \"", "No matching media found: \"") + root.filterText + "\"")
                   : (MediaBrowserState.mode === "videos"
-                     ? "Henüz ekran kaydı bulunamadı (~/Videos/Recordings)"
-                     : "Henüz ekran görüntüsü bulunamadı (~/Pictures/Screenshots)")
+                     ? I18n.t("Henüz ekran kaydı bulunamadı — ~/Videos/Recordings", "No screen recordings yet — ~/Videos/Recordings")
+                     : I18n.t("Henüz ekran görüntüsü bulunamadı — ~/Pictures/Screenshots", "No screenshots yet — ~/Pictures/Screenshots"))
             color: Theme.textSecondary
             font.family: Theme.fontMono
             font.pixelSize: Theme.fontSizeLarge
@@ -128,7 +128,7 @@ PanelWindow {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Kapatmak için Esc veya boşluğa tıklayın"
+            text: I18n.t("Kapatmak için Esc veya boşluğa tıklayın", "Press Esc or click outside to close")
             color: Theme.textMuted
             font.family: Theme.fontMono
             font.pixelSize: Theme.fontSizeNormal
@@ -233,7 +233,7 @@ PanelWindow {
             Text {
                 anchors.left: parent.left
                 anchors.verticalCenter: parent.verticalCenter
-                text: MediaBrowserState.mode === "videos" ? "EKRAN KAYITLARI / VİDEOLAR" : "EKRAN GÖRÜNTÜLERİ"
+                text: MediaBrowserState.mode === "videos" ? I18n.t("EKRAN KAYITLARI / VİDEOLAR", "SCREEN RECORDINGS / VIDEOS") : I18n.t("EKRAN GÖRÜNTÜLERİ", "SCREENSHOTS")
                 color: Theme.textSecondary
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall
@@ -440,7 +440,7 @@ PanelWindow {
             Text {
                 visible: root.filterText.length > 0 && !root.confirmDelete
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "Filtre: " + root.filterText
+                text: I18n.t("Filtre: ", "Filter: ") + root.filterText
                 color: Theme.accent
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeNormal
@@ -452,7 +452,9 @@ PanelWindow {
             Text {
                 visible: root.confirmDelete
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "Bu " + (MediaBrowserState.mode === "videos" ? "video" : "ekran görüntüsü") + " silinsin mi?   Onaylamak için tekrar Del  ·  İptal için Esc"
+                text: MediaBrowserState.mode === "videos"
+                    ? I18n.t("Bu video silinsin mi?   Onaylamak için tekrar Del  ·  İptal için Esc", "Delete this video?   Press Del again to confirm  ·  Esc to cancel")
+                    : I18n.t("Bu ekran görüntüsü silinsin mi?   Onaylamak için tekrar Del  ·  İptal için Esc", "Delete this screenshot?   Press Del again to confirm  ·  Esc to cancel")
                 color: Theme.danger
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall
@@ -464,7 +466,7 @@ PanelWindow {
             Text {
                 visible: !root.confirmDelete && MediaBrowserState.toastText.length === 0
                 anchors.horizontalCenter: parent.horizontalCenter
-                text: "← →  gezin     Enter  aç     Ctrl+B  ✦ güzelleştir     Ctrl+C  kopyala     Del  sil     Esc"
+                text: I18n.t("← →  gezin     Enter  aç     Ctrl+B  ✦ güzelleştir     Ctrl+C  kopyala     Del  sil     Esc", "← →  navigate     Enter  open     Ctrl+B  ✦ beautify     Ctrl+C  copy     Del  delete     Esc")
                 color: Theme.textMuted
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall

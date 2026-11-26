@@ -19,9 +19,10 @@ Singleton {
     property int completedSessions: 0
 
     readonly property string modeLabel: {
-        if (mode === "short") return "KISA MOLA"
-        if (mode === "long") return "UZUN MOLA"
-        return "ODAK"
+        var _l = I18n.lang
+        if (mode === "short") return I18n.t("KISA MOLA", "SHORT BREAK")
+        if (mode === "long") return I18n.t("UZUN MOLA", "LONG BREAK")
+        return I18n.t("ODAK", "FOCUS")
     }
 
     readonly property string displayText: {
@@ -64,10 +65,10 @@ Singleton {
                 root.running = false
                 if (root.mode === "work") {
                     root.completedSessions++
-                    Quickshell.execDetached(["notify-send", "Enyxma Odak", "Odak oturumu tamamlandı. Mola zamanı!"])
+                    Quickshell.execDetached(["notify-send", I18n.t("Enyxma Odak", "Enyxma Focus"), I18n.t("Odak oturumu tamamlandı. Mola zamanı!", "Focus session completed. Break time!")])
                     root.mode = (root.completedSessions % 4 === 0) ? "long" : "short"
                 } else {
-                    Quickshell.execDetached(["notify-send", "Enyxma Odak", "Mola bitti. Yeni odak oturumuna hazır!"])
+                    Quickshell.execDetached(["notify-send", I18n.t("Enyxma Odak", "Enyxma Focus"), I18n.t("Mola bitti. Yeni odak oturumuna hazır!", "Break is over. Ready for a new focus session!")])
                     root.mode = "work"
                 }
                 root.remainingSeconds = root.durationFor(root.mode)

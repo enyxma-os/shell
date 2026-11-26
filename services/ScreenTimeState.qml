@@ -4,6 +4,7 @@ import Quickshell.Io
 import Quickshell.Hyprland
 import Quickshell.Services.Notifications
 import QtQuick
+import "."
 
 /**
  * ScreenTimeState — yerel ekran süresi takibi.
@@ -48,7 +49,7 @@ Singleton {
     readonly property var weekly: {
         const out = []
         const now = new Date()
-        const dow = ["P", "P", "S", "Ç", "P", "C", "C"]
+        const dow = I18n.isEn ? ["S", "M", "T", "W", "T", "F", "S"] : ["P", "P", "S", "Ç", "P", "C", "C"]
         for (let i = 6; i >= 0; i--) {
             const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i)
             const key = root.dateKey(d)
@@ -79,13 +80,18 @@ Singleton {
         sec = Math.max(0, Math.floor(sec))
         const h = Math.floor(sec / 3600)
         const m = Math.floor((sec % 3600) / 60)
+        if (I18n.isEn) {
+            if (h > 0) return h + "h " + m + "m"
+            if (m > 0) return m + "m"
+            return sec + "s"
+        }
         if (h > 0) return h + "s " + m + "d"
         if (m > 0) return m + "d"
         return sec + "sn"
     }
 
     function lookupApp(cls) {
-        if (!cls) return { name: "Masaüstü", icon: "" }
+        if (!cls) return { name: I18n.t("Masaüstü", "Desktop"), icon: "" }
         const apps = DesktopEntries.applications?.values ?? []
         const lowerCls = cls.toLowerCase()
         for (let i = 0; i < apps.length; i++) {

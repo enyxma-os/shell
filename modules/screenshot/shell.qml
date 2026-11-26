@@ -63,20 +63,23 @@ ShellRoot {
 
     readonly property string defaultPath: generateSavePath()
 
-    readonly property var toolDescriptors: [
-        { id: "select",   key: "s", icon: "select",   label: "Kırp" },
-        { id: "rect",     key: "r", icon: "rect",     label: "Kutu" },
-        { id: "ellipse",  key: "e", icon: "ellipse",  label: "Daire" },
-        { id: "arrow",    key: "a", icon: "arrow",    label: "Ok" },
-        { id: "line",     key: "l", icon: "line",     label: "Çizgi" },
-        { id: "pen",      key: "p", icon: "pen",      label: "Kalem" },
-        { id: "marker",   key: "m", icon: "marker",   label: "Vurgula" },
-        { id: "counter",  key: "n", icon: "counter",  label: "Numara" },
-        { id: "text",     key: "t", icon: "text",     label: "Metin" },
-        { id: "blur",     key: "b", icon: "blur",     label: "Bulanıklaştır" },
-        { id: "redact",   key: "x", icon: "redact",   label: "Sansür" },
-        { id: "magnify",  key: "z", icon: "magnify",  label: "Büyüteç" }
-    ]
+    readonly property var toolDescriptors: {
+        var _l = Theme.lang;
+        return [
+            { id: "select",   key: "s", icon: "select",   label: Theme.t("Kırp", "Select") },
+            { id: "rect",     key: "r", icon: "rect",     label: Theme.t("Kutu", "Rectangle") },
+            { id: "ellipse",  key: "e", icon: "ellipse",  label: Theme.t("Daire", "Ellipse") },
+            { id: "arrow",    key: "a", icon: "arrow",    label: Theme.t("Ok", "Arrow") },
+            { id: "line",     key: "l", icon: "line",     label: Theme.t("Çizgi", "Line") },
+            { id: "pen",      key: "p", icon: "pen",      label: Theme.t("Kalem", "Pen") },
+            { id: "marker",   key: "m", icon: "marker",   label: Theme.t("Vurgula", "Highlighter") },
+            { id: "counter",  key: "n", icon: "counter",  label: Theme.t("Numara", "Counter") },
+            { id: "text",     key: "t", icon: "text",     label: Theme.t("Metin", "Text") },
+            { id: "blur",     key: "b", icon: "blur",     label: Theme.t("Bulanıklaştır", "Blur") },
+            { id: "redact",   key: "x", icon: "redact",   label: Theme.t("Sansür", "Redact") },
+            { id: "magnify",  key: "z", icon: "magnify",  label: Theme.t("Büyüteç", "Magnify") }
+        ];
+    }
 
     function toolHasFill(tool) {
         return tool === "rect" || tool === "ellipse";
@@ -361,7 +364,8 @@ ShellRoot {
         // ayrı execve argümanıdır ve dosya adındaki tırnak/boşluk kaçış gerektirmez.
         Quickshell.execDetached(["enyxma-clip", file]);
         Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-i", file,
-                                 "✦ Ekran Görüntüsü Kopyalandı", "Görsel panoya aktarıldı."]);
+                                 Theme.t("✦ Ekran Görüntüsü Kopyalandı", "✦ Screenshot Copied"),
+                                 Theme.t("Görsel panoya aktarıldı.", "Image copied to clipboard.")]);
         quitTimer.restart();
     }
 
@@ -388,11 +392,12 @@ ShellRoot {
             if (code === 0 && target.length > 0) {
                 Quickshell.execDetached(["enyxma-clip", target]);
                 Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-i", target,
-                                         "✦ Ekran Görüntüsü Kaydedildi", target]);
+                                         Theme.t("✦ Ekran Görüntüsü Kaydedildi", "✦ Screenshot Saved"), target]);
                 Quickshell.execDetached(["quickshell", "ipc", "call", "media-browser", "refresh"]);
             } else {
                 Quickshell.execDetached(["notify-send", "-a", "Enyxma Shot", "-u", "critical",
-                                         "Ekran Görüntüsü Kaydedilemedi", target || "Kopyalama hatası"]);
+                                         Theme.t("Ekran Görüntüsü Kaydedilemedi", "Failed to Save Screenshot"),
+                                         target || Theme.t("Kopyalama hatası", "Copy error")]);
             }
             quitTimer.restart();
         }

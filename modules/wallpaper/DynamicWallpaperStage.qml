@@ -56,10 +56,13 @@ Item {
         spacing: 10
 
         Repeater {
-            model: [
-                { id: "dynamic", label: "✦ DİNAMİK" },
-                { id: "gotham",  label: "🦇 GOTHAM" }
-            ]
+            model: {
+                var _l = I18n.lang
+                return [
+                    { id: "dynamic", label: I18n.t("✦ DİNAMİK", "✦ DYNAMIC") },
+                    { id: "gotham",  label: "🦇 GOTHAM" }
+                ]
+            }
 
             delegate: Rectangle {
                 required property var modelData
@@ -113,7 +116,7 @@ Item {
         Text {
             anchors.left: parent.left
             anchors.verticalCenter: parent.verticalCenter
-            text: "✦ ENYXMA DİNAMİK DUVAR KAĞITLARI"
+            text: I18n.t("✦ ENYXMA DİNAMİK DUVAR KAĞITLARI", "✦ ENYXMA DYNAMIC WALLPAPERS")
             color: Theme.textSecondary
             font.family: Theme.fontDisplay
             font.pixelSize: Theme.fontSizeSmall
@@ -248,7 +251,7 @@ Item {
                         }
 
                         Text {
-                            text: "AKTİF"
+                            text: I18n.t("AKTİF", "ACTIVE")
                             color: Theme.textPrimary
                             font.family: Theme.fontMono
                             font.pixelSize: 10
@@ -308,7 +311,7 @@ Item {
         Text {
             visible: stage.filterText.length > 0
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Filtre: " + stage.filterText
+            text: I18n.t("Filtre: ", "Filter: ") + stage.filterText
             color: Theme.accent
             font.family: Theme.fontMono
             font.pixelSize: Theme.fontSizeNormal
@@ -318,7 +321,7 @@ Item {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "← →  kaydır     Enter  uygula     T  tema değiştir     Esc  kapat     yazarak filtrele"
+            text: I18n.t("← →  kaydır     Enter  uygula     T  tema değiştir     Esc  kapat     yazarak filtrele", "← →  scroll     Enter  apply     T  switch theme     Esc  close     type to filter")
             color: Theme.textMuted
             font.family: Theme.fontMono
             font.pixelSize: Theme.fontSizeSmall

@@ -110,7 +110,7 @@ Row {
             }
 
             Text {
-                text: "YENİ"
+                text: I18n.t("YENİ", "NEW")
                 color: addMa.containsMouse ? Theme.accent : Theme.textSecondary
                 font.family: Theme.fontMono
                 font.pixelSize: 10

@@ -1,9 +1,35 @@
 pragma Singleton
 import Quickshell
+import Quickshell.Io
 import QtQuick
 
 Singleton {
     id: root
+
+    property string lang: "tr"
+
+    function t(trText, enText) {
+        return root.lang === "en" ? enText : trText;
+    }
+
+    function _loadLang() {
+        try {
+            var raw = langFile.text();
+            if (!raw || raw.trim() === "") return;
+            var obj = JSON.parse(raw);
+            if (obj && obj.language === "en") root.lang = "en";
+            else if (obj && obj.language === "tr") root.lang = "tr";
+        } catch (e) {}
+    }
+
+    FileView {
+        id: langFile
+        path: (Quickshell.env("HOME") || "") + "/.config/enyxma/settings.json"
+        printErrors: false
+        onLoaded: root._loadLang()
+    }
+
+    Component.onCompleted: root._loadLang()
 
     readonly property color bgGlass: Qt.rgba(0.07, 0.07, 0.10, 0.80)
     readonly property color bgPanel: Qt.rgba(0.07, 0.08, 0.12, 0.95)
@@ -77,12 +103,15 @@ Singleton {
         { "a": Qt.rgba(0.05, 0.58, 0.53, 1), "b": Qt.rgba(0.07, 0.37, 0.35, 1), "ang": 135 },
         { "a": Qt.rgba(0.09, 0.09, 0.11, 1), "b": Qt.rgba(0.15, 0.15, 0.16, 1), "ang": 135 }
     ]
-    readonly property var mockupLooks: [
-        { "name": "Enyxma Cyber", "cfg": { "bgKind": "preset", "bgPreset": 0, "padding": 88, "roundness": 20, "borderW": 1, "shadowStrength": 50, "shadowBlur": 50, "shadowDist": 20, "shadowAngle": 90 } },
-        { "name": "Derin Uzay",   "cfg": { "bgKind": "preset", "bgPreset": 6, "padding": 96, "roundness": 24, "borderW": 0, "shadowStrength": 45, "shadowBlur": 60, "shadowDist": 24, "shadowAngle": 90 } },
-        { "name": "Neon Menekşe", "cfg": { "bgKind": "preset", "bgPreset": 2, "padding": 88, "roundness": 20, "borderW": 0, "shadowStrength": 48, "shadowBlur": 55, "shadowDist": 22, "shadowAngle": 110 } },
-        { "name": "Minimal Koyu", "cfg": { "bgKind": "solid",  "bgSolid": Qt.rgba(0.043, 0.059, 0.090, 1), "padding": 64, "roundness": 16, "borderW": 1, "shadowStrength": 30, "shadowBlur": 40, "shadowDist": 16, "shadowAngle": 90 } },
-        { "name": "Sade Cam",     "cfg": { "bgKind": "solid",  "bgSolid": Qt.rgba(0.118, 0.161, 0.231, 1), "padding": 72, "roundness": 14, "borderW": 1, "shadowStrength": 25, "shadowBlur": 35, "shadowDist": 12, "shadowAngle": 90 } },
-        { "name": "Ham Kırpma",   "cfg": { "bgKind": "none",   "padding": 0,  "roundness": 0,  "borderW": 0, "shadowStrength": 0 } }
-    ]
+    readonly property var mockupLooks: {
+        var _l = root.lang;
+        return [
+            { "name": "Enyxma Cyber", "cfg": { "bgKind": "preset", "bgPreset": 0, "padding": 88, "roundness": 20, "borderW": 1, "shadowStrength": 50, "shadowBlur": 50, "shadowDist": 20, "shadowAngle": 90 } },
+            { "name": root.t("Derin Uzay", "Deep Space"),   "cfg": { "bgKind": "preset", "bgPreset": 6, "padding": 96, "roundness": 24, "borderW": 0, "shadowStrength": 45, "shadowBlur": 60, "shadowDist": 24, "shadowAngle": 90 } },
+            { "name": root.t("Neon Menekşe", "Neon Violet"), "cfg": { "bgKind": "preset", "bgPreset": 2, "padding": 88, "roundness": 20, "borderW": 0, "shadowStrength": 48, "shadowBlur": 55, "shadowDist": 22, "shadowAngle": 110 } },
+            { "name": root.t("Minimal Koyu", "Minimal Dark"), "cfg": { "bgKind": "solid",  "bgSolid": Qt.rgba(0.043, 0.059, 0.090, 1), "padding": 64, "roundness": 16, "borderW": 1, "shadowStrength": 30, "shadowBlur": 40, "shadowDist": 16, "shadowAngle": 90 } },
+            { "name": root.t("Sade Cam", "Frosted Glass"),     "cfg": { "bgKind": "solid",  "bgSolid": Qt.rgba(0.118, 0.161, 0.231, 1), "padding": 72, "roundness": 14, "borderW": 1, "shadowStrength": 25, "shadowBlur": 35, "shadowDist": 12, "shadowAngle": 90 } },
+            { "name": root.t("Ham Kırpma", "Raw Crop"),   "cfg": { "bgKind": "none",   "padding": 0,  "roundness": 0,  "borderW": 0, "shadowStrength": 0 } }
+        ];
+    }
 }

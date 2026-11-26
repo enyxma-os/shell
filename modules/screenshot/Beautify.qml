@@ -92,10 +92,13 @@ Item {
     readonly property var palette: Theme.mockupPalette
     readonly property var looks: Theme.mockupLooks
 
-    readonly property var ratioRow: [
-        { "k": "auto", "l": "Serbest" }, { "k": "1:1", "l": "1:1 Kare" }, { "k": "4:3", "l": "4:3" },
-        { "k": "16:9", "l": "16:9 Geniş" }, { "k": "9:16", "l": "9:16 Dikey" }
-    ]
+    readonly property var ratioRow: {
+        var _l = Theme.lang;
+        return [
+            { "k": "auto", "l": Theme.t("Serbest", "Auto") }, { "k": "1:1", "l": Theme.t("1:1 Kare", "1:1 Square") }, { "k": "4:3", "l": "4:3" },
+            { "k": "16:9", "l": Theme.t("16:9 Geniş", "16:9 Wide") }, { "k": "9:16", "l": Theme.t("9:16 Dikey", "9:16 Vertical") }
+        ];
+    }
     readonly property var socialRow: [
         { "k": "x", "l": "X (Twitter)" }, { "k": "instagram", "l": "Instagram" },
         { "k": "linkedin", "l": "LinkedIn" }, { "k": "youtube", "l": "YouTube" }
@@ -175,7 +178,7 @@ Item {
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "Mockup Stüdyosu"
+                text: Theme.t("Mockup Stüdyosu", "Mockup Studio")
                 color: Theme.textPrimary
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeLarge
@@ -184,7 +187,7 @@ Item {
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: "paylaşıma hazır görsel"
+                text: Theme.t("paylaşıma hazır görsel", "share-ready visual")
                 color: Theme.textMuted
                 font.family: Theme.fontFamily
                 font.pixelSize: Theme.fontSizeSmall
@@ -198,17 +201,17 @@ Item {
             spacing: 10
 
             TopBtn {
-                label: "Geri / İptal"
+                label: Theme.t("Geri / İptal", "Back / Cancel")
                 onTapped: beautify.closeRequested()
             }
 
             TopBtn {
-                label: beautify.busy ? "İşleniyor..." : (beautify.copiedNotice ? "✦ Kopyalandı!" : "Panoya Kopyala (Ctrl+C)")
+                label: beautify.busy ? Theme.t("İşleniyor...", "Processing...") : (beautify.copiedNotice ? Theme.t("✦ Kopyalandı!", "✦ Copied!") : Theme.t("Panoya Kopyala (Ctrl+C)", "Copy to Clipboard (Ctrl+C)"))
                 onTapped: beautify.doCopyAction()
             }
 
             TopBtn {
-                label: beautify.busy ? "İşleniyor..." : (beautify.savedNotice ? "✦ Kaydedildi!" : "Görseli Kaydet (Ctrl+S)")
+                label: beautify.busy ? Theme.t("İşleniyor...", "Processing...") : (beautify.savedNotice ? Theme.t("✦ Kaydedildi!", "✦ Saved!") : Theme.t("Görseli Kaydet (Ctrl+S)", "Save Image (Ctrl+S)"))
                 accent: true
                 onTapped: beautify.doSaveAction()
             }
@@ -245,7 +248,7 @@ Item {
 
                 // ---------- ÖN AYARLAR ----------
                 Group {
-                    title: "ÖN AYARLI TEMALAR"
+                    title: Theme.t("ÖN AYARLI TEMALAR", "PRESET THEMES")
                     Flow {
                         width: parent.width
                         spacing: 8
@@ -262,7 +265,7 @@ Item {
 
                 // ---------- ARKA PLAN ----------
                 Group {
-                    title: "ARKA PLAN"
+                    title: Theme.t("ARKA PLAN", "BACKGROUND")
                     Grid {
                         width: parent.width
                         columns: 6
@@ -296,10 +299,10 @@ Item {
                     Row {
                         width: parent.width
                         spacing: 8
-                        BgType { label: "Düz Renk"; on: beautify.bgKind === "solid"; onTapped: beautify.bgKind = "solid" }
-                        BgType { label: "Gradyan"; on: beautify.bgKind === "gradient"; onTapped: beautify.bgKind = "gradient" }
-                        BgType { label: "Görsel"; on: beautify.bgKind === "image"; onTapped: { beautify.bgKind = "image"; beautify.pickImageRequested(); } }
-                        BgType { label: "Şeffaf"; on: beautify.bgKind === "none"; onTapped: beautify.bgKind = "none" }
+                        BgType { label: Theme.t("Düz Renk", "Solid"); on: beautify.bgKind === "solid"; onTapped: beautify.bgKind = "solid" }
+                        BgType { label: Theme.t("Gradyan", "Gradient"); on: beautify.bgKind === "gradient"; onTapped: beautify.bgKind = "gradient" }
+                        BgType { label: Theme.t("Görsel", "Image"); on: beautify.bgKind === "image"; onTapped: { beautify.bgKind = "image"; beautify.pickImageRequested(); } }
+                        BgType { label: Theme.t("Şeffaf", "Transparent"); on: beautify.bgKind === "none"; onTapped: beautify.bgKind = "none" }
                     }
 
                     ColorRow {
@@ -315,35 +318,35 @@ Item {
                         spacing: 10
                         ColorRow { width: parent.width; current: beautify.bgGradA; onPicked: (c) => beautify.bgGradA = c }
                         ColorRow { width: parent.width; current: beautify.bgGradB; onPicked: (c) => beautify.bgGradB = c }
-                        Slider { width: parent.width; label: "Açı"; from: 0; to: 360; suffix: "°"; value: beautify.bgGradAngle; onMoved: (v) => beautify.bgGradAngle = v }
+                        Slider { width: parent.width; label: Theme.t("Açı", "Angle"); from: 0; to: 360; suffix: "°"; value: beautify.bgGradAngle; onMoved: (v) => beautify.bgGradAngle = v }
                     }
                 }
 
                 // ---------- ÇERÇEVE ----------
                 Group {
-                    title: "ÇERÇEVE & KART"
-                    Slider { width: parent.width; label: "İç Boşluk (Dolgu)"; from: 0; to: 200; value: beautify.padding; onMoved: (v) => beautify.padding = v }
-                    Slider { width: parent.width; label: "Köşe Yuvarlaklığı"; from: 0; to: 64; value: beautify.roundness; onMoved: (v) => beautify.roundness = v }
-                    Slider { width: parent.width; label: "Kenarlık Kalınlığı"; from: 0; to: 12; value: beautify.borderW; onMoved: (v) => beautify.borderW = v }
+                    title: Theme.t("ÇERÇEVE & KART", "FRAME & CARD")
+                    Slider { width: parent.width; label: Theme.t("İç Boşluk", "Padding"); from: 0; to: 200; value: beautify.padding; onMoved: (v) => beautify.padding = v }
+                    Slider { width: parent.width; label: Theme.t("Köşe Yuvarlaklığı", "Corner Radius"); from: 0; to: 64; value: beautify.roundness; onMoved: (v) => beautify.roundness = v }
+                    Slider { width: parent.width; label: Theme.t("Kenarlık Kalınlığı", "Border Width"); from: 0; to: 12; value: beautify.borderW; onMoved: (v) => beautify.borderW = v }
                     ColorRow { visible: beautify.borderW > 0; width: parent.width; current: beautify.borderColor; onPicked: (c) => beautify.borderColor = c }
                 }
 
                 // ---------- GÖLGE ----------
                 Group {
-                    title: "DERİNLİK & GÖLGE"
+                    title: Theme.t("DERİNLİK & GÖLGE", "DEPTH & SHADOW")
                     Row {
                         width: parent.width
                         spacing: 16
                         Column {
                             width: parent.width - 56 - 16
                             spacing: 14
-                            Slider { width: parent.width; label: "Gölge Gücü"; from: 0; to: 100; suffix: "%"; value: beautify.shadowStrength; onMoved: (v) => beautify.shadowStrength = v }
-                            Slider { width: parent.width; label: "Bulanıklık"; from: 0; to: 100; value: beautify.shadowBlur; onMoved: (v) => beautify.shadowBlur = v }
-                            Slider { width: parent.width; label: "Mesafe"; from: 0; to: 60; value: beautify.shadowDist; onMoved: (v) => beautify.shadowDist = v }
+                            Slider { width: parent.width; label: Theme.t("Gölge Gücü", "Shadow Strength"); from: 0; to: 100; suffix: "%"; value: beautify.shadowStrength; onMoved: (v) => beautify.shadowStrength = v }
+                            Slider { width: parent.width; label: Theme.t("Bulanıklık", "Blur"); from: 0; to: 100; value: beautify.shadowBlur; onMoved: (v) => beautify.shadowBlur = v }
+                            Slider { width: parent.width; label: Theme.t("Mesafe", "Distance"); from: 0; to: 60; value: beautify.shadowDist; onMoved: (v) => beautify.shadowDist = v }
                         }
                         Dial {
                             anchors.verticalCenter: parent.verticalCenter
-                            label: "Açı"
+                            label: Theme.t("Açı", "Angle")
                             angle: beautify.shadowAngle
                             onMoved: (a) => beautify.shadowAngle = a
                         }
@@ -352,15 +355,15 @@ Item {
 
                 // ---------- RENK DENGESİ ----------
                 Group {
-                    title: "RENK DENGESİ"
-                    Slider { width: parent.width; label: "Parlaklık"; bipolar: true; from: -100; to: 100; value: beautify.adjBright; onMoved: (v) => beautify.adjBright = v }
-                    Slider { width: parent.width; label: "Kontrast"; bipolar: true; from: -100; to: 100; value: beautify.adjContrast; onMoved: (v) => beautify.adjContrast = v }
-                    Slider { width: parent.width; label: "Doygunluk"; bipolar: true; from: -100; to: 100; value: beautify.adjSat; onMoved: (v) => beautify.adjSat = v }
+                    title: Theme.t("RENK DENGESİ", "COLOR BALANCE")
+                    Slider { width: parent.width; label: Theme.t("Parlaklık", "Brightness"); bipolar: true; from: -100; to: 100; value: beautify.adjBright; onMoved: (v) => beautify.adjBright = v }
+                    Slider { width: parent.width; label: Theme.t("Kontrast", "Contrast"); bipolar: true; from: -100; to: 100; value: beautify.adjContrast; onMoved: (v) => beautify.adjContrast = v }
+                    Slider { width: parent.width; label: Theme.t("Doygunluk", "Saturation"); bipolar: true; from: -100; to: 100; value: beautify.adjSat; onMoved: (v) => beautify.adjSat = v }
                 }
 
                 // ---------- EN-BOY ORANI ----------
                 Group {
-                    title: "SOSYAL MEDYA & ORANLAR"
+                    title: Theme.t("SOSYAL MEDYA & ORANLAR", "SOCIAL & ASPECT RATIOS")
                     Flow {
                         width: parent.width
                         spacing: 6
@@ -381,8 +384,8 @@ Item {
 
                 // ---------- FİLİGRAN ----------
                 Group {
-                    title: "İMZA & FİLİGRAN"
-                    ToggleRow { width: parent.width; label: "✦ Enyxma OS Filigranı"; on: beautify.watermark; onToggled: (v) => beautify.watermark = v }
+                    title: Theme.t("İMZA & FİLİGRAN", "SIGNATURE & WATERMARK")
+                    ToggleRow { width: parent.width; label: Theme.t("✦ Enyxma OS Filigranı", "✦ Enyxma OS Watermark"); on: beautify.watermark; onToggled: (v) => beautify.watermark = v }
                 }
             }
         }

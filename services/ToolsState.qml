@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "."
 
 /**
  * ToolsState: Medya indirme, dönüştürme ve uygulama yönetimi servisi.
@@ -40,12 +41,12 @@ Singleton {
         const u = root.urlText.trim()
         if (root.isDownloading) return
         if (!root.isSafeUrl(u)) {
-            root.downloadStatus = "Geçersiz URL — yalnızca http(s) adresleri kabul edilir"
+            root.downloadStatus = I18n.t("Geçersiz URL — yalnızca http/https adresleri kabul edilir", "Invalid URL — only http/https addresses are accepted")
             return
         }
 
         root.isDownloading = true
-        root.downloadStatus = "İndiriliyor..."
+        root.downloadStatus = I18n.t("İndiriliyor...", "Downloading...")
 
         // Argüman dizisi: her öğe ayrı bir execve argümanı.
         const args = ["--no-playlist", "--no-mtime", "-P", root.downloadDir]
@@ -72,12 +73,12 @@ Singleton {
         onExited: (code, status) => {
             root.isDownloading = false
             if (code === 0) {
-                root.downloadStatus = "Tamamlandı"
+                root.downloadStatus = I18n.t("Tamamlandı", "Completed")
                 root.refreshRecent()
-                root.notify("İndirme Tamamlandı", "Dosya İndirilenler klasörüne kaydedildi.")
+                root.notify(I18n.t("İndirme Tamamlandı", "Download Completed"), I18n.t("Dosya İndirilenler klasörüne kaydedildi.", "File saved to Downloads folder."))
             } else {
-                root.downloadStatus = "Hata oluştu (çıkış kodu " + code + ")"
-                root.notify("İndirme Hatası", "Bağlantı indirilemedi.")
+                root.downloadStatus = I18n.t("Hata oluştu, çıkış kodu: ", "Error occurred, exit code: ") + code
+                root.notify(I18n.t("İndirme Hatası", "Download Error"), I18n.t("Bağlantı indirilemedi.", "Could not download link."))
             }
         }
     }
@@ -108,7 +109,7 @@ Singleton {
             const src = root.pendingVideo
             const dot = src.lastIndexOf(".")
             const out = (dot > src.lastIndexOf("/") ? src.substring(0, dot) : src) + "_compressed.mp4"
-            root.notify("Video Sıkıştırma", "Başladı → " + out)
+            root.notify(I18n.t("Video Sıkıştırma", "Video Compression"), I18n.t("Başladı → ", "Started → ") + out)
             compressProc.exec([
                 "ffmpeg", "-y", "-i", src,
                 "-vcodec", "libx264", "-crf", "28",
@@ -121,8 +122,8 @@ Singleton {
         id: compressProc
         running: false
         onExited: (code) => {
-            if (code === 0) root.notify("Video Sıkıştırma", "Tamamlandı.")
-            else root.notify("Video Sıkıştırma", "Başarısız (çıkış kodu " + code + ")")
+            if (code === 0) root.notify(I18n.t("Video Sıkıştırma", "Video Compression"), I18n.t("Tamamlandı.", "Completed."))
+            else root.notify(I18n.t("Video Sıkıştırma", "Video Compression"), I18n.t("Başarısız, çıkış kodu: ", "Failed, exit code: ") + code)
         }
     }
 
@@ -161,12 +162,12 @@ Singleton {
         const lower = p.toLowerCase()
         if (lower.endsWith(".appimage")) {
             chmodProc.exec(["chmod", "+x", p])
-            root.notify("AppImage", "Çalıştırılabilir yapıldı: " + p)
+            root.notify("AppImage", I18n.t("Çalıştırılabilir yapıldı: ", "Made executable: ") + p)
         } else if (lower.endsWith(".deb") || lower.endsWith(".rpm")) {
             // Enyxma OS = NixOS. Debian/RPM paketleri burada kurulamaz; sessizce
-            // dpkg çağırmak yerine dürüst hata ver (eski kod `sudo dpkg -i` deniyordu).
-            root.notify("Desteklenmeyen Paket",
-                        "NixOS üzerinde .deb/.rpm kurulamaz. Paketi Nix ifadesine dönüştürün.")
+            // dpkg çağırmak yerine dürüst hata ver.
+            root.notify(I18n.t("Desteklenmeyen Paket", "Unsupported Package"),
+                        I18n.t("NixOS üzerinde .deb/.rpm kurulamaz. Paketi Nix ifadesine dönüştürün.", ".deb/.rpm cannot be installed on NixOS. Convert the package to a Nix expression."))
         } else {
             Quickshell.execDetached(["enyxma-launch", "xdg-open", p.substring(0, p.lastIndexOf("/")) || p])
         }

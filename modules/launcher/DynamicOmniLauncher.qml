@@ -172,9 +172,9 @@ Item {
                         id: searchField
                         Layout.fillWidth: true
                         placeholderText: {
-                            if (LauncherState.activeMode === "actions") return "Sistem komutu veya araç ara..."
-                            if (LauncherState.activeMode === "clipboard") return "Pano geçmişinde ara..."
-                            return "Uygulama ara — veya > komutlar"
+                            if (LauncherState.activeMode === "actions") return I18n.t("Sistem komutu veya araç ara...", "Search system commands or tools...")
+                            if (LauncherState.activeMode === "clipboard") return I18n.t("Pano geçmişinde ara...", "Search clipboard history...")
+                            return I18n.t("Uygulama ara — veya > komutlar", "Search apps — or > commands")
                         }
                         placeholderTextColor: Theme.textMuted
                         color: Theme.textPrimary
@@ -231,7 +231,7 @@ Item {
                         onClicked: LauncherState.wipeClipboard()
 
                         Text {
-                            text: "󰃢 Temizle"
+                            text: I18n.t("󰃢 Temizle", "󰃢 Clear")
                             color: Theme.danger
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS
@@ -418,11 +418,11 @@ Item {
 
                     Text {
                         text: {
-                            if (LauncherState.activeMode === "actions") return "Eşleşen sistem komutu bulunamadı"
+                            if (LauncherState.activeMode === "actions") return I18n.t("Eşleşen sistem komutu bulunamadı", "No matching system command found")
                             if (LauncherState.activeMode === "clipboard") {
-                                return LauncherState.clipboardLoading ? "Pano geçmişi yükleniyor..." : "Pano geçmişi boş"
+                                return LauncherState.clipboardLoading ? I18n.t("Pano geçmişi yükleniyor...", "Loading clipboard history...") : I18n.t("Pano geçmişi boş", "Clipboard history is empty")
                             }
-                            return "Eşleşen uygulama bulunamadı"
+                            return I18n.t("Eşleşen uygulama bulunamadı", "No matching application found")
                         }
                         color: Theme.textMuted
                         font.family: Theme.fontFamily
@@ -437,9 +437,9 @@ Item {
                 Text {
                     text: {
                         const count = LauncherState.currentItems.length
-                        if (LauncherState.activeMode === "actions") return count + " komut"
-                        if (LauncherState.activeMode === "clipboard") return count + " pano öğesi"
-                        return count + " uygulama"
+                        if (LauncherState.activeMode === "actions") return count + " " + I18n.t("komut", "commands")
+                        if (LauncherState.activeMode === "clipboard") return count + " " + I18n.t("pano öğesi", "clipboard items")
+                        return count + " " + I18n.t("uygulama", "apps")
                     }
                     color: Theme.textMuted
                     font.family: Theme.fontFamily
@@ -451,7 +451,7 @@ Item {
                 }
 
                 Text {
-                    text: "Tab Sekme  •  ↑↓ Gezin  •  ↵ Seç  •  Esc Kapat"
+                    text: I18n.t("Tab Sekme  •  ↑↓ Gezin  •  ↵ Seç  •  Esc Kapat", "Tab Mode  •  ↑↓ Navigate  •  ↵ Select  •  Esc Close")
                     color: Theme.textMuted
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeSmall

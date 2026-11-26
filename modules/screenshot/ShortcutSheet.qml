@@ -8,22 +8,25 @@ Item {
     property var tools: []
     signal closeRequested()
 
-    readonly property var actions: [
-        { key: "Ctrl+C", label: "Panoya Kopyala" },
-        { key: "Ctrl+S", label: "Diske Kaydet" },
-        { key: "Ctrl+B", label: "✦ Mockup Stüdyosu" },
-        { key: "Enter",  label: "Kopyala ve Kaydet" },
-        { key: "Ctrl+Z", label: "Geri Al" },
-        { key: "Ctrl+Y", label: "Yinele" },
-        { key: "Ctrl+A", label: "Tüm Ekranı Seç" },
-        { key: "Space",  label: "Pencere / Bölge Değiştir" },
-        { key: "f",      label: "Şekil Dolgusu (Aç/Kapat)" },
-        { key: "k",      label: "Serbest Çizim Dalgası" },
-        { key: "[ / ]",  label: "Çizgi Kalınlığı" },
-        { key: "1..8",   label: "Renk Paleti" },
-        { key: "Del",    label: "Seçili Öğeyi Sil" },
-        { key: "Esc",    label: "Kapat / Geri Dön" }
-    ]
+    readonly property var actions: {
+        var _l = Theme.lang;
+        return [
+            { key: "Ctrl+C", label: Theme.t("Panoya Kopyala", "Copy to Clipboard") },
+            { key: "Ctrl+S", label: Theme.t("Diske Kaydet", "Save to Disk") },
+            { key: "Ctrl+B", label: Theme.t("✦ Mockup Stüdyosu", "✦ Mockup Studio") },
+            { key: "Enter",  label: Theme.t("Kopyala ve Kaydet", "Copy and Save") },
+            { key: "Ctrl+Z", label: Theme.t("Geri Al", "Undo") },
+            { key: "Ctrl+Y", label: Theme.t("Yinele", "Redo") },
+            { key: "Ctrl+A", label: Theme.t("Tüm Ekranı Seç", "Select Whole Screen") },
+            { key: "Space",  label: Theme.t("Pencere / Bölge Değiştir", "Switch Window / Region") },
+            { key: "f",      label: Theme.t("Şekil Dolgusu Aç/Kapat", "Toggle Shape Fill") },
+            { key: "k",      label: Theme.t("Serbest Çizim Dalgası", "Sketchy Line Mode") },
+            { key: "[ / ]",  label: Theme.t("Çizgi Kalınlığı", "Stroke Width") },
+            { key: "1..8",   label: Theme.t("Renk Paleti", "Color Palette") },
+            { key: "Del",    label: Theme.t("Seçili Öğeyi Sil", "Delete Selected") },
+            { key: "Esc",    label: Theme.t("Kapat / Geri Dön", "Close / Back") }
+        ];
+    }
 
     focus: visible
 
@@ -46,7 +49,7 @@ Item {
             RowLayout {
                 Layout.fillWidth: true
                 Text {
-                    text: "✦ Kısayol Rehberi"
+                    text: Theme.t("✦ Kısayol Rehberi", "✦ Shortcut Guide")
                     color: Theme.accent
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeLarge

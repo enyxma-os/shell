@@ -84,7 +84,7 @@ Item {
                 spacing: 8
 
                 Text {
-                    text: "ENYXMA // KOMUT TERMİNALİ"
+                    text: I18n.t("ENYXMA // KOMUT TERMİNALİ", "ENYXMA // COMMAND TERMINAL")
                     color: Theme.textPrimary
                     font.family: Theme.fontDisplay
                     font.pixelSize: 11
@@ -94,7 +94,7 @@ Item {
                 }
 
                 Text {
-                    text: "[ " + LauncherState.currentItems.length + " ÖĞE ]"
+                    text: "[ " + LauncherState.currentItems.length + " " + I18n.t("ÖĞE", "ITEMS") + " ]"
                     color: Theme.accent
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -200,9 +200,9 @@ Item {
                         id: searchField
                         Layout.fillWidth: true
                         placeholderText: {
-                            if (LauncherState.activeMode === "actions") return "sistem komutu ara..."
-                            if (LauncherState.activeMode === "clipboard") return "pano geçmişinde ara..."
-                            return "uygulama veya > komut..."
+                            if (LauncherState.activeMode === "actions") return I18n.t("sistem komutu ara...", "search system commands...")
+                            if (LauncherState.activeMode === "clipboard") return I18n.t("pano geçmişinde ara...", "search clipboard history...")
+                            return I18n.t("uygulama veya > komut...", "app or > command...")
                         }
                         placeholderTextColor: Theme.textMuted
                         color: Theme.textPrimary
@@ -265,7 +265,7 @@ Item {
                         Text {
                             id: wipeTxt
                             anchors.centerIn: parent
-                            text: "TEMİZLE"
+                            text: I18n.t("TEMİZLE", "CLEAR")
                             color: Theme.danger
                             font.family: Theme.fontMono
                             font.pixelSize: 9
@@ -481,11 +481,11 @@ Item {
 
                     Text {
                         text: {
-                            if (LauncherState.activeMode === "actions") return "EŞLEŞEN SİSTEM KOMUTU YOK"
+                            if (LauncherState.activeMode === "actions") return I18n.t("EŞLEŞEN SİSTEM KOMUTU YOK", "NO MATCHING SYSTEM COMMAND")
                             if (LauncherState.activeMode === "clipboard") {
-                                return LauncherState.clipboardLoading ? "PANO YÜKLENİYOR..." : "PANO GEÇMİŞİ BOŞ"
+                                return LauncherState.clipboardLoading ? I18n.t("PANO YÜKLENİYOR...", "LOADING CLIPBOARD...") : I18n.t("PANO GEÇMİŞİ BOŞ", "CLIPBOARD HISTORY EMPTY")
                             }
-                            return "EŞLEŞEN UYGULAMA YOK"
+                            return I18n.t("EŞLEŞEN UYGULAMA YOK", "NO MATCHING APPLICATION")
                         }
                         color: Theme.textMuted
                         font.family: Theme.fontMono
@@ -504,7 +504,7 @@ Item {
                 Layout.fillWidth: true
 
                 Text {
-                    text: "TAB SEKME  ·  ↑↓ GEZİN  ·  ↵ ÇALIŞTIR  ·  ESC KAPAT"
+                    text: I18n.t("TAB SEKME  ·  ↑↓ GEZİN  ·  ↵ ÇALIŞTIR  ·  ESC KAPAT", "TAB MODE  ·  ↑↓ NAVIGATE  ·  ↵ RUN  ·  ESC CLOSE")
                     color: Theme.textMuted
                     font.family: Theme.fontMono
                     font.pixelSize: 9
@@ -514,8 +514,8 @@ Item {
 
                 Text {
                     text: LauncherState.activeMode === "actions"
-                        ? "KOMUTLAR"
-                        : (LauncherState.activeMode === "clipboard" ? "PANO" : "UYGULAMALAR")
+                        ? I18n.t("KOMUTLAR", "COMMANDS")
+                        : (LauncherState.activeMode === "clipboard" ? I18n.t("PANO", "CLIPBOARD") : I18n.t("UYGULAMALAR", "APPS"))
                     color: Theme.accent
                     font.family: Theme.fontMono
                     font.pixelSize: 9

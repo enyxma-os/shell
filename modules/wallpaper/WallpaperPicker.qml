@@ -138,7 +138,7 @@ PanelWindow {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: root.filterText ? ("Eşleşen duvar kağıdı bulunamadı: \"" + root.filterText + "\"") : "Kütüphanede duvar kağıdı bulunamadı"
+            text: root.filterText ? (I18n.t("Eşleşen duvar kağıdı bulunamadı: \"", "No matching wallpaper found: \"") + root.filterText + "\"") : I18n.t("Kütüphanede duvar kağıdı bulunamadı", "No wallpapers found in library")
             color: Theme.textSecondary
             font.family: Theme.fontMono
             font.pixelSize: Theme.fontSizeLarge
@@ -146,7 +146,7 @@ PanelWindow {
 
         Text {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Temizlemek için Esc veya Backspace, kapatmak için boşluğa tıklayın"
+            text: I18n.t("Temizlemek için Esc veya Backspace, kapatmak için boşluğa tıklayın", "Press Esc or Backspace to clear, or click outside to close")
             color: Theme.textMuted
             font.family: Theme.fontMono
             font.pixelSize: Theme.fontSizeNormal

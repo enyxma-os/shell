@@ -161,14 +161,14 @@ Item {
                 icon: "fill"
                 visible: tb.hasFill
                 active: tb.activeFill
-                tooltip: "Dolgu (f)"
+                tooltip: Theme.t("Dolgu (f)", "Fill (f)")
                 onClicked: tb.fillToggled()
             }
 
             IconButton {
                 icon: "sketch"
                 active: tb.activeRough
-                tooltip: "Serbest Dalga (k)"
+                tooltip: Theme.t("Serbest Dalga (k)", "Sketchy Line (k)")
                 onClicked: tb.roughToggled()
             }
 
@@ -183,14 +183,14 @@ Item {
             IconButton {
                 icon: "undo"
                 dim: !tb.canUndo
-                tooltip: "Geri Al (Ctrl+Z)"
+                tooltip: Theme.t("Geri Al (Ctrl+Z)", "Undo (Ctrl+Z)")
                 onClicked: { if (tb.canUndo) tb.undoRequested(); }
             }
 
             IconButton {
                 icon: "redo"
                 dim: !tb.canRedo
-                tooltip: "Yinele (Ctrl+Y)"
+                tooltip: Theme.t("Yinele (Ctrl+Y)", "Redo (Ctrl+Y)")
                 onClicked: { if (tb.canRedo) tb.redoRequested(); }
             }
 
@@ -204,19 +204,19 @@ Item {
 
             IconButton {
                 icon: "copy"
-                tooltip: "Panoya Kopyala (Ctrl+C)"
+                tooltip: Theme.t("Panoya Kopyala (Ctrl+C)", "Copy to Clipboard (Ctrl+C)")
                 onClicked: tb.copyRequested()
             }
 
             IconButton {
                 icon: "save"
-                tooltip: "Görseli Kaydet (Ctrl+S)"
+                tooltip: Theme.t("Görseli Kaydet (Ctrl+S)", "Save Image (Ctrl+S)")
                 onClicked: tb.saveRequested()
             }
 
             IconButton {
                 icon: "pin"
-                tooltip: "Ekrana Sabitle (Ctrl+P)"
+                tooltip: Theme.t("Ekrana Sabitle (Ctrl+P)", "Pin to Screen (Ctrl+P)")
                 onClicked: tb.pinRequested()
             }
 
@@ -289,7 +289,7 @@ Item {
                     Text {
                         id: bTipText
                         anchors.centerIn: parent
-                        text: "✦ Mockup Stüdyosu (Ctrl+B)"
+                        text: Theme.t("✦ Mockup Stüdyosu (Ctrl+B)", "✦ Mockup Studio (Ctrl+B)")
                         color: Theme.accent
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
@@ -308,7 +308,7 @@ Item {
 
             IconButton {
                 icon: "cancel"
-                tooltip: "İptal / Kapat (Esc)"
+                tooltip: Theme.t("İptal / Kapat (Esc)", "Cancel / Close (Esc)")
                 onClicked: tb.cancelRequested()
             }
         }

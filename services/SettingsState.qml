@@ -126,6 +126,8 @@ Singleton {
         var en = root.language === "en"
         return [
             { keys: "SUPER + Return", action: en ? "Open terminal" : "Terminal aç" },
+            { keys: "SUPER + ALT + Return", action: en ? "Floating scratchpad terminal" : "Yüzer scratchpad terminali" },
+            { keys: "SUPER + Grave", action: en ? "Toggle special workspace" : "Özel çalışma alanını aç / kapat" },
             { keys: "SUPER + Space", action: en ? "App & command launcher" : "Uygulama ve komut başlatıcısı" },
             { keys: "SUPER + I", action: en ? "Enyxma Settings window" : "Enyxma Ayarlar penceresi" },
             { keys: "SUPER + T", action: en ? "Cycle theme — Dynamic / Gotham" : "Tema değiştir — Dinamik / Gotham" },
@@ -145,6 +147,7 @@ Singleton {
             { keys: "SUPER + F", action: en ? "Toggle fullscreen" : "Tam ekran aç / kapat" },
             { keys: "SUPER + V", action: en ? "Toggle floating mode" : "Yüzen pencere modu" },
             { keys: "SUPER + G", action: en ? "Gaming mode" : "Oyun modu" },
+            { keys: "SUPER + ALT + R", action: en ? "Quick horizontal resize" : "Hızlı yatay boyutlandırma" },
             { keys: en ? "SUPER + Arrows" : "SUPER + Ok Tuşları", action: en ? "Move window focus" : "Pencereler arası odak" },
             { keys: "SUPER + 1..0", action: en ? "Switch workspace" : "Çalışma alanına geç" }
         ]

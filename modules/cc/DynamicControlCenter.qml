@@ -819,7 +819,7 @@ Item {
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: I18n.t("Kapat", "Close")
+                            text: I18n.t("Kapat", "Power Off")
                             color: powerMa.containsMouse ? Theme.danger : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS

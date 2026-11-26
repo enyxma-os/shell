@@ -74,7 +74,7 @@ Item {
                 spacing: Theme.spacingMedium
 
                 Text {
-                    text: "GOTHAM // GÖRSEL ARŞİV"
+                    text: I18n.t("GOTHAM // GÖRSEL ARŞİV", "GOTHAM // VISUAL ARCHIVE")
                     color: Theme.textPrimary
                     font.family: Theme.fontDisplay
                     font.pixelSize: Theme.fontSizeSmall
@@ -101,10 +101,13 @@ Item {
                         spacing: 2
 
                         Repeater {
-                            model: [
-                                { id: "dynamic", label: "DİNAMİK" },
-                                { id: "gotham",  label: "GOTHAM" }
-                            ]
+                            model: {
+                                var _l = I18n.lang
+                                return [
+                                    { id: "dynamic", label: I18n.t("DİNAMİK", "DYNAMIC") },
+                                    { id: "gotham",  label: "GOTHAM" }
+                                ]
+                            }
 
                             delegate: Rectangle {
                                 required property var modelData
@@ -208,7 +211,7 @@ Item {
                         Text {
                             id: activeTagTxt
                             anchors.centerIn: parent
-                            text: "AKTİF"
+                            text: I18n.t("AKTİF", "ACTIVE")
                             color: Theme.accentOn
                             font.family: Theme.fontMono
                             font.pixelSize: 10
@@ -277,7 +280,7 @@ Item {
                             Text {
                                 id: filterBadgeTxt
                                 anchors.centerIn: parent
-                                text: "FİLTRE: " + stage.filterText
+                                text: I18n.t("FİLTRE: ", "FILTER: ") + stage.filterText
                                 color: Theme.accent
                                 font.family: Theme.fontMono
                                 font.pixelSize: Theme.fontSizeXS
@@ -287,7 +290,7 @@ Item {
 
                         Text {
                             visible: stage.filterText.length === 0
-                            text: "ENTER UYGULA"
+                            text: I18n.t("ENTER UYGULA", "ENTER APPLY")
                             color: Theme.textMuted
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS
@@ -401,7 +404,7 @@ Item {
             // 4. Alt Teknik Kontrol Satiri
             Text {
                 Layout.alignment: Qt.AlignHCenter
-                text: "← → SEÇ   ·   ↵ UYGULA   ·   T TEMA   ·   YAZARAK FİLTRELE   ·   ESC KAPAT"
+                text: I18n.t("← → SEÇ   ·   ↵ UYGULA   ·   T TEMA   ·   YAZARAK FİLTRELE   ·   ESC KAPAT", "← → SELECT   ·   ↵ APPLY   ·   T THEME   ·   TYPE TO FILTER   ·   ESC CLOSE")
                 color: Theme.textMuted
                 font.family: Theme.fontMono
                 font.pixelSize: Theme.fontSizeSmall

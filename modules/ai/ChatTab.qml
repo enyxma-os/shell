@@ -151,7 +151,7 @@ Item {
                 // Başlık: Bir YZ bağla
                 Text {
                     Layout.alignment: Qt.AlignHCenter
-                    text: "Bir YZ bağla"
+                    text: I18n.t("Bir YZ bağla", "Connect an AI")
                     color: Theme.textPrimary
                     font.family: Theme.fontFamily
                     font.pixelSize: 22
@@ -165,8 +165,8 @@ Item {
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
                     text: Theme.isGotham
-                        ? "ORACLE yanıtlamak için bir yapay zeka bağlantısına ihtiyaç duyar. Bir kez ayarlayın ve terminal hazır."
-                        : "Enyxma'nın yanıtlamak için bir yapay zekaya ihtiyacı var. Bir kez ayarlayın ve asistan hazır."
+                        ? I18n.t("ORACLE yanıtlamak için bir yapay zeka bağlantısına ihtiyaç duyar. Bir kez ayarlayın ve terminal hazır.", "ORACLE needs an AI connection to respond. Configure it once and the terminal is ready.")
+                        : I18n.t("Enyxma'nın yanıtlamak için bir yapay zekaya ihtiyacı var. Bir kez ayarlayın ve asistan hazır.", "Enyxma needs an AI connection to respond. Configure it once and the assistant is ready.")
                     color: Theme.textSecondary
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -206,7 +206,7 @@ Item {
                         }
 
                         Text {
-                            text: Theme.isGotham ? "KURULUMU AÇ" : "Kurulumu aç"
+                            text: Theme.isGotham ? I18n.t("KURULUMU AÇ", "OPEN SETUP") : I18n.t("Kurulumu aç", "Open setup")
                             color: Theme.isGotham
                                 ? (setupMa.containsMouse ? Theme.accentOn : Theme.accent)
                                 : (setupMa.containsMouse ? Theme.textPrimary : Theme.bgDark)
@@ -236,7 +236,7 @@ Item {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     wrapMode: Text.Wrap
-                    text: "Veya ~/.config/enyxma/ai.env dosyasına bir API anahtarı ekleyin"
+                    text: I18n.t("Veya ~/.config/enyxma/ai.env dosyasına bir API anahtarı ekleyin", "Or add an API key to ~/.config/enyxma/ai.env")
                     color: Theme.textMuted
                     font.family: Theme.fontMono
                     font.pixelSize: 9
@@ -272,7 +272,7 @@ Item {
 
                         Text {
                             Layout.alignment: isUser ? Qt.AlignRight : Qt.AlignLeft
-                            text: isUser ? "SEN" : (Theme.isGotham ? "ORACLE" : "ENYXMA AI")
+                            text: isUser ? I18n.t("SEN", "YOU") : (Theme.isGotham ? "ORACLE" : "ENYXMA AI")
                             color: isUser ? Theme.textSecondary : Theme.accent
                             font.family: Theme.fontMono
                             font.pixelSize: 9
@@ -298,7 +298,7 @@ Item {
 
                                 Text {
                                     Layout.fillWidth: true
-                                    text: modelData.content || (AIState.isStreaming && index === AIState.messages.length - 1 ? "Düşünüyor..." : "")
+                                    text: modelData.content || (AIState.isStreaming && index === AIState.messages.length - 1 ? I18n.t("Düşünüyor...", "Thinking...") : "")
                                     color: Theme.textPrimary
                                     font.family: Theme.fontFamily
                                     font.pixelSize: Theme.fontSizeSmall
@@ -361,7 +361,7 @@ Item {
                     id: inputField
                     Layout.fillWidth: true
                     wrapMode: TextArea.Wrap
-                    placeholderText: Theme.isGotham ? "ORACLE'a komut veya mesaj yazın..." : "Enyxma'ya mesaj gönder"
+                    placeholderText: Theme.isGotham ? I18n.t("ORACLE'a komut veya mesaj yazın...", "Type a command or message for ORACLE...") : I18n.t("Enyxma'ya mesaj gönder", "Send a message to Enyxma")
                     placeholderTextColor: Theme.textMuted
                     color: Theme.textPrimary
                     font.family: Theme.fontFamily

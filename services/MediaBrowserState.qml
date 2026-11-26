@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "."
 
 /**
  * MediaBrowserState — ekran görüntüsü / video tarayıcısı.
@@ -157,8 +158,8 @@ Singleton {
         running: false
         stdinEnabled: true
         onExited: (code) => {
-            if (code === 0) root.showToast("Dosya yolu panoya kopyalandı 📋")
-            else root.showToast("Kopyalanamadı (wl-copy gerekli)")
+            if (code === 0) root.showToast(I18n.t("Dosya yolu panoya kopyalandı 📋", "File path copied to clipboard 📋"))
+            else root.showToast(I18n.t("Kopyalanamadı — wl-copy gerekli", "Copy failed — wl-copy required"))
         }
     }
 
@@ -177,7 +178,7 @@ Singleton {
         stderr: StdioCollector { id: trashErr }
         onExited: (code) => {
             if (code === 0) {
-                root.showToast("Çöp kutusuna taşındı 🗑️")
+                root.showToast(I18n.t("Çöp kutusuna taşındı 🗑️", "Moved to trash 🗑️"))
                 root.scanMedia()
             } else {
                 // gio yok/başarısız → trash-put dene
@@ -192,12 +193,12 @@ Singleton {
         stderr: StdioCollector { id: fallbackErr }
         onExited: (code) => {
             if (code === 0) {
-                root.showToast("Çöp kutusuna taşındı 🗑️")
+                root.showToast(I18n.t("Çöp kutusuna taşındı 🗑️", "Moved to trash 🗑️"))
                 root.scanMedia()
             } else {
                 // Niyetli olarak `rm -f` YOK: geri alınamaz silme yapılmaz.
                 var msg = (fallbackErr.text || "").trim().split("\n")[0]
-                root.showToast("Silinemedi: " + (msg !== "" ? msg : "çöp kutusu aracı bulunamadı"))
+                root.showToast(I18n.t("Silinemedi: ", "Delete failed: ") + (msg !== "" ? msg : I18n.t("çöp kutusu aracı bulunamadı", "trash utility not found")))
             }
         }
     }

@@ -100,114 +100,12 @@ Item {
         return out
     }
 
-    component GothamSwitch: Rectangle {
-        property bool checked: false
-        implicitWidth: 42
-        implicitHeight: 20
-        radius: 0
-        color: checked ? Theme.accent : Theme.surface2
-        border.color: checked ? Theme.accent : Theme.borderSubtle
-        border.width: 1
-
-        Behavior on color {
-            enabled: !Theme.reduceMotion
-            ColorAnimation { duration: Theme.animFast }
-        }
-
-        Rectangle {
-            width: 14
-            height: 14
-            radius: 0
-            anchors.verticalCenter: parent.verticalCenter
-            x: parent.checked ? parent.width - width - 3 : 3
-            color: parent.checked ? Theme.accentOn : Theme.textSecondary
-
-            Behavior on x {
-                enabled: !Theme.reduceMotion
-                NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutCubic }
-            }
-        }
+    component GothamSwitch: EnyxmaSwitch {
+        gotham: true
     }
 
-    component GothamStepperRow: Rectangle {
-        id: stp
-        property string title: ""
-        property string subtitle: ""
-        property string valueText: ""
-        signal decrement()
-        signal increment()
-
-        width: parent ? parent.width : 0
-        height: 52
-        radius: 0
-        color: Theme.surface1
-        border.color: Theme.borderSubtle
-        border.width: 1
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 14
-            anchors.rightMargin: 14
-            spacing: 10
-
-            Column {
-                Layout.fillWidth: true
-                spacing: 2
-
-                Text {
-                    width: parent.width
-                    text: stp.title
-                    color: Theme.textPrimary
-                    font.family: Theme.fontMono
-                    font.pixelSize: 11
-                    font.bold: true
-                    elide: Text.ElideRight
-                }
-
-                Text {
-                    width: parent.width
-                    text: stp.subtitle
-                    color: Theme.textSecondary
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 11
-                    elide: Text.ElideRight
-                }
-            }
-
-            Rectangle {
-                implicitWidth: 28
-                implicitHeight: 26
-                radius: 0
-                color: decMa.containsMouse ? Theme.surfaceHover : Theme.surface2
-                border.color: decMa.containsMouse ? Theme.accent : Theme.borderSubtle
-                border.width: 1
-
-                Text { anchors.centerIn: parent; text: "−"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 13 }
-                MouseArea { id: decMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: stp.decrement() }
-            }
-
-            Text {
-                text: stp.valueText
-                color: Theme.accent
-                font.family: Theme.fontMono
-                font.pixelSize: 11
-                font.bold: true
-                horizontalAlignment: Text.AlignHCenter
-                Layout.preferredWidth: 56
-            }
-
-            Rectangle {
-                implicitWidth: 28
-                implicitHeight: 26
-                radius: 0
-                color: incMa.containsMouse ? Theme.surfaceHover : Theme.surface2
-                border.color: incMa.containsMouse ? Theme.accent : Theme.borderSubtle
-                border.width: 1
-
-                Text { anchors.centerIn: parent; text: "+"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 13 }
-                MouseArea { id: incMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: stp.increment() }
-            }
-        }
+    component GothamStepperRow: EnyxmaStepperRow {
+        gotham: true
     }
 
     Rectangle {

@@ -45,7 +45,7 @@ Rectangle {
             Layout.fillWidth: true
 
             Text {
-                text: container.osdMode === "brightness" ? "BRT // PARLAKLIK" : "VOL // SES"
+                text: container.osdMode === "brightness" ? I18n.t("BRT // PARLAKLIK", "BRT // BRIGHTNESS") : I18n.t("VOL // SES", "VOL // AUDIO")
                 color: container.isMutedAudio ? Theme.danger : Theme.textPrimary
                 font.family: Theme.fontDisplay
                 font.pixelSize: Theme.fontSizeXS + 1
@@ -68,7 +68,7 @@ Rectangle {
                     anchors.centerIn: parent
                     text: container.osdMode === "brightness"
                         ? ("[ " + Math.round(BrightnessState.level * 100) + "% ]")
-                        : (AudioState.muted ? "[ SESSİZ ]" : ("[ " + Math.round(AudioState.volume * 100) + "% ]"))
+                        : (AudioState.muted ? I18n.t("[ SESSİZ ]", "[ MUTED ]") : ("[ " + Math.round(AudioState.volume * 100) + "% ]"))
                     color: container.isMutedAudio ? Theme.danger : Theme.accent
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeXS

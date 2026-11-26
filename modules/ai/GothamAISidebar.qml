@@ -84,7 +84,7 @@ Item {
                         spacing: 8
 
                         Text {
-                            text: "󰧑  ORACLE // TERMİNAL"
+                            text: I18n.t("󰧑  ORACLE // TERMİNAL", "󰧑  ORACLE // TERMINAL")
                             color: Theme.accent
                             font.family: Theme.fontDisplay
                             font.pixelSize: 11
@@ -94,7 +94,7 @@ Item {
                         }
 
                         Text {
-                            text: AIState.isStreaming ? "AKTİF AKIŞ" : "HAZIR"
+                            text: AIState.isStreaming ? I18n.t("AKTİF AKIŞ", "STREAMING") : I18n.t("HAZIR", "READY")
                             color: AIState.isStreaming ? Theme.accent : Theme.textMuted
                             font.family: Theme.fontMono
                             font.pixelSize: 9
@@ -114,11 +114,14 @@ Item {
                         spacing: 0
 
                         Repeater {
-                            model: [
-                                { id: "chat", icon: "󰭹", label: "SOHBET" },
-                                { id: "usage", icon: "󰄪", label: "KULLANIM" },
-                                { id: "tools", icon: "󰇚", label: "ARAÇLAR" }
-                            ]
+                            model: {
+                                var _l = I18n.lang
+                                return [
+                                    { id: "chat", icon: "󰭹", label: I18n.t("SOHBET", "CHAT") },
+                                    { id: "usage", icon: "󰄪", label: I18n.t("KULLANIM", "USAGE") },
+                                    { id: "tools", icon: "󰇚", label: I18n.t("ARAÇLAR", "TOOLS") }
+                                ]
+                            }
 
                             delegate: Rectangle {
                                 id: tabBtn

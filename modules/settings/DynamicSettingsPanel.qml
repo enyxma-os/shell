@@ -100,114 +100,12 @@ Item {
         return out
     }
 
-    component DynamicSwitch: Rectangle {
-        property bool checked: false
-        implicitWidth: 42
-        implicitHeight: 22
-        radius: 11
-        color: checked ? Theme.accent : Theme.surface2
-        border.color: checked ? Theme.accent : Theme.borderSubtle
-        border.width: 1
-
-        Behavior on color {
-            enabled: !Theme.reduceMotion
-            ColorAnimation { duration: Theme.animFast }
-        }
-
-        Rectangle {
-            width: 16
-            height: 16
-            radius: 8
-            anchors.verticalCenter: parent.verticalCenter
-            x: parent.checked ? parent.width - width - 3 : 3
-            color: parent.checked ? Theme.accentOn : Theme.textSecondary
-
-            Behavior on x {
-                enabled: !Theme.reduceMotion
-                NumberAnimation { duration: Theme.animFast; easing.type: Easing.OutCubic }
-            }
-        }
+    component DynamicSwitch: EnyxmaSwitch {
+        gotham: false
     }
 
-    component DynamicStepperRow: Rectangle {
-        id: stp
-        property string title: ""
-        property string subtitle: ""
-        property string valueText: ""
-        signal decrement()
-        signal increment()
-
-        width: parent ? parent.width : 0
-        height: 52
-        radius: Theme.radiusButton
-        color: Theme.surface1
-        border.color: Theme.borderSubtle
-        border.width: 1
-
-        RowLayout {
-            anchors.fill: parent
-            anchors.leftMargin: 14
-            anchors.rightMargin: 14
-            spacing: 10
-
-            Column {
-                Layout.fillWidth: true
-                spacing: 2
-
-                Text {
-                    width: parent.width
-                    text: stp.title
-                    color: Theme.textPrimary
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 12
-                    font.bold: true
-                    elide: Text.ElideRight
-                }
-
-                Text {
-                    width: parent.width
-                    text: stp.subtitle
-                    color: Theme.textSecondary
-                    font.family: Theme.fontFamily
-                    font.pixelSize: 11
-                    elide: Text.ElideRight
-                }
-            }
-
-            Rectangle {
-                implicitWidth: 28
-                implicitHeight: 26
-                radius: Theme.radiusSmall
-                color: decMa.containsMouse ? Theme.surfaceHover : Theme.surface2
-                border.color: decMa.containsMouse ? Theme.accent : Theme.borderSubtle
-                border.width: 1
-
-                Text { anchors.centerIn: parent; text: "−"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 13 }
-                MouseArea { id: decMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: stp.decrement() }
-            }
-
-            Text {
-                text: stp.valueText
-                color: Theme.accent
-                font.family: Theme.fontMono
-                font.pixelSize: 11
-                font.bold: true
-                horizontalAlignment: Text.AlignHCenter
-                Layout.preferredWidth: 56
-            }
-
-            Rectangle {
-                implicitWidth: 28
-                implicitHeight: 26
-                radius: Theme.radiusSmall
-                color: incMa.containsMouse ? Theme.surfaceHover : Theme.surface2
-                border.color: incMa.containsMouse ? Theme.accent : Theme.borderSubtle
-                border.width: 1
-
-                Text { anchors.centerIn: parent; text: "+"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 13 }
-                MouseArea { id: incMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: stp.increment() }
-            }
-        }
+    component DynamicStepperRow: EnyxmaStepperRow {
+        gotham: false
     }
 
     Rectangle {

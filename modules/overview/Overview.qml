@@ -101,7 +101,7 @@ PanelWindow {
                 spacing: 2
 
                 Text {
-                    text: "GENEL BAKIŞ"
+                    text: I18n.t("GENEL BAKIŞ", "OVERVIEW")
                     color: Theme.textPrimary
                     font.family: Theme.fontDisplay
                     font.pixelSize: Theme.fontSizeLarge
@@ -110,7 +110,7 @@ PanelWindow {
                 }
 
                 Text {
-                    text: (Theme.isGotham ? "SEKTÖR " : "MASAÜSTÜ ") + ("0" + OverviewState.viewedWorkspaceId).slice(-2)
+                    text: (Theme.isGotham ? I18n.t("SEKTÖR ", "SECTOR ") : I18n.t("MASAÜSTÜ ", "DESKTOP ")) + ("0" + OverviewState.viewedWorkspaceId).slice(-2)
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -145,7 +145,7 @@ PanelWindow {
             Text {
                 id: countText
                 anchors.centerIn: parent
-                text: OverviewState.clients.length + " Açık Pencere"
+                text: OverviewState.clients.length + I18n.t(" Açık Pencere", " Open Windows")
                 color: Theme.textSecondary
                 font.family: Theme.fontMono
                 font.pixelSize: 11
@@ -248,7 +248,7 @@ PanelWindow {
                                     Item { Layout.fillWidth: true }
 
                                     Text {
-                                        text: wsCard.isActive ? "Aktif" : (wsCard.wsClients.length + " Pencere")
+                                        text: wsCard.isActive ? I18n.t("Aktif", "Active") : (wsCard.wsClients.length + I18n.t(" Pencere", " Windows"))
                                         color: wsCard.isActive ? Theme.accent : Theme.textMuted
                                         font.family: Theme.fontMono
                                         font.pixelSize: 10
@@ -278,7 +278,7 @@ PanelWindow {
 
                                             Text {
                                                 Layout.alignment: Qt.AlignHCenter
-                                                text: "Boş Masaüstü"
+                                                text: I18n.t("Boş Masaüstü", "Empty Desktop")
                                                 color: Theme.textMuted
                                                 font.family: Theme.fontMono
                                                 font.pixelSize: 10
@@ -328,7 +328,7 @@ PanelWindow {
                                                         Layout.fillWidth: true
 
                                                         Text {
-                                                            text: winItem.modelData["class"] || "Pencere"
+                                                            text: winItem.modelData["class"] || I18n.t("Pencere", "Window")
                                                             color: Theme.textPrimary
                                                             font.family: Theme.fontFamily
                                                             font.pixelSize: 10
@@ -427,7 +427,7 @@ PanelWindow {
 
                             Text {
                                 Layout.alignment: Qt.AlignHCenter
-                                text: "YENİ MASAÜSTÜ"
+                                text: I18n.t("YENİ MASAÜSTÜ", "NEW WORKSPACE")
                                 color: newWsMa.containsMouse ? Theme.accent : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: 10
@@ -453,7 +453,7 @@ PanelWindow {
             anchors.horizontalCenter: parent.horizontalCenter
             anchors.bottom: parent.bottom
             anchors.bottomMargin: 24
-            text: "KAYDIR / TAB  DÖNGÜ      ALT+TAB  MASAÜSTÜ      ✕  KAPAT      ENTER  GİT      ESC  KAPAT"
+            text: I18n.t("KAYDIR / TAB  DÖNGÜ      ALT+TAB  MASAÜSTÜ      ✕  KAPAT      ENTER  GİT      ESC  KAPAT", "SCROLL / TAB  CYCLE      ALT+TAB  WORKSPACE      ✕  CLOSE      ENTER  GO      ESC  CLOSE")
             color: Theme.textSecondary
             font.family: Theme.fontMono
             font.pixelSize: 10

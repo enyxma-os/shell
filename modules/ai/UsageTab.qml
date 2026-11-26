@@ -30,7 +30,7 @@ Item {
                     Layout.fillWidth: true
 
                     Text {
-                        text: "EKRAN SÜRESİ"
+                        text: I18n.t("EKRAN SÜRESİ", "SCREEN TIME")
                         color: Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 9
@@ -57,7 +57,7 @@ Item {
                 }
 
                 Text {
-                    text: "bugün etkin"
+                    text: I18n.t("bugün etkin", "active today")
                     color: Theme.textSecondary
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
@@ -70,7 +70,7 @@ Item {
                 spacing: Theme.spacingSmall
 
                 Text {
-                    text: "BU HAFTA"
+                    text: I18n.t("BU HAFTA", "THIS WEEK")
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 9
@@ -129,7 +129,7 @@ Item {
                 spacing: Theme.spacingSmall
 
                 Text {
-                    text: "EN ÇOK KULLANILAN"
+                    text: I18n.t("EN ÇOK KULLANILAN", "MOST USED")
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 9
@@ -139,7 +139,7 @@ Item {
 
                 Text {
                     visible: ScreenTimeState.topApps.length === 0
-                    text: "Henüz kullanım verisi oluşmadı. Çalıştıkça istatistikler toplanır."
+                    text: I18n.t("Henüz kullanım verisi oluşmadı. Çalıştıkça istatistikler toplanır.", "No usage data yet. Stats are collected as you work.")
                     color: Theme.textMuted
                     font.family: Theme.fontFamily
                     font.pixelSize: Theme.fontSizeSmall
