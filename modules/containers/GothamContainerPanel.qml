@@ -70,7 +70,7 @@ Item {
                 anchors.centerIn: parent; width: parent.width; height: 90
                 visible: ContainerState.engine === "none"
                 radius: 0; color: Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
-                Text { anchors.centerIn: parent; text: "Docker veya Podman kurulu değil"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11 }
+                Text { anchors.centerIn: parent; text: I18n.t("Docker veya Podman kurulu değil", "Docker or Podman is not installed"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11 }
             }
 
             ListView {
@@ -104,7 +104,7 @@ Item {
                             border.color: cRow.modelData.running ? Theme.danger : Theme.accent; border.width: 1
                             Text {
                                 id: actTxt; anchors.centerIn: parent
-                                text: cRow.isBusy ? "..." : (cRow.modelData.running ? "DURDUR" : "BAŞLAT")
+                                text: cRow.isBusy ? "..." : (cRow.modelData.running ? I18n.t("DURDUR", "STOP") : I18n.t("BAŞLAT", "START"))
                                 color: cRow.modelData.running ? Theme.danger : Theme.accent
                                 font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true
                             }
@@ -131,7 +131,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     visible: ContainerState.containers.length === 0
-                    text: ContainerState.lastError !== "" ? ContainerState.lastError : "Konteyner bulunamadı"
+                    text: ContainerState.lastError !== "" ? ContainerState.lastError : I18n.t("Konteyner bulunamadı", "No containers found")
                     color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 11
                 }
             }

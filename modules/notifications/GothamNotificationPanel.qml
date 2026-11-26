@@ -59,7 +59,7 @@ Item {
                 spacing: 8
 
                 Text {
-                    text: "OLAY GÜNLÜĞÜ"
+                    text: I18n.t("OLAY GÜNLÜĞÜ", "EVENT LOG")
                     color: Theme.textPrimary
                     font.family: Theme.fontDisplay
                     font.pixelSize: 12
@@ -90,7 +90,7 @@ Item {
                     Text {
                         id: clearTxt
                         anchors.centerIn: parent
-                        text: "TEMİZLE"
+                        text: I18n.t("TEMİZLE", "CLEAR")
                         color: clearMa.containsMouse ? Theme.accent : Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 9

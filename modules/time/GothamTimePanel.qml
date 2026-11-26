@@ -57,7 +57,7 @@ Item {
                 spacing: 8
 
                 Text {
-                    text: "KRONOMETRE // TAKVİM & METEOROLOJİ"
+                    text: I18n.t("KRONOMETRE // TAKVİM & METEOROLOJİ", "CHRONO // CALENDAR & WEATHER")
                     color: Theme.textPrimary
                     font.family: Theme.fontDisplay
                     font.pixelSize: 11
@@ -67,7 +67,7 @@ Item {
                 }
 
                 Text {
-                    text: "[ HAFTA " + TimeState.weekNumber + " · GÜN " + TimeState.dayOfYear + " ]"
+                    text: "[ HAFTA " + TimeState.weekNumber + I18n.t(" · GÜN ", " · DAY ") + TimeState.dayOfYear + " ]"
                     color: Theme.accent
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -211,7 +211,7 @@ Item {
 
                                 Text {
                                     anchors.centerIn: parent
-                                    text: "BUGÜN"
+                                    text: I18n.t("BUGÜN", "TODAY")
                                     color: todayMa.containsMouse ? Theme.accentOn : Theme.accent
                                     font.family: Theme.fontMono
                                     font.pixelSize: 9
@@ -233,7 +233,7 @@ Item {
                             spacing: 0
 
                             Repeater {
-                                model: ["PT", "SA", "ÇA", "PE", "CU", "CT", "PZ"]
+                                model: I18n.isEn ? ["MO", "TU", "WE", "TH", "FR", "SA", "SU"] : ["PT", "SA", "ÇA", "PE", "CU", "CT", "PZ"]
 
                                 Item {
                                     width: (332 - 20) / 7
@@ -375,7 +375,7 @@ Item {
                                     Layout.fillWidth: true
 
                                     Text {
-                                        text: "HAFTA " + TimeState.weekNumber
+                                        text: I18n.t("HAFTA ", "WEEK ") + TimeState.weekNumber
                                         color: Theme.textSecondary
                                         font.family: Theme.fontMono
                                         font.pixelSize: 9
@@ -384,7 +384,7 @@ Item {
                                     Item { Layout.fillWidth: true }
 
                                     Text {
-                                        text: "YILIN " + TimeState.dayOfYear + ". GÜNÜ"
+                                        text: "YILIN " + TimeState.dayOfYear + I18n.t(". GÜNÜ", " OF YEAR")
                                         color: Theme.textSecondary
                                         font.family: Theme.fontMono
                                         font.pixelSize: 9
@@ -478,7 +478,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: (SystemState.uptime && SystemState.uptime.length > 0) ? ("ÇALIŞMA: " + SystemState.uptime) : "SİSTEM AKTİF"
+                                    text: (SystemState.uptime && SystemState.uptime.length > 0) ? (I18n.t("ÇALIŞMA: ", "UPTIME: ") + SystemState.uptime) : I18n.t("SİSTEM AKTİF", "SYSTEM ACTIVE")
                                     color: Theme.textMuted
                                     font.family: Theme.fontMono
                                     font.pixelSize: 9
@@ -561,7 +561,7 @@ Item {
                                     ColumnLayout {
                                         spacing: 0
                                         Text { text: WeatherState.windSpeed + " km/s " + WeatherState.windDir; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
-                                        Text { text: "RÜZGAR"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 8 }
+                                        Text { text: I18n.t("RÜZGAR", "WIND"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 8 }
                                     }
                                 }
 
@@ -581,7 +581,7 @@ Item {
                                     ColumnLayout {
                                         spacing: 0
                                         Text { text: WeatherState.rainProb + "%"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
-                                        Text { text: "YAĞIŞ"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 8 }
+                                        Text { text: I18n.t("YAĞIŞ", "PRECIP"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 8 }
                                     }
                                 }
 
@@ -591,7 +591,7 @@ Item {
                                     ColumnLayout {
                                         spacing: 0
                                         Text { text: WeatherState.displayFeels; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
-                                        Text { text: "HİSSEDİLEN"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 8 }
+                                        Text { text: I18n.t("HİSSEDİLEN", "FEELS LIKE"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 8 }
                                     }
                                 }
                             }
@@ -615,7 +615,7 @@ Item {
                                 Layout.fillWidth: true
 
                                 Text {
-                                    text: "SAATLİK TAHMİN ŞERİDİ"
+                                    text: I18n.t("SAATLİK TAHMİN ŞERİDİ", "HOURLY FORECAST")
                                     color: Theme.textMuted
                                     font.family: Theme.fontMono
                                     font.pixelSize: 9

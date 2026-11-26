@@ -88,7 +88,7 @@ Item {
                     spacing: 2
 
                     Text {
-                        text: "KONTROL MERKEZİ"
+                        text: I18n.t("KONTROL MERKEZİ", "CONTROL CENTER")
                         color: Theme.textPrimary
                         font.family: Theme.fontDisplay
                         font.pixelSize: Theme.fontSizeNormal
@@ -97,8 +97,8 @@ Item {
                     }
 
                     Text {
-                        text: (SystemState.uptime.length > 0 ? ("ÇALIŞMA: " + SystemState.uptime.toUpperCase() + " · ") : "")
-                            + "GÜÇ: " + (SystemState.isBatteryPresent ? ("%" + SystemState.batteryPercent) : "AC")
+                        text: (SystemState.uptime.length > 0 ? (I18n.t("ÇALIŞMA: ", "UPTIME: ") + SystemState.uptime.toUpperCase() + " · ") : "")
+                            + I18n.t("GÜÇ: ", "POWER: ") + (SystemState.isBatteryPresent ? ("%" + SystemState.batteryPercent) : "AC")
                             + (SystemState.isCharging ? " 󰂄" : "")
                         color: Theme.textSecondary
                         font.family: Theme.fontMono
@@ -170,7 +170,7 @@ Item {
                             Layout.fillWidth: true
 
                             Text {
-                                text: "AĞ"
+                                text: I18n.t("AĞ", "NETWORK")
                                 color: Theme.textPrimary
                                 font.family: Theme.fontMono
                                 font.pixelSize: 10
@@ -179,7 +179,7 @@ Item {
                             }
 
                             Text {
-                                text: SystemState.isConnected ? (SystemState.wifiSSID || "BAĞLI") : "ÇEVRİMDIŞI"
+                                text: SystemState.isConnected ? (SystemState.wifiSSID || I18n.t("BAĞLI", "CONNECTED")) : I18n.t("ÇEVRİMDIŞI", "OFFLINE")
                                 color: SystemState.isConnected ? Theme.accent : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: Theme.fontSizeXS
@@ -312,7 +312,7 @@ Item {
                             Layout.fillWidth: true
 
                             Text {
-                                text: "GECE IŞIĞI"
+                                text: I18n.t("GECE IŞIĞI", "NIGHT LIGHT")
                                 color: Theme.textPrimary
                                 font.family: Theme.fontMono
                                 font.pixelSize: 10
@@ -321,7 +321,7 @@ Item {
                             }
 
                             Text {
-                                text: root.nightLightActive ? "4500K AKTİF" : "KAPALI"
+                                text: root.nightLightActive ? I18n.t("4500K AKTİF", "4500K ACTIVE") : I18n.t("KAPALI", "OFF")
                                 color: root.nightLightActive ? Theme.accent : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: Theme.fontSizeXS
@@ -376,7 +376,7 @@ Item {
                             Layout.fillWidth: true
 
                             Text {
-                                text: "BİLDİRİM"
+                                text: I18n.t("BİLDİRİM", "NOTIF")
                                 color: Theme.textPrimary
                                 font.family: Theme.fontMono
                                 font.pixelSize: 10
@@ -385,7 +385,7 @@ Item {
                             }
 
                             Text {
-                                text: NotificationState.dnd ? "SESSİZ" : "AÇIK"
+                                text: NotificationState.dnd ? I18n.t("SESSİZ", "MUTE") : I18n.t("AÇIK", "ON")
                                 color: root.dndActive ? Theme.accent : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: Theme.fontSizeXS
@@ -411,7 +411,7 @@ Item {
 
                     Repeater {
                         model: [
-                            { id: "dynamic", label: "DİNAMİK" },
+                            { id: "dynamic", label: I18n.t("DİNAMİK", "DYNAMIC") },
                             { id: "gotham",  label: "GOTHAM" }
                         ]
 
@@ -487,7 +487,7 @@ Item {
                         Text {
                             id: volValTxt
                             anchors.centerIn: parent
-                            text: AudioState.muted ? "SESSİZ" : Math.round(AudioState.volume * 100) + "%"
+                            text: AudioState.muted ? I18n.t("SESSİZ", "MUTE") : Math.round(AudioState.volume * 100) + "%"
                             color: AudioState.muted ? Theme.danger : Theme.accent
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS
@@ -660,7 +660,7 @@ Item {
                         Layout.fillWidth: true
 
                         Text {
-                            text: MediaState.trackTitle || "Bilinmeyen Parça"
+                            text: MediaState.trackTitle || I18n.t("Bilinmeyen Parça", "Unknown Track")
                             color: Theme.textPrimary
                             font.family: Theme.fontFamily
                             font.pixelSize: 11
@@ -670,7 +670,7 @@ Item {
                         }
 
                         Text {
-                            text: MediaState.artist || "Bilinmeyen Sanatçı"
+                            text: MediaState.artist || I18n.t("Bilinmeyen Sanatçı", "Unknown Artist")
                             color: Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS
@@ -790,7 +790,7 @@ Item {
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "KİLİT"
+                            text: I18n.t("KİLİT", "LOCK")
                             color: lockMa.containsMouse ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS
@@ -876,7 +876,7 @@ Item {
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "YENİDEN"
+                            text: I18n.t("YENİDEN", "REBOOT")
                             color: rebootMa.containsMouse ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS
@@ -919,7 +919,7 @@ Item {
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "KAPAT"
+                            text: I18n.t("KAPAT", "POWER OFF")
                             color: powerMa.containsMouse ? Theme.danger : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS

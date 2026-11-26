@@ -17,6 +17,7 @@ Singleton {
     property string activeTab: "overview" // overview | appearance | bar | display | input | shortcuts | system
 
     // ── Gorunum ve Bar ───────────────────────────────────────────────
+    property string language: "tr" // tr | en
     property bool reduceMotion: false
     property bool barVisible: true
     property int barHeightOffset: 0
@@ -86,7 +87,19 @@ Singleton {
     }
 
     // ── Global Ayar Arama Dizini ─────────────────────────────────────
-    readonly property var searchEntries: [
+    readonly property var searchEntries: root.language === "en" ? [
+        { tab: "overview",   title: "Overview",                  keywords: "system hardware cpu gpu ram disk summary network" },
+        { tab: "appearance", title: "Theme — Dynamic / Gotham",  keywords: "theme matugen gotham brutalist appearance colors" },
+        { tab: "appearance", title: "Wallpaper Gallery",         keywords: "wallpaper background gallery" },
+        { tab: "appearance", title: "Hyprland Window Style",     keywords: "rounding gaps border blur opacity shadow animations" },
+        { tab: "appearance", title: "Motion and Bar Height",     keywords: "animation reduce motion top bar height" },
+        { tab: "bar",        title: "Top Bar Modules",           keywords: "workspaces clock telemetry network audio power ai notifications tray" },
+        { tab: "display",    title: "Display, VRR & Night Light",keywords: "resolution refresh rate hz scale monitor vrr adaptive sync night light hyprsunset kelvin" },
+        { tab: "display",    title: "Auto Lock & Sleep",         keywords: "hypridle lock screen off suspend timeout power" },
+        { tab: "input",      title: "Keyboard & Mouse",          keywords: "keyboard layout tr us de repeat rate delay mouse sensitivity scroll" },
+        { tab: "shortcuts",  title: "Keyboard Shortcuts",        keywords: "shortcuts keybinds binds super" },
+        { tab: "system",     title: "System, Language & Apps",   keywords: "language english turkish settings.json reset audio mixer bluetooth qr focus container notification timeout dnd terminal" }
+    ] : [
         { tab: "overview",   title: "Genel Bakış",               keywords: "sistem donanım cpu gpu ram disk özet ağ" },
         { tab: "appearance", title: "Tema — Dinamik / Gotham",   keywords: "tema matugen gotham brutalist görünüm renk" },
         { tab: "appearance", title: "Duvar Kağıdı Galerisi",     keywords: "wallpaper duvar kağıdı arka plan" },
@@ -97,7 +110,7 @@ Singleton {
         { tab: "display",    title: "Otomatik Kilit ve Uyku",    keywords: "hypridle kilit ekran kapat uyku suspend timeout güç" },
         { tab: "input",      title: "Klavye ve Fare",            keywords: "klavye düzeni tr us de tekrar hızı gecikme fare hassasiyet kaydırma" },
         { tab: "shortcuts",  title: "Klavye Kısayolları",        keywords: "kısayol tuş atama binds super" },
-        { tab: "system",     title: "Sistem, Bildirim ve Uygulamalar", keywords: "settings.json sıfırla ses karıştırıcı bluetooth qr odak konteyner bildirim süresi dnd varsayılan terminal" }
+        { tab: "system",     title: "Sistem, Dil ve Uygulamalar", keywords: "dil türkçe ingilizce settings.json sıfırla ses karıştırıcı bluetooth qr odak konteyner bildirim süresi dnd varsayılan terminal" }
     ]
 
     // ── Kisayol Rehberi ──────────────────────────────────────────────
@@ -110,29 +123,30 @@ Singleton {
     property bool _loaded: false
 
     function defaultShortcuts() {
+        var en = root.language === "en"
         return [
-            { keys: "SUPER + Return", action: "Terminal aç" },
-            { keys: "SUPER + Space", action: "Uygulama ve komut başlatıcısı" },
-            { keys: "SUPER + I", action: "Enyxma Ayarlar penceresi" },
-            { keys: "SUPER + T", action: "Tema değiştir — Dinamik / Gotham" },
-            { keys: "SUPER + SHIFT + T", action: "Duvar kağıdı galerisi" },
-            { keys: "SUPER + SHIFT + S", action: "Ekran alıntısı ve çizim stüdyosu" },
-            { keys: "SUPER + ALT + S", action: "Tam ekran görüntüsü kaydet" },
-            { keys: "SUPER + Tab", action: "Genel bakış — masaüstü şeridi" },
-            { keys: "SUPER + D", action: "Kontrol Merkezi" },
-            { keys: "SUPER + S", action: "Enyxma AI kenar çubuğu" },
-            { keys: "SUPER + N", action: "Bildirim merkezi" },
-            { keys: "SUPER + SHIFT + V", action: "Pano geçmişi" },
-            { keys: "SUPER + B", action: "Üst çubuğu gizle / göster" },
-            { keys: "SUPER + E", action: "Dosya yöneticisi" },
-            { keys: "SUPER + W", action: "Web tarayıcı" },
-            { keys: "SUPER + L", action: "Ekranı kilitle" },
-            { keys: "SUPER + Q", action: "Aktif pencereyi kapat" },
-            { keys: "SUPER + F", action: "Tam ekran aç / kapat" },
-            { keys: "SUPER + V", action: "Yüzen pencere modu" },
-            { keys: "SUPER + G", action: "Oyun modu" },
-            { keys: "SUPER + Ok Tuşları", action: "Pencereler arası odak" },
-            { keys: "SUPER + 1..0", action: "Çalışma alanına geç" }
+            { keys: "SUPER + Return", action: en ? "Open terminal" : "Terminal aç" },
+            { keys: "SUPER + Space", action: en ? "App & command launcher" : "Uygulama ve komut başlatıcısı" },
+            { keys: "SUPER + I", action: en ? "Enyxma Settings window" : "Enyxma Ayarlar penceresi" },
+            { keys: "SUPER + T", action: en ? "Cycle theme — Dynamic / Gotham" : "Tema değiştir — Dinamik / Gotham" },
+            { keys: "SUPER + SHIFT + T", action: en ? "Wallpaper gallery" : "Duvar kağıdı galerisi" },
+            { keys: "SUPER + SHIFT + S", action: en ? "Screenshot & annotation studio" : "Ekran alıntısı ve çizim stüdyosu" },
+            { keys: "SUPER + ALT + S", action: en ? "Save full-screen capture" : "Tam ekran görüntüsü kaydet" },
+            { keys: "SUPER + Tab", action: en ? "Overview — workspace strip" : "Genel bakış — masaüstü şeridi" },
+            { keys: "SUPER + D", action: en ? "Control Center" : "Kontrol Merkezi" },
+            { keys: "SUPER + S", action: en ? "Enyxma AI sidebar" : "Enyxma AI kenar çubuğu" },
+            { keys: "SUPER + N", action: en ? "Notification center" : "Bildirim merkezi" },
+            { keys: "SUPER + SHIFT + V", action: en ? "Clipboard history" : "Pano geçmişi" },
+            { keys: "SUPER + B", action: en ? "Toggle top bar" : "Üst çubuğu gizle / göster" },
+            { keys: "SUPER + E", action: en ? "File manager" : "Dosya yöneticisi" },
+            { keys: "SUPER + W", action: en ? "Web browser" : "Web tarayıcı" },
+            { keys: "SUPER + L", action: en ? "Lock screen" : "Ekranı kilitle" },
+            { keys: "SUPER + Q", action: en ? "Close active window" : "Aktif pencereyi kapat" },
+            { keys: "SUPER + F", action: en ? "Toggle fullscreen" : "Tam ekran aç / kapat" },
+            { keys: "SUPER + V", action: en ? "Toggle floating mode" : "Yüzen pencere modu" },
+            { keys: "SUPER + G", action: en ? "Gaming mode" : "Oyun modu" },
+            { keys: en ? "SUPER + Arrows" : "SUPER + Ok Tuşları", action: en ? "Move window focus" : "Pencereler arası odak" },
+            { keys: "SUPER + 1..0", action: en ? "Switch workspace" : "Çalışma alanına geç" }
         ]
     }
 
@@ -154,6 +168,7 @@ Singleton {
     // ── Undo Yardimcilari ────────────────────────────────────────────
     function snapshotPayload() {
         return {
+            language: root.language,
             reduceMotion: root.reduceMotion,
             barVisible: root.barVisible,
             barHeightOffset: root.barHeightOffset,
@@ -583,8 +598,19 @@ Singleton {
         }
     }
 
+    function setLanguage(code) {
+        var next = (String(code || "").toLowerCase() === "en") ? "en" : "tr"
+        if (next === root.language) return
+        recordUndo(next === "en" ? "Language: English" : "Arayüz dili: Türkçe")
+        root.language = next
+        root.shortcuts = defaultShortcuts()
+        bindsFile.reload()
+        save()
+    }
+
     function resetDefaults() {
-        recordUndo("Varsayılan ayarlara dönüldü")
+        recordUndo(root.language === "en" ? "Reset to defaults" : "Varsayılan ayarlara dönüldü")
+        language = "tr"
         reduceMotion = false
         barVisible = true
         barHeightOffset = 0
@@ -670,6 +696,7 @@ Singleton {
             if (!s) { root.save(); return }
             var d = JSON.parse(s)
             if (!d || typeof d !== "object") return
+            if (d.language === "en" || d.language === "tr") root.language = d.language
             if (typeof d.reduceMotion === "boolean") root.reduceMotion = d.reduceMotion
             if (typeof d.barVisible === "boolean") root.barVisible = d.barVisible
             if (typeof d.barHeightOffset === "number") root.barHeightOffset = Math.max(-4, Math.min(8, Math.round(d.barHeightOffset)))
@@ -741,38 +768,39 @@ Singleton {
 
     function describeBindAction(rhs) {
         var s = String(rhs || "")
-        if (s.indexOf("terminal") >= 0) return "Terminal aç"
-        if (s.indexOf("app_launcher") >= 0 || s.indexOf("\"launcher\", \"toggle\"") >= 0) return "Uygulama ve komut başlatıcısı"
-        if (s.indexOf("\"launcher\", \"menu\"") >= 0) return "Komut paleti"
-        if (s.indexOf("clipboard") >= 0) return "Pano geçmişi"
-        if (s.indexOf("\"settings\"") >= 0) return "Enyxma Ayarlar penceresi"
-        if (s.indexOf("\"wallpaper\", \"cycle\"") >= 0) return "Tema değiştir — Dinamik / Gotham"
-        if (s.indexOf("\"wallpaper\", \"toggle\"") >= 0) return "Duvar kağıdı galerisi"
-        if (s.indexOf("screenshot_studio") >= 0) return "Ekran alıntısı ve çizim stüdyosu"
-        if (s.indexOf("screenshot_save_full") >= 0) return "Tam ekran görüntüsü kaydet"
-        if (s.indexOf("screenshot_screen") >= 0) return "Tam ekran görüntüsü panoya"
-        if (s.indexOf("file_manager") >= 0) return "Dosya yöneticisi"
-        if (s.indexOf("tui_file_manager") >= 0) return "Yazi dosya yöneticisi"
-        if (s.indexOf("web_browser") >= 0) return "Web tarayıcı"
-        if (s.indexOf("screen_lock") >= 0) return "Ekranı kilitle"
-        if (s.indexOf("\"overview\"") >= 0) return "Genel bakış — masaüstü şeridi"
-        if (s.indexOf("\"dashboard\"") >= 0) return "Kontrol Merkezi"
-        if (s.indexOf("\"ai\"") >= 0) return "Enyxma AI kenar çubuğu"
-        if (s.indexOf("\"notifications\"") >= 0) return "Bildirim merkezi"
-        if (s.indexOf("\"bar\"") >= 0) return "Üst çubuğu gizle / göster"
-        if (s.indexOf("window.close") >= 0) return "Aktif pencereyi kapat"
-        if (s.indexOf("window.kill") >= 0) return "Aktif pencereyi zorla sonlandır"
-        if (s.indexOf("fullscreen") >= 0 && s.indexOf("maximized") >= 0) return "Pencereyi büyüt"
-        if (s.indexOf("fullscreen") >= 0) return "Tam ekran aç / kapat"
-        if (s.indexOf("float") >= 0) return "Yüzen pencere modu"
-        if (s.indexOf("window.pin") >= 0) return "Pencereyi sabitle"
-        if (s.indexOf("window.center") >= 0) return "Yüzen pencereyi ortala"
-        if (s.indexOf("GamingMode") >= 0) return "Oyun modu"
-        if (s.indexOf("hyprctl reload") >= 0) return "Hyprland yapılandırmasını yenile"
-        if (s.indexOf("hyprshutdown") >= 0) return "Oturumu kapat"
-        if (s.indexOf("togglesplit") >= 0) return "Bölme yönünü değiştir"
-        if (s.indexOf("group.toggle") >= 0) return "Sekmeli pencere grubu"
-        if (s.indexOf("toggle_special") >= 0) return "Özel çalışma alanını aç / kapat"
+        var en = root.language === "en"
+        if (s.indexOf("terminal") >= 0) return en ? "Open terminal" : "Terminal aç"
+        if (s.indexOf("app_launcher") >= 0 || s.indexOf("\"launcher\", \"toggle\"") >= 0) return en ? "App & command launcher" : "Uygulama ve komut başlatıcısı"
+        if (s.indexOf("\"launcher\", \"menu\"") >= 0) return en ? "Command palette" : "Komut paleti"
+        if (s.indexOf("clipboard") >= 0) return en ? "Clipboard history" : "Pano geçmişi"
+        if (s.indexOf("\"settings\"") >= 0) return en ? "Enyxma Settings window" : "Enyxma Ayarlar penceresi"
+        if (s.indexOf("\"wallpaper\", \"cycle\"") >= 0) return en ? "Cycle theme — Dynamic / Gotham" : "Tema değiştir — Dinamik / Gotham"
+        if (s.indexOf("\"wallpaper\", \"toggle\"") >= 0) return en ? "Wallpaper gallery" : "Duvar kağıdı galerisi"
+        if (s.indexOf("screenshot_studio") >= 0) return en ? "Screenshot & annotation studio" : "Ekran alıntısı ve çizim stüdyosu"
+        if (s.indexOf("screenshot_save_full") >= 0) return en ? "Save full-screen capture" : "Tam ekran görüntüsü kaydet"
+        if (s.indexOf("screenshot_screen") >= 0) return en ? "Copy full-screen capture" : "Tam ekran görüntüsü panoya"
+        if (s.indexOf("file_manager") >= 0) return en ? "File manager" : "Dosya yöneticisi"
+        if (s.indexOf("tui_file_manager") >= 0) return en ? "Yazi file manager" : "Yazi dosya yöneticisi"
+        if (s.indexOf("web_browser") >= 0) return en ? "Web browser" : "Web tarayıcı"
+        if (s.indexOf("screen_lock") >= 0) return en ? "Lock screen" : "Ekranı kilitle"
+        if (s.indexOf("\"overview\"") >= 0) return en ? "Overview — workspace strip" : "Genel bakış — masaüstü şeridi"
+        if (s.indexOf("\"dashboard\"") >= 0) return en ? "Control Center" : "Kontrol Merkezi"
+        if (s.indexOf("\"ai\"") >= 0) return en ? "Enyxma AI sidebar" : "Enyxma AI kenar çubuğu"
+        if (s.indexOf("\"notifications\"") >= 0) return en ? "Notification center" : "Bildirim merkezi"
+        if (s.indexOf("\"bar\"") >= 0) return en ? "Toggle top bar" : "Üst çubuğu gizle / göster"
+        if (s.indexOf("window.close") >= 0) return en ? "Close active window" : "Aktif pencereyi kapat"
+        if (s.indexOf("window.kill") >= 0) return en ? "Force-kill active window" : "Aktif pencereyi zorla sonlandır"
+        if (s.indexOf("fullscreen") >= 0 && s.indexOf("maximized") >= 0) return en ? "Maximize window" : "Pencereyi büyüt"
+        if (s.indexOf("fullscreen") >= 0) return en ? "Toggle fullscreen" : "Tam ekran aç / kapat"
+        if (s.indexOf("float") >= 0) return en ? "Toggle floating mode" : "Yüzen pencere modu"
+        if (s.indexOf("window.pin") >= 0) return en ? "Pin window" : "Pencereyi sabitle"
+        if (s.indexOf("window.center") >= 0) return en ? "Center floating window" : "Yüzen pencereyi ortala"
+        if (s.indexOf("GamingMode") >= 0) return en ? "Gaming mode" : "Oyun modu"
+        if (s.indexOf("hyprctl reload") >= 0) return en ? "Reload Hyprland config" : "Hyprland yapılandırmasını yenile"
+        if (s.indexOf("hyprshutdown") >= 0) return en ? "Exit session" : "Oturumu kapat"
+        if (s.indexOf("togglesplit") >= 0) return en ? "Toggle split direction" : "Bölme yönünü değiştir"
+        if (s.indexOf("group.toggle") >= 0) return en ? "Tabbed window group" : "Sekmeli pencere grubu"
+        if (s.indexOf("toggle_special") >= 0) return en ? "Toggle special workspace" : "Özel çalışma alanını aç / kapat"
         return ""
     }
 
@@ -803,5 +831,6 @@ Singleton {
         function open(): void { root.open("") }
         function close(): void { root.close() }
         function reset(): void { root.resetDefaults() }
+        function setLanguage(code: string): void { root.setLanguage(code) }
     }
 }

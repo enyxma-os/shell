@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "."
 
 Singleton {
     id: root
@@ -56,13 +57,22 @@ Singleton {
     readonly property var _trMonthsLong: ["Ocak", "Şubat", "Mart", "Nisan", "Mayıs", "Haziran", "Temmuz", "Ağustos", "Eylül", "Ekim", "Kasım", "Aralık"]
     readonly property var _trMonthsShort: ["Oca", "Şub", "Mar", "Nis", "May", "Haz", "Tem", "Ağu", "Eyl", "Eki", "Kas", "Ara"]
 
-    // Bar ve paneller için formatlanmış Türkçe tarih
+    readonly property var _enDaysLong: ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"]
+    readonly property var _enDaysShort: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
+    readonly property var _enMonthsLong: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"]
+    readonly property var _enMonthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+
+    // Bar ve paneller için formatlanmış tarih
     readonly property int dayNumber: now.getDate()
-    readonly property string dayName: _trDaysLong[now.getDay()]
-    readonly property string monthName: _trMonthsLong[now.getMonth()]
+    readonly property string dayName: (I18n.isEn ? _enDaysLong : _trDaysLong)[now.getDay()]
+    readonly property string monthName: (I18n.isEn ? _enMonthsLong : _trMonthsLong)[now.getMonth()]
     readonly property int year: now.getFullYear()
-    readonly property string formattedDate: dayNumber + " " + _trMonthsShort[now.getMonth()] + " " + _trDaysShort[now.getDay()]
-    readonly property string fullDateString: dayNumber + " " + monthName + " " + year + ", " + dayName
+    readonly property string formattedDate: I18n.isEn
+        ? (_enDaysShort[now.getDay()] + ", " + _enMonthsShort[now.getMonth()] + " " + dayNumber)
+        : (dayNumber + " " + _trMonthsShort[now.getMonth()] + " " + _trDaysShort[now.getDay()])
+    readonly property string fullDateString: I18n.isEn
+        ? (dayName + ", " + monthName + " " + dayNumber + ", " + year)
+        : (dayNumber + " " + monthName + " " + year + ", " + dayName)
 
     // Hafta numarası ve yılın günü
     readonly property int weekNumber: {

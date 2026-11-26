@@ -125,7 +125,7 @@ Rectangle {
 
             Text {
                 text: AudioState.muted
-                    ? "󰝟 SESSİZ"
+                    ? I18n.t("󰝟 SESSİZ", "󰝟 MUTE")
                     : ((AudioState.volume > 0.66 ? "󰕾 " : (AudioState.volume > 0.33 ? "󰖀 " : "󰕿 ")) + Math.round(AudioState.volume * 100) + "%")
                 color: AudioState.muted ? Theme.danger : (AudioState.isOpen ? Theme.accent : Theme.textPrimary)
                 font.family: Theme.fontMono

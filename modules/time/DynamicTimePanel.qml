@@ -161,7 +161,7 @@ Item {
 
                             Text {
                                 anchors.centerIn: parent
-                                text: "Bugün"
+                                text: I18n.t("Bugün", "Today")
                                 color: todayMa.containsMouse ? Theme.bgGlass : Theme.accent
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 10
@@ -321,7 +321,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: "Yılın " + TimeState.dayOfYear + ". Günü"
+                                    text: I18n.t("Yılın ", "Day ") + TimeState.dayOfYear + ". Günü"
                                     color: Theme.textSecondary
                                     font.family: Theme.fontMono
                                     font.pixelSize: 9
@@ -406,7 +406,7 @@ Item {
                                 spacing: 4
 
                                 Text {
-                                    text: "🌐 UTC+3 / İstanbul"
+                                    text: I18n.t("🌐 UTC+3 / İstanbul", "🌐 Local Time")
                                     color: Theme.textMuted
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
@@ -420,7 +420,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: (SystemState.uptime && SystemState.uptime.length > 0) ? "⏱️ " + SystemState.uptime : "Aktif"
+                                    text: (SystemState.uptime && SystemState.uptime.length > 0) ? "⏱️ " + SystemState.uptime : I18n.t("Aktif", "Active")
                                     color: Theme.textMuted
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
@@ -506,7 +506,7 @@ Item {
                                 ColumnLayout {
                                     spacing: 0
                                     Text { text: WeatherState.windSpeed + " km/s " + WeatherState.windDir; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Rüzgar Hızı"; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 9 }
+                                    Text { text: I18n.t("Rüzgar Hızı", "Wind Speed"); color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 9 }
                                 }
                             }
 
@@ -526,7 +526,7 @@ Item {
                                 ColumnLayout {
                                     spacing: 0
                                     Text { text: WeatherState.rainProb + "%"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Yağış İhtimali"; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 9 }
+                                    Text { text: I18n.t("Yağış İhtimali", "Precipitation"); color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 9 }
                                 }
                             }
 
@@ -536,7 +536,7 @@ Item {
                                 ColumnLayout {
                                     spacing: 0
                                     Text { text: WeatherState.displayFeels; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Hissedilen"; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 9 }
+                                    Text { text: I18n.t("Hissedilen", "Feels Like"); color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 9 }
                                 }
                             }
                         }
@@ -560,7 +560,7 @@ Item {
                             Layout.fillWidth: true
 
                             Text {
-                                text: "SAATLİK HAVA DURUMU TAHMİNİ"
+                                text: I18n.t("SAATLİK HAVA DURUMU TAHMİNİ", "HOURLY WEATHER FORECAST")
                                 color: Theme.textMuted
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 9
@@ -569,7 +569,7 @@ Item {
                             }
 
                             Text {
-                                text: WeatherState.lastUpdated.length > 0 ? "Güncellendi: " + WeatherState.lastUpdated : ""
+                                text: WeatherState.lastUpdated.length > 0 ? I18n.t("Güncellendi: ", "Updated: ") + WeatherState.lastUpdated : ""
                                 color: Theme.textMuted
                                 font.family: Theme.fontMono
                                 font.pixelSize: 9

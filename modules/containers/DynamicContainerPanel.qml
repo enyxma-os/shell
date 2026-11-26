@@ -36,7 +36,7 @@ Item {
 
                 Text { text: "󰡨"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 16 }
                 Text {
-                    text: "Konteynerler" + (ContainerState.engine !== "" && ContainerState.engine !== "none" ? (" · " + ContainerState.engine) : "")
+                    text: I18n.t("Konteynerler", "Containers") + (ContainerState.engine !== "" && ContainerState.engine !== "none" ? (" · " + ContainerState.engine) : "")
                     color: Theme.textPrimary; font.family: Theme.fontDisplay; font.pixelSize: Theme.fontSizeNormal; font.bold: true; Layout.fillWidth: true
                 }
 
@@ -68,7 +68,7 @@ Item {
                 anchors.centerIn: parent; width: parent.width; height: 90
                 visible: ContainerState.engine === "none"
                 radius: Theme.radiusButton; color: Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
-                Text { anchors.centerIn: parent; text: "Docker veya Podman kurulu değil"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 12 }
+                Text { anchors.centerIn: parent; text: I18n.t("Docker veya Podman kurulu değil", "Docker or Podman is not installed"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 12 }
             }
 
             ListView {
@@ -102,7 +102,7 @@ Item {
                             border.color: cRow.modelData.running ? Theme.danger : Theme.accent; border.width: 1
                             Text {
                                 id: actTxt; anchors.centerIn: parent
-                                text: cRow.isBusy ? "…" : (cRow.modelData.running ? "Durdur" : "Başlat")
+                                text: cRow.isBusy ? "…" : (cRow.modelData.running ? I18n.t("Durdur", "Stop") : I18n.t("Başlat", "Start"))
                                 color: cRow.modelData.running ? Theme.danger : Theme.accent
                                 font.family: Theme.fontFamily; font.pixelSize: 11; font.bold: true
                             }
@@ -129,7 +129,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     visible: ContainerState.containers.length === 0
-                    text: ContainerState.lastError !== "" ? ContainerState.lastError : "Konteyner bulunamadı"
+                    text: ContainerState.lastError !== "" ? ContainerState.lastError : I18n.t("Konteyner bulunamadı", "No containers found")
                     color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 12
                 }
             }

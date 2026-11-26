@@ -99,7 +99,7 @@ Item {
                 }
 
                 Text {
-                    text: "Ses Karıştırıcı"
+                    text: I18n.t("Ses Karıştırıcı", "Audio Mixer")
                     color: Theme.textPrimary
                     font.family: Theme.fontDisplay
                     font.pixelSize: Theme.fontSizeNormal
@@ -321,7 +321,7 @@ Item {
                     }
 
                     Text {
-                        text: "Çıkış Cihazları"
+                        text: I18n.t("Çıkış Cihazları", "Output Devices")
                         color: Theme.textSecondary
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
@@ -382,7 +382,7 @@ Item {
                     }
 
                     Text {
-                        text: "Giriş Cihazları"
+                        text: I18n.t("Giriş Cihazları", "Input Devices")
                         color: Theme.textSecondary
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
@@ -526,7 +526,7 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         visible: AudioState.streams.length === 0
-                        text: "Aktif ses akışı yok"
+                        text: I18n.t("Aktif ses akışı yok", "No active audio streams")
                         color: Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: 12

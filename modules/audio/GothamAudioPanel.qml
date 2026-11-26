@@ -111,7 +111,7 @@ Item {
                 }
 
                 Text {
-                    text: "SES // KARIŞTIRICI"
+                    text: I18n.t("SES // KARIŞTIRICI", "AUDIO // MIXER")
                     color: Theme.textPrimary
                     font.family: Theme.fontDisplay
                     font.pixelSize: Theme.fontSizeNormal
@@ -156,7 +156,7 @@ Item {
 
             Repeater {
                 model: [
-                    { key: "devices", label: "CİHAZLAR" },
+                    { key: "devices", label: I18n.t("CİHAZLAR", "DEVICES") },
                     { key: "apps",    label: "UYGULAMALAR · " + AudioState.streams.length }
                 ]
                 delegate: Rectangle {
@@ -260,7 +260,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: AudioState.muted ? "SESSİZ" : (Math.round(AudioState.volume * 100) + "%")
+                                    text: AudioState.muted ? I18n.t("SESSİZ", "MUTE") : (Math.round(AudioState.volume * 100) + "%")
                                     color: AudioState.muted ? Theme.danger : Theme.accent
                                     font.family: Theme.fontMono
                                     font.pixelSize: 11
@@ -325,7 +325,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: AudioState.micMuted ? "SESSİZ" : (Math.round(AudioState.micVolume * 100) + "%")
+                                    text: AudioState.micMuted ? I18n.t("SESSİZ", "MUTE") : (Math.round(AudioState.micVolume * 100) + "%")
                                     color: AudioState.micMuted ? Theme.danger : Theme.accent
                                     font.family: Theme.fontMono
                                     font.pixelSize: 11
@@ -343,7 +343,7 @@ Item {
                     }
 
                     Text {
-                        text: "ÇIKIŞ CİHAZLARI"
+                        text: I18n.t("ÇIKIŞ CİHAZLARI", "OUTPUT DEVICES")
                         color: Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -404,7 +404,7 @@ Item {
                     }
 
                     Text {
-                        text: "GİRİŞ CİHAZLARI"
+                        text: I18n.t("GİRİŞ CİHAZLARI", "INPUT DEVICES")
                         color: Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -531,7 +531,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: streamRow.modelData.muted ? "SESSİZ" : (Math.round(streamRow.modelData.volume * 100) + "%")
+                                    text: streamRow.modelData.muted ? I18n.t("SESSİZ", "MUTE") : (Math.round(streamRow.modelData.volume * 100) + "%")
                                     color: streamRow.modelData.muted ? Theme.danger : Theme.accent
                                     font.family: Theme.fontMono
                                     font.pixelSize: 11
@@ -551,7 +551,7 @@ Item {
                     Text {
                         anchors.centerIn: parent
                         visible: AudioState.streams.length === 0
-                        text: "Aktif ses akışı yok"
+                        text: I18n.t("Aktif ses akışı yok", "No active audio streams")
                         color: Theme.textMuted
                         font.family: Theme.fontMono
                         font.pixelSize: 12

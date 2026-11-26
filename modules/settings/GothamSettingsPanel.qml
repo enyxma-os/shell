@@ -16,35 +16,44 @@ Item {
     property string globalFilter: ""
     property string shortcutFilter: ""
 
-    readonly property var navItems: [
-        { key: "overview",   icon: "󰋜", label: "GENEL BAKIŞ",     title: "SİSTEM GENEL BAKIŞ",     subtitle: "Donanım telemetrisi, aktif ekran ve hızlı ayar kısayolları" },
-        { key: "appearance", icon: "󰏘", label: "GÖRÜNÜM",         title: "GÖRÜNÜM VE PENCERE",     subtitle: "Tasarım kimliği, canlı önizleme ve Hyprland pencere geometrisi" },
-        { key: "bar",        icon: "󰕮", label: "ÜST ÇUBUK",       title: "ÜST ÇUBUK MODÜLLERİ",    subtitle: "Panelde görünecek bileşenleri canlı olarak yönetin" },
-        { key: "display",    icon: "󰍹", label: "EKRAN",           title: "EKRAN VE MONİTÖRLER",    subtitle: "Çözünürlük, yenileme hızı ve görüntü ölçeklendirme" },
-        { key: "input",      icon: "󰌌", label: "KLAVYE VE FARE",  title: "KLAVYE VE İŞARETÇİ",     subtitle: "Klavye düzeni, tuş tekrar hızı ve fare hassasiyeti" },
-        { key: "shortcuts",  icon: "󰘳", label: "KISAYOLLAR",      title: "KLAVYE KISAYOLLARI",     subtitle: "Aktif Hyprland tuş atamalarını arayın ve inceleyin" },
-        { key: "system",     icon: "󰒓", label: "SİSTEM",          title: "SİSTEM VE MODÜLLER",     subtitle: "Kalıcı yapılandırma dosyası ve yerleşik eklenti anahtarları" }
-    ]
+    readonly property var navItems: {
+        var _l = I18n.lang
+        return [
+            { key: "overview",   icon: "󰋜", label: I18n.t("GENEL BAKIŞ", "OVERVIEW"),         title: I18n.t("SİSTEM GENEL BAKIŞ", "SYSTEM OVERVIEW"),           subtitle: I18n.t("Donanım telemetrisi, aktif ekran ve hızlı ayar kısayolları", "Hardware telemetry, active display, and quick settings") },
+            { key: "appearance", icon: "󰏘", label: I18n.t("GÖRÜNÜM", "APPEARANCE"),           title: I18n.t("GÖRÜNÜM VE PENCERE", "APPEARANCE & WINDOW"),       subtitle: I18n.t("Tasarım kimliği, canlı önizleme ve Hyprland pencere geometrisi", "Visual identity, live preview, and Hyprland window geometry") },
+            { key: "bar",        icon: "󰕮", label: I18n.t("ÜST ÇUBUK", "TOP BAR"),             title: I18n.t("ÜST ÇUBUK MODÜLLERİ", "TOP BAR MODULES"),          subtitle: I18n.t("Panelde görünecek bileşenleri canlı olarak yönetin", "Toggle top bar components live") },
+            { key: "display",    icon: "󰍹", label: I18n.t("EKRAN", "DISPLAY"),                title: I18n.t("EKRAN VE MONİTÖRLER", "DISPLAY & MONITORS"),       subtitle: I18n.t("Çözünürlük, yenileme hızı ve görüntü ölçeklendirme", "Resolution, refresh rate, and display scaling") },
+            { key: "input",      icon: "󰌌", label: I18n.t("KLAVYE VE FARE", "INPUT"),         title: I18n.t("KLAVYE VE İŞARETÇİ", "KEYBOARD & POINTER"),       subtitle: I18n.t("Klavye düzeni, tuş tekrar hızı ve fare hassasiyeti", "Keyboard layout, repeat rate, and pointer sensitivity") },
+            { key: "shortcuts",  icon: "󰘳", label: I18n.t("KISAYOLLAR", "SHORTCUTS"),         title: I18n.t("KLAVYE KISAYOLLARI", "KEYBOARD SHORTCUTS"),       subtitle: I18n.t("Aktif Hyprland tuş atamalarını arayın ve inceleyin", "Search and inspect active Hyprland keybindings") },
+            { key: "system",     icon: "󰒓", label: I18n.t("SİSTEM", "SYSTEM"),                title: I18n.t("SİSTEM VE MODÜLLER", "SYSTEM & MODULES"),         subtitle: I18n.t("Arayüz dili, kalıcı yapılandırma ve yerleşik eklentiler", "Interface language, persistent config, and built-in modules") }
+        ]
+    }
 
-    readonly property var barModules: [
-        { prop: "showWorkspaces",    icon: "󰍹", label: "ÇALIŞMA ALANLARI",      desc: "Aktif ve dolu masaüstü numaraları" },
-        { prop: "showClock",         icon: "󰥔", label: "SAAT VE HAVA DURUMU",   desc: "Tarih, saat ve canlı sıcaklık bilgisi" },
-        { prop: "showSystemStats",   icon: "󰍛", label: "SİSTEM TELEMETRİ",      desc: "CPU, bellek ve disk kullanım özeti" },
-        { prop: "showNetwork",       icon: "󰖩", label: "AĞ VE WI-FI",           desc: "Bağlantı durumu, VPN ve hız göstergesi" },
-        { prop: "showVolume",        icon: "󰕾", label: "SES DÜZEYİ",            desc: "Ses karıştırıcı ve hızlı susturma" },
-        { prop: "showPower",         icon: "󰐥", label: "GÜÇ VE KONTROL",        desc: "Kontrol merkezi ve oturum eylemleri" },
-        { prop: "showAi",            icon: "󰧑", label: "ORACLE // AI ASİSTAN",  desc: "Yapay zeka kenar çubuğu kısayolu" },
-        { prop: "showNotifications", icon: "󰂚", label: "BİLDİRİMLER",           desc: "Okunmamış uyarı sayacı ve geçmişi" },
-        { prop: "showTray",          icon: "󰀻", label: "SİSTEM TEPSİSİ",        desc: "Arka plan uygulama simgeleri" }
-    ]
+    readonly property var barModules: {
+        var _l = I18n.lang
+        return [
+            { prop: "showWorkspaces",    icon: "󰍹", label: I18n.t("ÇALIŞMA ALANLARI", "WORKSPACES"),         desc: I18n.t("Aktif ve dolu masaüstü numaraları", "Active and occupied workspace indicators") },
+            { prop: "showClock",         icon: "󰥔", label: I18n.t("SAAT VE HAVA DURUMU", "CLOCK & WEATHER"),   desc: I18n.t("Tarih, saat ve canlı sıcaklık bilgisi", "Date, time, and live weather status") },
+            { prop: "showSystemStats",   icon: "󰍛", label: I18n.t("SİSTEM TELEMETRİ", "SYSTEM TELEMETRY"),    desc: I18n.t("CPU, bellek ve disk kullanım özeti", "CPU, memory, and disk usage summary") },
+            { prop: "showNetwork",       icon: "󰖩", label: I18n.t("AĞ VE WI-FI", "NETWORK & WI-FI"),          desc: I18n.t("Bağlantı durumu, VPN ve hız göstergesi", "Connection status, VPN, and speed indicator") },
+            { prop: "showVolume",        icon: "󰕾", label: I18n.t("SES DÜZEYİ", "VOLUME"),                    desc: I18n.t("Ses karıştırıcı ve hızlı susturma", "Audio mixer and quick mute") },
+            { prop: "showPower",         icon: "󰐥", label: I18n.t("GÜÇ VE KONTROL", "POWER & CONTROL"),       desc: I18n.t("Kontrol merkezi ve oturum eylemleri", "Control center and session actions") },
+            { prop: "showAi",            icon: "󰧑", label: "ORACLE // AI",                                    desc: I18n.t("Yapay zeka kenar çubuğu kısayolu", "AI assistant sidebar shortcut") },
+            { prop: "showNotifications", icon: "󰂚", label: I18n.t("BİLDİRİMLER", "NOTIFICATIONS"),            desc: I18n.t("Okunmamış uyarı sayacı ve geçmişi", "Unread alert counter and history") },
+            { prop: "showTray",          icon: "󰀻", label: I18n.t("SİSTEM TEPSİSİ", "SYSTEM TRAY"),           desc: I18n.t("Arka plan uygulama simgeleri", "Background application icons") }
+        ]
+    }
 
-    readonly property var pluginModules: [
-        { prop: "enableAudioMixer",       icon: "󰓃", label: "SES KARIŞTIRICI",      desc: "Uygulama bazlı ses düzeyi kontrolü" },
-        { prop: "enableBluetoothPanel",   icon: "󰂯", label: "BLUETOOTH YÖNETİCİSİ", desc: "Cihaz eşleştirme ve pil takibi" },
-        { prop: "enableWifiQr",           icon: "󰐲", label: "WI-FI QR PAYLAŞIMI",   desc: "Aktif ağ için hızlı QR kodu üretimi" },
-        { prop: "enableFocusTimer",       icon: "󰔟", label: "ODAK ZAMANLAYICI",     desc: "Pomodoro çalışma ve mola sayacı" },
-        { prop: "enableContainerMonitor", icon: "󰡨", label: "KONTEYNER İZLEYİCİ",   desc: "Docker ve Podman servis durumu" }
-    ]
+    readonly property var pluginModules: {
+        var _l = I18n.lang
+        return [
+            { prop: "enableAudioMixer",       icon: "󰓃", label: I18n.t("SES KARIŞTIRICI", "AUDIO MIXER"),           desc: I18n.t("Uygulama bazlı ses düzeyi kontrolü", "Per-application volume control") },
+            { prop: "enableBluetoothPanel",   icon: "󰂯", label: I18n.t("BLUETOOTH YÖNETİCİSİ", "BLUETOOTH MANAGER"), desc: I18n.t("Cihaz eşleştirme ve pil takibi", "Device pairing and battery tracking") },
+            { prop: "enableWifiQr",           icon: "󰐲", label: I18n.t("WI-FI QR PAYLAŞIMI", "WI-FI QR SHARING"),   desc: I18n.t("Aktif ağ için hızlı QR kodu üretimi", "Instant QR code generation for active Wi-Fi") },
+            { prop: "enableFocusTimer",       icon: "󰔟", label: I18n.t("ODAK ZAMANLAYICI", "FOCUS TIMER"),         desc: I18n.t("Pomodoro çalışma ve mola sayacı", "Pomodoro work and break timer") },
+            { prop: "enableContainerMonitor", icon: "󰡨", label: I18n.t("KONTEYNER İZLEYİCİ", "CONTAINER MONITOR"),  desc: I18n.t("Docker ve Podman servis durumu", "Docker and Podman container status") }
+        ]
+    }
 
     readonly property int activeBarModuleCount: {
         var count = 0
@@ -263,7 +272,7 @@ Item {
                 }
 
                 Text {
-                    text: "MASAÜSTÜ KONTROL MERKEZİ"
+                    text: I18n.t("MASAÜSTÜ KONTROL MERKEZİ", "DESKTOP CONTROL CENTER")
                     color: Theme.textMuted
                     font.family: Theme.fontMono
                     font.pixelSize: 9
@@ -313,7 +322,7 @@ Item {
 
                         Text {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: "Ayar ara..."
+                            text: I18n.t("Ayar ara...", "Search settings...")
                             color: Theme.textMuted
                             font.family: Theme.fontMono
                             font.pixelSize: 10
@@ -460,7 +469,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     visible: root.searchResults.length === 0
-                    text: "Sonuç bulunamadı"
+                    text: I18n.t("Sonuç bulunamadı", "No results found")
                     color: Theme.textMuted
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -508,7 +517,7 @@ Item {
                     Item { Layout.fillWidth: true }
 
                     Text {
-                        text: "ESC İLE KAPAT"
+                        text: I18n.t("ESC İLE KAPAT", "ESC TO CLOSE")
                         color: Theme.textMuted
                         font.family: Theme.fontMono
                         font.pixelSize: 9
@@ -623,7 +632,7 @@ Item {
                         spacing: 12
 
                         Text {
-                            text: "DONANIM VE OTURUM ÖZETİ"
+                            text: I18n.t("DONANIM VE OTURUM ÖZETİ", "HARDWARE & SESSION SUMMARY")
                             color: Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: 10
@@ -639,12 +648,12 @@ Item {
 
                             Repeater {
                                 model: [
-                                    { label: "İŞLEMCİ",  value: PerformanceState.cpuModel + " · %" + PerformanceState.cpuPercent },
-                                    { label: "EKRAN KARTI", value: PerformanceState.gpuModel },
-                                    { label: "BELLEK",   value: PerformanceState.memUsedGiB.toFixed(1) + " / " + PerformanceState.memTotalGiB.toFixed(1) + " GiB · %" + PerformanceState.memPercent },
-                                    { label: "DEPOLAMA", value: StorageState.rootMount + " · %" + StorageState.rootPercent + " · " + StorageState.rootUsedGiB.toFixed(0) + " GiB" },
-                                    { label: "EKRAN",    value: (SettingsState.monitors.length > 0) ? (SettingsState.monitors[0].name + " · " + SettingsState.monitors[0].width + "×" + SettingsState.monitors[0].height + " @ " + Math.round(SettingsState.monitors[0].refreshRate) + "Hz") : "Algılanıyor" },
-                                    { label: "AĞ",       value: NetworkState.isConnected ? ((NetworkState.ssid || NetworkState.connectionName || "Bağlı") + " · " + NetworkState.ipAddress) : "Çevrimdışı" }
+                                    { label: I18n.t("İŞLEMCİ", "PROCESSOR"),  value: PerformanceState.cpuModel + " · %" + PerformanceState.cpuPercent },
+                                    { label: I18n.t("EKRAN KARTI", "GPU"), value: PerformanceState.gpuModel },
+                                    { label: I18n.t("BELLEK", "MEMORY"),   value: PerformanceState.memUsedGiB.toFixed(1) + " / " + PerformanceState.memTotalGiB.toFixed(1) + " GiB · %" + PerformanceState.memPercent },
+                                    { label: I18n.t("DEPOLAMA", "STORAGE"), value: StorageState.rootMount + " · %" + StorageState.rootPercent + " · " + StorageState.rootUsedGiB.toFixed(0) + " GiB" },
+                                    { label: I18n.t("EKRAN", "DISPLAY"),    value: (SettingsState.monitors.length > 0) ? (SettingsState.monitors[0].name + " · " + SettingsState.monitors[0].width + "×" + SettingsState.monitors[0].height + " @ " + Math.round(SettingsState.monitors[0].refreshRate) + "Hz") : I18n.t("Algılanıyor", "Detecting") },
+                                    { label: I18n.t("AĞ", "NETWORK"),       value: NetworkState.isConnected ? ((NetworkState.ssid || NetworkState.connectionName || I18n.t("Bağlı", "Connected")) + " · " + NetworkState.ipAddress) : I18n.t("Çevrimdışı", "Offline") }
                                 ]
                                 delegate: Rectangle {
                                     id: ovCard
@@ -688,7 +697,7 @@ Item {
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
 
                         Text {
-                            text: "HIZLI ERİŞİM"
+                            text: I18n.t("HIZLI ERİŞİM", "QUICK ACCESS")
                             color: Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: 10
@@ -702,9 +711,9 @@ Item {
 
                             Repeater {
                                 model: [
-                                    { tab: "appearance", icon: "󰏘", label: "TEMA VE STİL" },
-                                    { tab: "display",    icon: "󰍹", label: "EKRAN AYARLARI" },
-                                    { tab: "shortcuts",  icon: "󰘳", label: "KISAYOLLAR" }
+                                    { tab: "appearance", icon: "󰏘", label: I18n.t("TEMA VE STİL", "THEME & STYLE") },
+                                    { tab: "display",    icon: "󰍹", label: I18n.t("EKRAN AYARLARI", "DISPLAY SETTINGS") },
+                                    { tab: "shortcuts",  icon: "󰘳", label: I18n.t("KISAYOLLAR", "SHORTCUTS") }
                                 ]
                                 delegate: Rectangle {
                                     id: qBtn
@@ -751,7 +760,7 @@ Item {
                         spacing: 12
 
                         Text {
-                            text: "TASARIM KİMLİĞİ"
+                            text: I18n.t("TASARIM KİMLİĞİ", "DESIGN IDENTITY")
                             color: Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: 10
@@ -765,8 +774,8 @@ Item {
 
                             Repeater {
                                 model: [
-                                    { key: "dynamic", title: "DİNAMİK · MATUGEN",  desc: "Duvar kağıdından türetilen yumuşak renkler" },
-                                    { key: "gotham",  title: "GOTHAM · BRUTALIST", desc: "Keskin köşeler, koyu yüzey ve kehribar vurgu" }
+                                    { key: "dynamic", title: I18n.t("DİNAMİK · MATUGEN", "DYNAMIC · MATUGEN"),  desc: I18n.t("Duvar kağıdından türetilen yumuşak renkler", "Adaptive colors extracted from your wallpaper") },
+                                    { key: "gotham",  title: "GOTHAM · BRUTALIST", desc: I18n.t("Keskin köşeler, koyu yüzey ve kehribar vurgu", "Sharp corners, dark obsidian surfaces, and amber accents") }
                                 ]
                                 delegate: Rectangle {
                                     id: themeCard
@@ -805,7 +814,7 @@ Item {
                                                 radius: 0
                                                 color: Theme.accent
 
-                                                Text { id: activeLbl; anchors.centerIn: parent; text: "AKTİF"; color: Theme.accentOn; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
+                                                Text { id: activeLbl; anchors.centerIn: parent; text: I18n.t("AKTİF", "ACTIVE"); color: Theme.accentOn; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
                                             }
                                         }
 
@@ -846,7 +855,7 @@ Item {
                                 spacing: 12
 
                                 Text {
-                                    text: "CANLI ÖNİZLEME"
+                                    text: I18n.t("CANLI ÖNİZLEME", "LIVE PREVIEW")
                                     color: Theme.textMuted
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
@@ -873,7 +882,7 @@ Item {
 
                                     Text {
                                         anchors.centerIn: parent
-                                        text: "ÖRNEK EYLEM"
+                                        text: I18n.t("ÖRNEK EYLEM", "SAMPLE ACTION")
                                         color: Theme.accentOn
                                         font.family: Theme.fontMono
                                         font.pixelSize: 9
@@ -904,8 +913,8 @@ Item {
                                     Layout.fillWidth: true
                                     spacing: 2
 
-                                    Text { text: "DUVAR KAĞIDI GALERİSİ"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Arka plan görselini değiştirin ve renk paletini yenileyin"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; elide: Text.ElideRight }
+                                    Text { text: I18n.t("DUVAR KAĞIDI GALERİSİ", "WALLPAPER GALLERY"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Arka plan görselini değiştirin ve renk paletini yenileyin", "Change wallpaper and refresh theme palette"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11; elide: Text.ElideRight }
                                 }
 
                                 Rectangle {
@@ -916,7 +925,7 @@ Item {
                                     border.color: wpMa.containsMouse ? Theme.accent : Theme.borderSubtle
                                     border.width: 1
 
-                                    Text { anchors.centerIn: parent; text: "AÇ →"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                                    Text { anchors.centerIn: parent; text: I18n.t("AÇ →", "OPEN →"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
                                 }
                             }
 
@@ -935,7 +944,7 @@ Item {
                             width: parent.width
 
                             Text {
-                                text: "HYPRLAND PENCERE GEOMETRİSİ"
+                                text: I18n.t("HYPRLAND PENCERE GEOMETRİSİ", "HYPRLAND WINDOW GEOMETRY")
                                 color: Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: 10
@@ -953,41 +962,41 @@ Item {
                                 border.color: Theme.borderSubtle
                                 border.width: 1
 
-                                Text { anchors.centerIn: parent; text: "TEMA VARSAYILANI"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
+                                Text { anchors.centerIn: parent; text: I18n.t("TEMA VARSAYILANI", "THEME DEFAULT"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
                                 MouseArea { id: rstHyprMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.resetHyprStyle() }
                             }
                         }
 
                         GothamStepperRow {
-                            title: "KÖŞE YUVARLAKLIĞI"
-                            subtitle: "Pencere köşelerinin piksel cinsinden yumuşaklığı"
+                            title: I18n.t("KÖŞE YUVARLAKLIĞI", "CORNER RADIUS")
+                            subtitle: I18n.t("Pencere köşelerinin piksel cinsinden yumuşaklığı", "Window corner rounding in pixels")
                             valueText: SettingsState.hyprRounding + " px"
-                            onDecrement: SettingsState.setHyprSetting("hyprRounding", Math.max(0, SettingsState.hyprRounding - 2), "Köşe yuvarlaklığı güncellendi")
-                            onIncrement: SettingsState.setHyprSetting("hyprRounding", Math.min(24, SettingsState.hyprRounding + 2), "Köşe yuvarlaklığı güncellendi")
+                            onDecrement: SettingsState.setHyprSetting("hyprRounding", Math.max(0, SettingsState.hyprRounding - 2), I18n.t("Köşe yuvarlaklığı güncellendi", "Corner radius updated"))
+                            onIncrement: SettingsState.setHyprSetting("hyprRounding", Math.min(24, SettingsState.hyprRounding + 2), I18n.t("Köşe yuvarlaklığı güncellendi", "Corner radius updated"))
                         }
 
                         GothamStepperRow {
-                            title: "İÇ PENCERE BOŞLUĞU"
-                            subtitle: "Yan yana pencereler arasındaki mesafe"
+                            title: I18n.t("İÇ PENCERE BOŞLUĞU", "INNER GAPS")
+                            subtitle: I18n.t("Yan yana pencereler arasındaki mesafe", "Spacing between tiled windows")
                             valueText: SettingsState.hyprGapsIn + " px"
-                            onDecrement: SettingsState.setHyprSetting("hyprGapsIn", Math.max(0, SettingsState.hyprGapsIn - 2), "İç boşluk güncellendi")
-                            onIncrement: SettingsState.setHyprSetting("hyprGapsIn", Math.min(24, SettingsState.hyprGapsIn + 2), "İç boşluk güncellendi")
+                            onDecrement: SettingsState.setHyprSetting("hyprGapsIn", Math.max(0, SettingsState.hyprGapsIn - 2), I18n.t("İç boşluk güncellendi", "Inner gaps updated"))
+                            onIncrement: SettingsState.setHyprSetting("hyprGapsIn", Math.min(24, SettingsState.hyprGapsIn + 2), I18n.t("İç boşluk güncellendi", "Inner gaps updated"))
                         }
 
                         GothamStepperRow {
-                            title: "DIŞ KENAR BOŞLUĞU"
-                            subtitle: "Pencereler ile ekran kenarı arasındaki mesafe"
+                            title: I18n.t("DIŞ KENAR BOŞLUĞU", "OUTER GAPS")
+                            subtitle: I18n.t("Pencereler ile ekran kenarı arasındaki mesafe", "Spacing between windows and screen edge")
                             valueText: SettingsState.hyprGapsOut + " px"
-                            onDecrement: SettingsState.setHyprSetting("hyprGapsOut", Math.max(0, SettingsState.hyprGapsOut - 2), "Dış boşluk güncellendi")
-                            onIncrement: SettingsState.setHyprSetting("hyprGapsOut", Math.min(32, SettingsState.hyprGapsOut + 2), "Dış boşluk güncellendi")
+                            onDecrement: SettingsState.setHyprSetting("hyprGapsOut", Math.max(0, SettingsState.hyprGapsOut - 2), I18n.t("Dış boşluk güncellendi", "Outer gaps updated"))
+                            onIncrement: SettingsState.setHyprSetting("hyprGapsOut", Math.min(32, SettingsState.hyprGapsOut + 2), I18n.t("Dış boşluk güncellendi", "Outer gaps updated"))
                         }
 
                         GothamStepperRow {
-                            title: "KENARLIK KALINLIĞI"
-                            subtitle: "Aktif ve pasif pencere çerçeve kalınlığı"
+                            title: I18n.t("KENARLIK KALINLIĞI", "BORDER WIDTH")
+                            subtitle: I18n.t("Aktif ve pasif pencere çerçeve kalınlığı", "Active and inactive window border thickness")
                             valueText: SettingsState.hyprBorderSize + " px"
-                            onDecrement: SettingsState.setHyprSetting("hyprBorderSize", Math.max(0, SettingsState.hyprBorderSize - 1), "Kenarlık kalınlığı güncellendi")
-                            onIncrement: SettingsState.setHyprSetting("hyprBorderSize", Math.min(6, SettingsState.hyprBorderSize + 1), "Kenarlık kalınlığı güncellendi")
+                            onDecrement: SettingsState.setHyprSetting("hyprBorderSize", Math.max(0, SettingsState.hyprBorderSize - 1), I18n.t("Kenarlık kalınlığı güncellendi", "Border width updated"))
+                            onIncrement: SettingsState.setHyprSetting("hyprBorderSize", Math.min(6, SettingsState.hyprBorderSize + 1), I18n.t("Kenarlık kalınlığı güncellendi", "Border width updated"))
                         }
 
                         Rectangle {
@@ -1002,28 +1011,28 @@ Item {
                                 anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Column {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "PENCERE BULANIKLIĞI"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Saydam pencerelerin arkasındaki bulanıklık efektini açar"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                    Text { text: I18n.t("PENCERE BULANIKLIĞI", "WINDOW BLUR"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Saydam pencerelerin arkasındaki bulanıklık efektini açar", "Enable background blur behind translucent windows"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                                 GothamSwitch { checked: SettingsState.hyprBlur }
                             }
-                            MouseArea { id: blurMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setHyprSetting("hyprBlur", !SettingsState.hyprBlur, "Bulanıklık güncellendi") }
+                            MouseArea { id: blurMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setHyprSetting("hyprBlur", !SettingsState.hyprBlur, I18n.t("Bulanıklık güncellendi", "Blur updated")) }
                         }
 
                         GothamStepperRow {
-                            title: "AKTİF PENCERE OPAKLIĞI"
-                            subtitle: "Odaktaki pencerenin saydamlık oranı"
+                            title: I18n.t("AKTİF PENCERE OPAKLIĞI", "ACTIVE OPACITY")
+                            subtitle: I18n.t("Odaktaki pencerenin saydamlık oranı", "Opacity of the focused window")
                             valueText: Math.round(SettingsState.hyprActiveOpacity * 100) + "%"
-                            onDecrement: SettingsState.setHyprSetting("hyprActiveOpacity", Math.max(0.75, Math.round((SettingsState.hyprActiveOpacity - 0.05) * 100) / 100), "Aktif opaklık güncellendi")
-                            onIncrement: SettingsState.setHyprSetting("hyprActiveOpacity", Math.min(1.00, Math.round((SettingsState.hyprActiveOpacity + 0.05) * 100) / 100), "Aktif opaklık güncellendi")
+                            onDecrement: SettingsState.setHyprSetting("hyprActiveOpacity", Math.max(0.75, Math.round((SettingsState.hyprActiveOpacity - 0.05) * 100) / 100), I18n.t("Aktif opaklık güncellendi", "Active opacity updated"))
+                            onIncrement: SettingsState.setHyprSetting("hyprActiveOpacity", Math.min(1.00, Math.round((SettingsState.hyprActiveOpacity + 0.05) * 100) / 100), I18n.t("Aktif opaklık güncellendi", "Active opacity updated"))
                         }
 
                         GothamStepperRow {
-                            title: "PASİF PENCERE OPAKLIĞI"
-                            subtitle: "Arka plandaki pencerelerin saydamlık oranı"
+                            title: I18n.t("PASİF PENCERE OPAKLIĞI", "INACTIVE OPACITY")
+                            subtitle: I18n.t("Arka plandaki pencerelerin saydamlık oranı", "Opacity of unfocused windows")
                             valueText: Math.round(SettingsState.hyprInactiveOpacity * 100) + "%"
-                            onDecrement: SettingsState.setHyprSetting("hyprInactiveOpacity", Math.max(0.70, Math.round((SettingsState.hyprInactiveOpacity - 0.05) * 100) / 100), "Pasif opaklık güncellendi")
-                            onIncrement: SettingsState.setHyprSetting("hyprInactiveOpacity", Math.min(1.00, Math.round((SettingsState.hyprInactiveOpacity + 0.05) * 100) / 100), "Pasif opaklık güncellendi")
+                            onDecrement: SettingsState.setHyprSetting("hyprInactiveOpacity", Math.max(0.70, Math.round((SettingsState.hyprInactiveOpacity - 0.05) * 100) / 100), I18n.t("Pasif opaklık güncellendi", "Inactive opacity updated"))
+                            onIncrement: SettingsState.setHyprSetting("hyprInactiveOpacity", Math.min(1.00, Math.round((SettingsState.hyprInactiveOpacity + 0.05) * 100) / 100), I18n.t("Pasif opaklık güncellendi", "Inactive opacity updated"))
                         }
 
                         Rectangle {
@@ -1033,12 +1042,12 @@ Item {
                                 anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Column {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "PENCERE GÖLGESİ"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Pencerelerin altında derinlik gölgesi oluşturur"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                    Text { text: I18n.t("PENCERE GÖLGESİ", "WINDOW SHADOW"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Pencerelerin altında derinlik gölgesi oluşturur", "Render drop shadows beneath windows"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                                 GothamSwitch { checked: SettingsState.hyprShadow }
                             }
-                            MouseArea { id: shadowMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setHyprSetting("hyprShadow", !SettingsState.hyprShadow, "Pencere gölgesi güncellendi") }
+                            MouseArea { id: shadowMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setHyprSetting("hyprShadow", !SettingsState.hyprShadow, I18n.t("Pencere gölgesi güncellendi", "Window shadow updated")) }
                         }
 
                         Rectangle {
@@ -1048,18 +1057,18 @@ Item {
                                 anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Column {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "HYPRLAND ANİMASYONLARI"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Pencere açılış ve çalışma alanı geçiş efektlerini kontrol eder"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                    Text { text: I18n.t("HYPRLAND ANİMASYONLARI", "HYPRLAND ANIMATIONS"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Pencere açılış ve çalışma alanı geçiş efektlerini kontrol eder", "Toggle window and workspace transition animations"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                                 GothamSwitch { checked: SettingsState.hyprAnimations }
                             }
-                            MouseArea { id: animMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setHyprSetting("hyprAnimations", !SettingsState.hyprAnimations, "Hyprland animasyonları güncellendi") }
+                            MouseArea { id: animMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setHyprSetting("hyprAnimations", !SettingsState.hyprAnimations, I18n.t("Hyprland animasyonları güncellendi", "Hyprland animations updated")) }
                         }
 
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
 
                         Text {
-                            text: "DAVRANIŞ VE ÇUBUK GEOMETRİSİ"
+                            text: I18n.t("DAVRANIŞ VE ÇUBUK GEOMETRİSİ", "BEHAVIOR & BAR GEOMETRY")
                             color: Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: 10
@@ -1075,12 +1084,12 @@ Item {
                                 anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Column {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "HAREKET VE ANİMASYONLARI AZALT"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Panel geçişleri ve açılış animasyonlarını anlık hale getirir"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                    Text { text: I18n.t("HAREKET VE ANİMASYONLARI AZALT", "REDUCE MOTION"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Panel geçişleri ve açılış animasyonlarını anlık hale getirir", "Make panel transitions instant"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                                 GothamSwitch { checked: SettingsState.reduceMotion }
                             }
-                            MouseArea { id: rmMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.toggleBoolSetting("reduceMotion", "Hareket tercihi güncellendi") }
+                            MouseArea { id: rmMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.toggleBoolSetting("reduceMotion", I18n.t("Hareket tercihi güncellendi", "Motion preference updated")) }
                         }
 
                         Rectangle {
@@ -1091,17 +1100,17 @@ Item {
                                 anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Column {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "ÜST ÇUBUK GÖRÜNÜR"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Ekranın üstündeki Enyxma durum çubuğunu gösterir veya gizler"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                    Text { text: I18n.t("ÜST ÇUBUK GÖRÜNÜR", "TOP BAR VISIBLE"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Ekranın üstündeki Enyxma durum çubuğunu gösterir veya gizler", "Show or hide the Enyxma top status bar"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                                 GothamSwitch { checked: SettingsState.barVisible }
                             }
-                            MouseArea { id: bvMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.toggleBoolSetting("barVisible", "Üst çubuk görünürlüğü güncellendi") }
+                            MouseArea { id: bvMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.toggleBoolSetting("barVisible", I18n.t("Üst çubuk görünürlüğü güncellendi", "Top bar visibility updated")) }
                         }
 
                         GothamStepperRow {
-                            title: "ÜST ÇUBUK YÜKSEKLİĞİ"
-                            subtitle: "Üst panelin piksel cinsinden dikey kalınlığı"
+                            title: I18n.t("ÜST ÇUBUK YÜKSEKLİĞİ", "TOP BAR HEIGHT")
+                            subtitle: I18n.t("Üst panelin piksel cinsinden dikey kalınlığı", "Vertical height offset of the top bar")
                             valueText: Theme.barHeight + " px"
                             onDecrement: SettingsState.adjustBarHeight(-1)
                             onIncrement: SettingsState.adjustBarHeight(1)
@@ -1119,8 +1128,8 @@ Item {
                         anchors.top: parent.top; anchors.left: parent.left; anchors.right: parent.right
                         height: 22
 
-                        Text { text: "AKTİF MODÜLLER"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true; Layout.fillWidth: true }
-                        Text { text: root.activeBarModuleCount + " / " + root.barModules.length + " aktif"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                        Text { text: I18n.t("AKTİF MODÜLLER", "ACTIVE MODULES"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true; Layout.fillWidth: true }
+                        Text { text: root.activeBarModuleCount + " / " + root.barModules.length + I18n.t(" aktif", " active"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
                     }
 
                     ListView {
@@ -1151,7 +1160,7 @@ Item {
                             MouseArea {
                                 id: barRowMa
                                 anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                                onClicked: SettingsState.toggleBoolSetting(barRow.modelData.prop, barRow.modelData.label + " güncellendi")
+                                onClicked: SettingsState.toggleBoolSetting(barRow.modelData.prop, barRow.modelData.label + I18n.t(" güncellendi", " updated"))
                             }
                         }
                     }
@@ -1172,12 +1181,12 @@ Item {
 
                         RowLayout {
                             width: parent.width
-                            Text { text: "BAĞLI MONİTÖRLER"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true; Layout.fillWidth: true }
+                            Text { text: I18n.t("BAĞLI MONİTÖRLER", "CONNECTED MONITORS"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true; Layout.fillWidth: true }
                             Rectangle {
                                 implicitWidth: 74; implicitHeight: 24; radius: 0
                                 color: refMonMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                                 border.color: refMonMa.containsMouse ? Theme.accent : Theme.borderSubtle; border.width: 1
-                                Text { anchors.centerIn: parent; text: "↻ YENİLE"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                                Text { anchors.centerIn: parent; text: I18n.t("↻ YENİLE", "↻ REFRESH"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
                                 MouseArea { id: refMonMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.refreshMonitors() }
                             }
                         }
@@ -1213,7 +1222,7 @@ Item {
                                         }
                                     }
 
-                                    Text { text: "ÇÖZÜNÜRLÜK VE YENİLEME HIZI"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
+                                    Text { text: I18n.t("ÇÖZÜNÜRLÜK VE YENİLEME HIZI", "RESOLUTION & REFRESH RATE"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
 
                                     Flow {
                                         width: parent.width
@@ -1240,7 +1249,7 @@ Item {
                                         }
                                     }
 
-                                    Text { text: "GÖRÜNTÜ ÖLÇEĞİ"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
+                                    Text { text: I18n.t("GÖRÜNTÜ ÖLÇEĞİ", "DISPLAY SCALE"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
 
                                     RowLayout {
                                         width: parent.width
@@ -1272,15 +1281,15 @@ Item {
 
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
 
-                        Text { text: "ADAPTİF YENİLEME // VRR"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                        Text { text: I18n.t("ADAPTİF YENİLEME // VRR", "ADAPTIVE SYNC // VRR"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
 
                         RowLayout {
                             width: parent.width; spacing: 8
                             Repeater {
                                 model: [
-                                    { mode: 0, label: "KAPALI" },
-                                    { mode: 1, label: "HER ZAMAN" },
-                                    { mode: 2, label: "TAM EKRAN" }
+                                    { mode: 0, label: I18n.t("KAPALI", "OFF") },
+                                    { mode: 1, label: I18n.t("HER ZAMAN", "ALWAYS") },
+                                    { mode: 2, label: I18n.t("TAM EKRAN", "FULLSCREEN") }
                                 ]
                                 delegate: Rectangle {
                                     id: vrrChip
@@ -1297,7 +1306,7 @@ Item {
 
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
 
-                        Text { text: "GECE IŞIĞI // HYPRSUNSET"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                        Text { text: I18n.t("GECE IŞIĞI // HYPRSUNSET", "NIGHT LIGHT // HYPRSUNSET"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
 
                         Rectangle {
                             width: parent.width; height: 52; radius: 0
@@ -1306,8 +1315,8 @@ Item {
                                 anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Column {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "GECE IŞIĞI FİLTRESİ"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Mavi ışığı azaltarak göz yorgunluğunu düşürür"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                    Text { text: I18n.t("GECE IŞIĞI FİLTRESİ", "NIGHT LIGHT FILTER"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Mavi ışığı azaltarak göz yorgunluğunu düşürür", "Reduces blue light to ease eye strain"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                                 GothamSwitch { checked: SettingsState.nightLightEnabled }
                             }
@@ -1315,8 +1324,8 @@ Item {
                         }
 
                         GothamStepperRow {
-                            title: "RENK SICAKLIĞI"
-                            subtitle: "Düşük Kelvin değeri daha sıcak kehribar tonu verir"
+                            title: I18n.t("RENK SICAKLIĞI", "COLOR TEMPERATURE")
+                            subtitle: I18n.t("Düşük Kelvin değeri daha sıcak kehribar tonu verir", "Lower Kelvin values produce warmer amber tones")
                             valueText: SettingsState.nightLightTemp + " K"
                             onDecrement: SettingsState.setNightLightTemp(SettingsState.nightLightTemp - 250)
                             onIncrement: SettingsState.setNightLightTemp(SettingsState.nightLightTemp + 250)
@@ -1326,9 +1335,9 @@ Item {
                             width: parent.width; spacing: 8
                             Repeater {
                                 model: [
-                                    { temp: 3500, label: "3500K · SICAK" },
-                                    { temp: 4500, label: "4500K · DENGELİ" },
-                                    { temp: 5500, label: "5500K · HAFİF" }
+                                    { temp: 3500, label: I18n.t("3500K · SICAK", "3500K · WARM") },
+                                    { temp: 4500, label: I18n.t("4500K · DENGELİ", "4500K · BALANCED") },
+                                    { temp: 5500, label: I18n.t("5500K · HAFİF", "5500K · MILD") }
                                 ]
                                 delegate: Rectangle {
                                     id: nlPreset
@@ -1345,7 +1354,7 @@ Item {
 
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
 
-                        Text { text: "GÜÇ VE OTOMATİK KİLİT // HYPRIDLE"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                        Text { text: I18n.t("GÜÇ VE OTOMATİK KİLİT // HYPRIDLE", "POWER & AUTO LOCK // HYPRIDLE"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
 
                         Rectangle {
                             width: parent.width; height: 52; radius: 0
@@ -1354,17 +1363,17 @@ Item {
                                 anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Column {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "OTOMATİK KİLİT VE UYKU"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Etkinlik olmadığında ekran kilidi ve güç tasarrufu uygular"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                    Text { text: I18n.t("OTOMATİK KİLİT VE UYKU", "AUTO LOCK & SLEEP"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Etkinlik olmadığında ekran kilidi ve güç tasarrufu uygular", "Locks screen and manages display power when idle"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                                 GothamSwitch { checked: SettingsState.idleEnabled }
                             }
-                            MouseArea { id: idleEnMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleEnabled", !SettingsState.idleEnabled, "Otomatik kilit durumu güncellendi") }
+                            MouseArea { id: idleEnMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleEnabled", !SettingsState.idleEnabled, I18n.t("Otomatik kilit durumu güncellendi", "Auto-lock state updated")) }
                         }
 
                         RowLayout {
                             width: parent.width; spacing: 6
-                            Text { text: "EKRANI KİLİTLE"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 118 }
+                            Text { text: I18n.t("EKRANI KİLİTLE", "LOCK SCREEN"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 118 }
                             Repeater {
                                 model: [ 0, 3, 5, 10, 15 ]
                                 delegate: Rectangle {
@@ -1374,15 +1383,15 @@ Item {
                                     Layout.fillWidth: true; implicitHeight: 28; radius: 0
                                     color: active ? Theme.surfaceActive : (lockMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
                                     border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
-                                    Text { anchors.centerIn: parent; text: lockChip.modelData === 0 ? "KAPALI" : (lockChip.modelData + " DK"); color: lockChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: lockChip.active }
-                                    MouseArea { id: lockMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleLockMin", lockChip.modelData, "Kilit süresi güncellendi") }
+                                    Text { anchors.centerIn: parent; text: lockChip.modelData === 0 ? I18n.t("KAPALI", "OFF") : (lockChip.modelData + I18n.t(" DK", " MIN")); color: lockChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: lockChip.active }
+                                    MouseArea { id: lockMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleLockMin", lockChip.modelData, I18n.t("Kilit süresi güncellendi", "Lock timeout updated")) }
                                 }
                             }
                         }
 
                         RowLayout {
                             width: parent.width; spacing: 6
-                            Text { text: "EKRANI KAPAT"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 118 }
+                            Text { text: I18n.t("EKRANI KAPAT", "SCREEN OFF"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 118 }
                             Repeater {
                                 model: [ 0, 5, 10, 15, 30 ]
                                 delegate: Rectangle {
@@ -1392,15 +1401,15 @@ Item {
                                     Layout.fillWidth: true; implicitHeight: 28; radius: 0
                                     color: active ? Theme.surfaceActive : (dpmsMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
                                     border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
-                                    Text { anchors.centerIn: parent; text: dpmsChip.modelData === 0 ? "KAPALI" : (dpmsChip.modelData + " DK"); color: dpmsChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: dpmsChip.active }
-                                    MouseArea { id: dpmsMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleScreenOffMin", dpmsChip.modelData, "Ekran kapatma süresi güncellendi") }
+                                    Text { anchors.centerIn: parent; text: dpmsChip.modelData === 0 ? I18n.t("KAPALI", "OFF") : (dpmsChip.modelData + I18n.t(" DK", " MIN")); color: dpmsChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: dpmsChip.active }
+                                    MouseArea { id: dpmsMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleScreenOffMin", dpmsChip.modelData, I18n.t("Ekran kapatma süresi güncellendi", "Screen-off timeout updated")) }
                                 }
                             }
                         }
 
                         RowLayout {
                             width: parent.width; spacing: 6
-                            Text { text: "SİSTEMİ UYUT"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 118 }
+                            Text { text: I18n.t("SİSTEMİ UYUT", "SUSPEND SYSTEM"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 118 }
                             Repeater {
                                 model: [ 0, 15, 30, 60 ]
                                 delegate: Rectangle {
@@ -1410,8 +1419,8 @@ Item {
                                     Layout.fillWidth: true; implicitHeight: 28; radius: 0
                                     color: active ? Theme.surfaceActive : (suspMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
                                     border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
-                                    Text { anchors.centerIn: parent; text: suspChip.modelData === 0 ? "KAPALI" : (suspChip.modelData + " DK"); color: suspChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: suspChip.active }
-                                    MouseArea { id: suspMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleSuspendMin", suspChip.modelData, "Uyku süresi güncellendi") }
+                                    Text { anchors.centerIn: parent; text: suspChip.modelData === 0 ? I18n.t("KAPALI", "OFF") : (suspChip.modelData + I18n.t(" DK", " MIN")); color: suspChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: suspChip.active }
+                                    MouseArea { id: suspMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setIdleSetting("idleSuspendMin", suspChip.modelData, I18n.t("Uyku süresi güncellendi", "Suspend timeout updated")) }
                                 }
                             }
                         }
@@ -1431,7 +1440,7 @@ Item {
                         width: parent.width
                         spacing: 12
 
-                        Text { text: "KLAVYE DÜZENİ"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                        Text { text: I18n.t("KLAVYE DÜZENİ", "KEYBOARD LAYOUT"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
 
                         RowLayout {
                             width: parent.width
@@ -1440,9 +1449,9 @@ Item {
                             Repeater {
                                 model: [
                                     { code: "tr",    label: "TR · TÜRKÇE Q" },
-                                    { code: "us",    label: "US · İNGİLİZCE" },
+                                    { code: "us",    label: I18n.t("US · İNGİLİZCE", "US · ENGLISH") },
                                     { code: "tr,us", label: "TR + US" },
-                                    { code: "de",    label: "DE · ALMANCA" }
+                                    { code: "de",    label: I18n.t("DE · ALMANCA", "DE · GERMAN") }
                                 ]
                                 delegate: Rectangle {
                                     id: kbChip
@@ -1456,37 +1465,37 @@ Item {
                                     border.width: 1
 
                                     Text { anchors.centerIn: parent; text: kbChip.modelData.label; color: kbChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: kbChip.active }
-                                    MouseArea { id: kbMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setInputSetting("kbLayout", kbChip.modelData.code, "Klavye düzeni değişti") }
+                                    MouseArea { id: kbMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setInputSetting("kbLayout", kbChip.modelData.code, I18n.t("Klavye düzeni değişti", "Keyboard layout changed")) }
                                 }
                             }
                         }
 
                         GothamStepperRow {
-                            title: "TUŞ TEKRAR HIZI"
-                            subtitle: "Basılı tutulan tuşun saniyedeki tekrar sayısı"
+                            title: I18n.t("TUŞ TEKRAR HIZI", "REPEAT RATE")
+                            subtitle: I18n.t("Basılı tutulan tuşun saniyedeki tekrar sayısı", "Key repeats per second while held")
                             valueText: SettingsState.kbRepeatRate + " /sn"
-                            onDecrement: SettingsState.setInputSetting("kbRepeatRate", Math.max(15, SettingsState.kbRepeatRate - 5), "Tekrar hızı güncellendi")
-                            onIncrement: SettingsState.setInputSetting("kbRepeatRate", Math.min(80, SettingsState.kbRepeatRate + 5), "Tekrar hızı güncellendi")
+                            onDecrement: SettingsState.setInputSetting("kbRepeatRate", Math.max(15, SettingsState.kbRepeatRate - 5), I18n.t("Tekrar hızı güncellendi", "Repeat rate updated"))
+                            onIncrement: SettingsState.setInputSetting("kbRepeatRate", Math.min(80, SettingsState.kbRepeatRate + 5), I18n.t("Tekrar hızı güncellendi", "Repeat rate updated"))
                         }
 
                         GothamStepperRow {
-                            title: "TUŞ TEKRAR GECİKMESİ"
-                            subtitle: "Tekrar başlamadan önce beklenecek süre"
+                            title: I18n.t("TUŞ TEKRAR GECİKMESİ", "REPEAT DELAY")
+                            subtitle: I18n.t("Tekrar başlamadan önce beklenecek süre", "Delay before key repeat starts")
                             valueText: SettingsState.kbRepeatDelay + " ms"
-                            onDecrement: SettingsState.setInputSetting("kbRepeatDelay", Math.max(150, SettingsState.kbRepeatDelay - 50), "Tekrar gecikmesi güncellendi")
-                            onIncrement: SettingsState.setInputSetting("kbRepeatDelay", Math.min(600, SettingsState.kbRepeatDelay + 50), "Tekrar gecikmesi güncellendi")
+                            onDecrement: SettingsState.setInputSetting("kbRepeatDelay", Math.max(150, SettingsState.kbRepeatDelay - 50), I18n.t("Tekrar gecikmesi güncellendi", "Repeat delay updated"))
+                            onIncrement: SettingsState.setInputSetting("kbRepeatDelay", Math.min(600, SettingsState.kbRepeatDelay + 50), I18n.t("Tekrar gecikmesi güncellendi", "Repeat delay updated"))
                         }
 
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
 
-                        Text { text: "FARE VE DOKUNMATİK YÜZEY"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                        Text { text: I18n.t("FARE VE DOKUNMATİK YÜZEY", "MOUSE & TOUCHPAD"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
 
                         GothamStepperRow {
-                            title: "FARE HASSASİYETİ"
-                            subtitle: "Hyprland işaretçi hız çarpanı"
+                            title: I18n.t("FARE HASSASİYETİ", "POINTER SENSITIVITY")
+                            subtitle: I18n.t("Hyprland işaretçi hız çarpanı", "Hyprland pointer speed multiplier")
                             valueText: SettingsState.mouseSensitivity.toFixed(1)
-                            onDecrement: SettingsState.setInputSetting("mouseSensitivity", Math.max(-0.8, Math.round((SettingsState.mouseSensitivity - 0.1) * 10) / 10), "Fare hassasiyeti güncellendi")
-                            onIncrement: SettingsState.setInputSetting("mouseSensitivity", Math.min(0.8, Math.round((SettingsState.mouseSensitivity + 0.1) * 10) / 10), "Fare hassasiyeti güncellendi")
+                            onDecrement: SettingsState.setInputSetting("mouseSensitivity", Math.max(-0.8, Math.round((SettingsState.mouseSensitivity - 0.1) * 10) / 10), I18n.t("Fare hassasiyeti güncellendi", "Pointer sensitivity updated"))
+                            onIncrement: SettingsState.setInputSetting("mouseSensitivity", Math.min(0.8, Math.round((SettingsState.mouseSensitivity + 0.1) * 10) / 10), I18n.t("Fare hassasiyeti güncellendi", "Pointer sensitivity updated"))
                         }
 
                         Rectangle {
@@ -1497,12 +1506,12 @@ Item {
                                 anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Column {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "DOĞAL KAYDIRMA"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Dokunmatik yüzeyde içerik yönünü parmak hareketiyle eşler"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                    Text { text: I18n.t("DOĞAL KAYDIRMA", "NATURAL SCROLLING"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Dokunmatik yüzeyde içerik yönünü parmak hareketiyle eşler", "Reverses scroll direction on touchpads"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                                 GothamSwitch { checked: SettingsState.naturalScroll }
                             }
-                            MouseArea { id: nsMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setInputSetting("naturalScroll", !SettingsState.naturalScroll, "Doğal kaydırma güncellendi") }
+                            MouseArea { id: nsMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setInputSetting("naturalScroll", !SettingsState.naturalScroll, I18n.t("Doğal kaydırma güncellendi", "Natural scrolling updated")) }
                         }
                     }
                 }
@@ -1525,7 +1534,7 @@ Item {
                                 id: searchInp; Layout.fillWidth: true; Layout.fillHeight: true; verticalAlignment: TextInput.AlignVCenter
                                 text: root.shortcutFilter; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; clip: true
                                 onTextChanged: root.shortcutFilter = text
-                                Text { anchors.verticalCenter: parent.verticalCenter; text: "Kısayol veya eylem ara..."; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 11; visible: parent.text.length === 0 }
+                                Text { anchors.verticalCenter: parent.verticalCenter; text: I18n.t("Kısayol veya eylem ara...", "Search shortcuts or actions..."); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 11; visible: parent.text.length === 0 }
                             }
                             Text {
                                 visible: root.shortcutFilter.length > 0; text: "×"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 13
@@ -1554,7 +1563,7 @@ Item {
                             }
                         }
 
-                        Text { anchors.centerIn: parent; visible: root.filteredShortcuts.length === 0; text: "Eşleşen kısayol bulunamadı"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 12 }
+                        Text { anchors.centerIn: parent; visible: root.filteredShortcuts.length === 0; text: I18n.t("Eşleşen kısayol bulunamadı", "No matching shortcuts found"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 12 }
                     }
                 }
 
@@ -1571,7 +1580,30 @@ Item {
                         width: parent.width
                         spacing: 12
 
-                        Text { text: "KALICI AYAR DOSYASI"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                        Text { text: I18n.t("ARAYÜZ DİLİ // INTERFACE LANGUAGE", "INTERFACE LANGUAGE"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+
+                        RowLayout {
+                            width: parent.width; spacing: 8
+                            Repeater {
+                                model: [
+                                    { code: "tr", label: "TÜRKÇE" },
+                                    { code: "en", label: "ENGLISH" }
+                                ]
+                                delegate: Rectangle {
+                                    id: langChip
+                                    required property var modelData
+                                    readonly property bool active: SettingsState.language === modelData.code
+                                    Layout.fillWidth: true; implicitHeight: 34; radius: 0
+                                    color: active ? Theme.surfaceActive : (langMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
+                                    border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
+                                    Text { anchors.centerIn: parent; text: langChip.modelData.label; color: langChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: langChip.active }
+                                    MouseArea { id: langMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setLanguage(langChip.modelData.code) }
+                                }
+                            }
+                        }
+
+                        Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
+                        Text { text: I18n.t("KALICI AYAR DOSYASI", "PERSISTENT CONFIG FILE"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
 
                         Rectangle {
                             width: parent.width; height: 40; radius: 0; color: Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
@@ -1587,19 +1619,19 @@ Item {
                             Rectangle {
                                 Layout.fillWidth: true; implicitHeight: 36; radius: 0
                                 color: openCfgMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive; border.color: Theme.accent; border.width: 1
-                                Text { anchors.centerIn: parent; text: "AYAR DOSYASINI AÇ"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                Text { anchors.centerIn: parent; text: I18n.t("AYAR DOSYASINI AÇ", "OPEN CONFIG FILE"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
                                 MouseArea { id: openCfgMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.openConfigFile() }
                             }
                             Rectangle {
                                 Layout.fillWidth: true; implicitHeight: 36; radius: 0
                                 color: resetMa.containsMouse ? Theme.surfaceHover : Theme.surface1; border.color: resetMa.containsMouse ? Theme.danger : Theme.borderSubtle; border.width: 1
-                                Text { anchors.centerIn: parent; text: "VARSAYILANLARA SIFIRLA"; color: resetMa.containsMouse ? Theme.danger : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: resetMa.containsMouse }
+                                Text { anchors.centerIn: parent; text: I18n.t("VARSAYILANLARA SIFIRLA", "RESET TO DEFAULTS"); color: resetMa.containsMouse ? Theme.danger : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: resetMa.containsMouse }
                                 MouseArea { id: resetMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.resetDefaults() }
                             }
                         }
 
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
-                        Text { text: "YERLEŞİK EKLENTİ MODÜLLERİ"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                        Text { text: I18n.t("YERLEŞİK EKLENTİ MODÜLLERİ", "BUILT-IN MODULE TOGGLES"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
 
                         Repeater {
                             model: root.pluginModules
@@ -1622,13 +1654,13 @@ Item {
                                 }
                                 MouseArea {
                                     id: pluginMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
-                                    onClicked: SettingsState.toggleBoolSetting(pluginRow.modelData.prop, pluginRow.modelData.label + " güncellendi")
+                                    onClicked: SettingsState.toggleBoolSetting(pluginRow.modelData.prop, pluginRow.modelData.label + I18n.t(" güncellendi", " updated"))
                                 }
                             }
                         }
 
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
-                        Text { text: "BİLDİRİM TERCİHLERİ"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                        Text { text: I18n.t("BİLDİRİM TERCİHLERİ", "NOTIFICATION PREFERENCES"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
 
                         Rectangle {
                             width: parent.width; height: 52; radius: 0
@@ -1637,8 +1669,8 @@ Item {
                                 anchors.fill: parent; anchors.leftMargin: 14; anchors.rightMargin: 14; spacing: 12
                                 Column {
                                     Layout.fillWidth: true; spacing: 2
-                                    Text { text: "RAHATSIZ ETME MODU"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Açılır bildirimleri susturup yalnızca geçmişe kaydeder"; color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
+                                    Text { text: I18n.t("RAHATSIZ ETME MODU", "DO NOT DISTURB"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: I18n.t("Açılır bildirimleri susturup yalnızca geçmişe kaydeder", "Silences popup toasts and keeps history"); color: Theme.textSecondary; font.family: Theme.fontFamily; font.pixelSize: 11 }
                                 }
                                 GothamSwitch { checked: NotificationState.dnd }
                             }
@@ -1656,18 +1688,18 @@ Item {
                                     Layout.fillWidth: true; implicitHeight: 30; radius: 0
                                     color: active ? Theme.surfaceActive : (ntMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
                                     border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
-                                    Text { anchors.centerIn: parent; text: ntChip.modelData + " SN"; color: ntChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: ntChip.active }
+                                    Text { anchors.centerIn: parent; text: ntChip.modelData + I18n.t(" SN", " S"); color: ntChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: ntChip.active }
                                     MouseArea { id: ntMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setNotifTimeout(ntChip.modelData) }
                                 }
                             }
                         }
 
                         Rectangle { width: parent.width; height: 1; color: Theme.borderSubtle }
-                        Text { text: "VARSAYILAN UYGULAMALAR"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                        Text { text: I18n.t("VARSAYILAN UYGULAMALAR", "DEFAULT APPLICATIONS"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
 
                         RowLayout {
                             width: parent.width; spacing: 8
-                            Text { text: "TERMİNAL"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 110 }
+                            Text { text: I18n.t("TERMİNAL", "TERMINAL"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 110 }
                             Repeater {
                                 model: [ "kitty", "foot" ]
                                 delegate: Rectangle {
@@ -1678,14 +1710,14 @@ Item {
                                     color: active ? Theme.surfaceActive : (termMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
                                     border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
                                     Text { anchors.centerIn: parent; text: termChip.modelData.toUpperCase(); color: termChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: termChip.active }
-                                    MouseArea { id: termMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setDefaultApp("defaultTerminal", termChip.modelData, "Varsayılan terminal güncellendi") }
+                                    MouseArea { id: termMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setDefaultApp("defaultTerminal", termChip.modelData, I18n.t("Varsayılan terminal güncellendi", "Default terminal updated")) }
                                 }
                             }
                         }
 
                         RowLayout {
                             width: parent.width; spacing: 8
-                            Text { text: "DOSYA YÖNETİCİSİ"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 110 }
+                            Text { text: I18n.t("DOSYA YÖNETİCİSİ", "FILE MANAGER"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.preferredWidth: 110 }
                             Repeater {
                                 model: [ "nautilus", "yazi", "thunar" ]
                                 delegate: Rectangle {
@@ -1696,7 +1728,7 @@ Item {
                                     color: active ? Theme.surfaceActive : (fmMa.containsMouse ? Theme.surfaceHover : Theme.surface1)
                                     border.color: active ? Theme.accent : Theme.borderSubtle; border.width: 1
                                     Text { anchors.centerIn: parent; text: fmChip.modelData.toUpperCase(); color: fmChip.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: fmChip.active }
-                                    MouseArea { id: fmMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setDefaultApp("defaultFileManager", fmChip.modelData, "Varsayılan dosya yöneticisi güncellendi") }
+                                    MouseArea { id: fmMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: SettingsState.setDefaultApp("defaultFileManager", fmChip.modelData, I18n.t("Varsayılan dosya yöneticisi güncellendi", "Default file manager updated")) }
                                 }
                             }
                         }
@@ -1705,19 +1737,19 @@ Item {
 
                         RowLayout {
                             width: parent.width
-                            Text { text: "YEREL EKLENTİ YUVASI"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true; Layout.fillWidth: true }
+                            Text { text: I18n.t("YEREL EKLENTİ YUVASI", "LOCAL PLUGIN SLOT"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true; Layout.fillWidth: true }
                             Rectangle {
                                 implicitWidth: 92; implicitHeight: 24; radius: 0
                                 color: plOpenMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                                 border.color: plOpenMa.containsMouse ? Theme.accent : Theme.borderSubtle; border.width: 1
-                                Text { anchors.centerIn: parent; text: "KLASÖRÜ AÇ"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
+                                Text { anchors.centerIn: parent; text: I18n.t("KLASÖRÜ AÇ", "OPEN FOLDER"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
                                 MouseArea { id: plOpenMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: PluginState.openPluginsDir() }
                             }
                             Rectangle {
                                 implicitWidth: 64; implicitHeight: 24; radius: 0
                                 color: plRefMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                                 border.color: plRefMa.containsMouse ? Theme.accent : Theme.borderSubtle; border.width: 1
-                                Text { anchors.centerIn: parent; text: "YENİLE"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
+                                Text { anchors.centerIn: parent; text: I18n.t("YENİLE", "REFRESH"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 9; font.bold: true }
                                 MouseArea { id: plRefMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: PluginState.refresh() }
                             }
                         }
@@ -1728,7 +1760,7 @@ Item {
                             color: Theme.surface1; border.color: Theme.borderSubtle; border.width: 1
                             Text {
                                 anchors.centerIn: parent
-                                text: "Özel eklenti bulunamadı · " + PluginState.pluginsDir
+                                text: I18n.t("Özel eklenti bulunamadı · ", "No local plugins found · ") + PluginState.pluginsDir
                                 color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; elide: Text.ElideMiddle; width: parent.width - 20; horizontalAlignment: Text.AlignHCenter
                             }
                         }
@@ -1801,7 +1833,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "GERİ AL"
+                            text: I18n.t("GERİ AL", "UNDO")
                             color: undoMa.containsMouse ? Theme.accentOn : Theme.accent
                             font.family: Theme.fontMono
                             font.pixelSize: 10

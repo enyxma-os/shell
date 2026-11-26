@@ -50,7 +50,7 @@ Item {
                 spacing: 6
 
                 Text {
-                    text: PerformanceState.kernel ? ("SİSTEM // " + PerformanceState.kernel) : "SİSTEM"
+                    text: PerformanceState.kernel ? (I18n.t("SİSTEM // ", "SYSTEM // ") + PerformanceState.kernel) : I18n.t("SİSTEM", "SYSTEM")
                     color: Theme.textPrimary
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeNormal
@@ -93,8 +93,8 @@ Item {
 
                 Repeater {
                     model: [
-                        { key: "performance", label: "PERFORMANS" },
-                        { key: "storage", label: "DEPOLAMA" }
+                        { key: "performance", label: I18n.t("PERFORMANS", "PERFORMANCE") },
+                        { key: "storage", label: I18n.t("DEPOLAMA", "STORAGE") }
                     ]
 
                     delegate: Rectangle {
@@ -177,7 +177,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Text { text: "BELLEK"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
+                    Text { text: I18n.t("BELLEK", "MEMORY"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
                     Text { text: PerformanceState.memUsedGiB.toFixed(1) + " / " + PerformanceState.memTotalGiB.toFixed(1) + " GB"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11 }
                     Text { text: PerformanceState.memPercent + "%"; color: PerformanceState.memPercent > 85 ? Theme.danger : Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
                 }
@@ -246,7 +246,7 @@ Item {
                     spacing: 4
 
                     Text {
-                        text: "UYGULAMALAR"
+                        text: I18n.t("UYGULAMALAR", "APPLICATIONS")
                         color: Theme.textPrimary
                         font.family: Theme.fontMono
                         font.pixelSize: 11
@@ -289,7 +289,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Text { text: "UYGULAMA"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
+                    Text { text: I18n.t("UYGULAMA", "PROCESS"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
                     Text { text: "CPU"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 42 }
                     Text { text: "RAM"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10; horizontalAlignment: Text.AlignRight; Layout.preferredWidth: 56 }
                     Item { Layout.preferredWidth: 20 }
@@ -399,7 +399,7 @@ Item {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            Text { text: "ANA DİSK // " + StorageState.rootMount; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
+                            Text { text: I18n.t("ANA DİSK // ", "ROOT DISK // ") + StorageState.rootMount; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
                             Text { text: StorageState.rootPercent + "%"; color: StorageState.rootPercent > 85 ? Theme.danger : Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
                         }
 
@@ -419,7 +419,7 @@ Item {
                         RowLayout {
                             Layout.fillWidth: true
                             Text { text: "KULLANILAN: " + StorageState.rootUsedGiB.toFixed(1) + "G"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
-                            Text { text: "BOŞ: " + StorageState.rootFreeGiB.toFixed(1) + "G"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10 }
+                            Text { text: I18n.t("BOŞ: ", "FREE: ") + StorageState.rootFreeGiB.toFixed(1) + "G"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10 }
                             Text { text: "/ " + StorageState.rootTotalGiB.toFixed(1) + "G"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10 }
                         }
                     }
@@ -427,7 +427,7 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { text: "SÜRÜCÜLER // " + StorageState.driveCount; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true; Layout.fillWidth: true }
+                    Text { text: I18n.t("SÜRÜCÜLER // ", "DRIVES // ") + StorageState.driveCount; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true; Layout.fillWidth: true }
                     Rectangle {
                         implicitWidth: 56
                         implicitHeight: 20
@@ -435,7 +435,7 @@ Item {
                         color: refMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                         border.color: refMa.containsMouse ? Theme.accent : Theme.borderSubtle
                         border.width: 1
-                        Text { anchors.centerIn: parent; text: "[YENİLE]"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9 }
+                        Text { anchors.centerIn: parent; text: I18n.t("[YENİLE]", "REFRESH"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9 }
                         MouseArea { id: refMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: StorageState.refresh() }
                     }
                 }
@@ -520,7 +520,7 @@ Item {
                                     color: Theme.surfaceActive
                                     border.color: Theme.accent
                                     border.width: 1
-                                    Text { anchors.centerIn: parent; text: modelData.mounted ? "[AYIR]" : "[BAĞLA]"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9 }
+                                    Text { anchors.centerIn: parent; text: modelData.mounted ? "[AYIR]" : I18n.t("[BAĞLA]", "MOUNT"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9 }
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
@@ -540,7 +540,7 @@ Item {
                                     color: Theme.surfaceActive
                                     border.color: Theme.borderSubtle
                                     border.width: 1
-                                    Text { anchors.centerIn: parent; text: "[ÇIKAR]"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 9 }
+                                    Text { anchors.centerIn: parent; text: I18n.t("[ÇIKAR]", "EJECT"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 9 }
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor

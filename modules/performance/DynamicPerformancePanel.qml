@@ -97,7 +97,7 @@ Item {
                 Repeater {
                     model: [
                         { key: "performance", label: "Performans" },
-                        { key: "storage", label: "Depolama" }
+                        { key: "storage", label: I18n.t("Depolama", "Storage") }
                     ]
 
                     delegate: Rectangle {
@@ -193,7 +193,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 6
-                    Text { text: "Bellek"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true; Layout.fillWidth: true }
+                    Text { text: I18n.t("Bellek", "Memory"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true; Layout.fillWidth: true }
                     Text {
                         text: PerformanceState.memUsedGiB.toFixed(1) + " / " + PerformanceState.memTotalGiB.toFixed(1) + " GB"
                         color: Theme.textSecondary
@@ -445,8 +445,8 @@ Item {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            Text { text: "Kullanılan: " + StorageState.rootUsedGiB.toFixed(1) + " GiB"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
-                            Text { text: "Boş: " + StorageState.rootFreeGiB.toFixed(1) + " GiB"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10 }
+                            Text { text: I18n.t("Kullanılan: ", "Used: ") + StorageState.rootUsedGiB.toFixed(1) + " GiB"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
+                            Text { text: I18n.t("Boş: ", "Free: ") + StorageState.rootFreeGiB.toFixed(1) + " GiB"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10 }
                             Text { text: "/ " + StorageState.rootTotalGiB.toFixed(1) + " GiB"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10 }
                         }
                     }
@@ -454,7 +454,7 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { text: "Sürücüler (" + StorageState.driveCount + ")"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
+                    Text { text: I18n.t("Sürücüler (", "Drives (") + StorageState.driveCount + ")"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
                     Rectangle {
                         implicitWidth: 54
                         implicitHeight: 20
@@ -462,7 +462,7 @@ Item {
                         color: refMa.containsMouse ? Theme.surfaceHover : Theme.surface1
                         border.color: Theme.borderSubtle
                         border.width: 1
-                        Text { anchors.centerIn: parent; text: "Yenile"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
+                        Text { anchors.centerIn: parent; text: I18n.t("Yenile", "Refresh"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
                         MouseArea { id: refMa; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor; onClicked: StorageState.refresh() }
                     }
                 }
@@ -553,7 +553,7 @@ Item {
                                     color: Theme.surfaceActive
                                     border.color: Theme.accent
                                     border.width: 1
-                                    Text { anchors.centerIn: parent; text: modelData.mounted ? "Ayır" : "Bağla"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
+                                    Text { anchors.centerIn: parent; text: modelData.mounted ? I18n.t("Ayır", "Unmount") : I18n.t("Bağla", "Mount"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor
@@ -573,7 +573,7 @@ Item {
                                     color: Theme.surfaceActive
                                     border.color: Theme.borderSubtle
                                     border.width: 1
-                                    Text { anchors.centerIn: parent; text: "Güvenli Çıkar"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10 }
+                                    Text { anchors.centerIn: parent; text: I18n.t("Güvenli Çıkar", "Safely Eject"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10 }
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor

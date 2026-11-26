@@ -76,7 +76,7 @@ Item {
                 spacing: 6
 
                 Text {
-                    text: NetworkState.interfaceName ? ("AĞ // " + NetworkState.interfaceName) : "AĞ // ÇEVRİMDIŞI"
+                    text: NetworkState.interfaceName ? (I18n.t("AĞ // ", "NETWORK // ") + NetworkState.interfaceName) : I18n.t("AĞ // ÇEVRİMDIŞI", "NETWORK // OFFLINE")
                     color: Theme.textPrimary
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeNormal
@@ -97,7 +97,7 @@ Item {
                     Text {
                         id: wifiBadgeTxt
                         anchors.centerIn: parent
-                        text: NetworkState.wifiEnabled ? "WI-FI AÇIK" : "WI-FI KAPALI"
+                        text: NetworkState.wifiEnabled ? I18n.t("WI-FI AÇIK", "WI-FI ON") : I18n.t("WI-FI KAPALI", "WI-FI OFF")
                         color: NetworkState.wifiEnabled ? Theme.accent : Theme.textMuted
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -122,7 +122,7 @@ Item {
 
                     Text {
                         anchors.centerIn: parent
-                        text: NetworkState.isScanning ? "..." : "TARA"
+                        text: NetworkState.isScanning ? "..." : I18n.t("TARA", "SCAN")
                         color: NetworkState.isScanning ? Theme.accent : Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -207,7 +207,7 @@ Item {
                         Layout.fillWidth: true
                         Text { text: "SSID"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 56 }
                         Text {
-                            text: NetworkState.isConnected ? (NetworkState.ssid || NetworkState.connectionName || "-") : "BAĞLANTI YOK"
+                            text: NetworkState.isConnected ? (NetworkState.ssid || NetworkState.connectionName || "-") : I18n.t("BAĞLANTI YOK", "NO CONNECTION")
                             color: NetworkState.isConnected ? Theme.textPrimary : Theme.textMuted
                             font.family: Theme.fontMono
                             font.pixelSize: 11
@@ -284,7 +284,7 @@ Item {
                             border.width: 1
                             Text {
                                 anchors.centerIn: parent
-                                text: "KES"
+                                text: I18n.t("KES", "DISCONNECT")
                                 color: discMa.containsMouse ? Theme.danger : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: 10
@@ -303,7 +303,7 @@ Item {
                     RowLayout {
                         Layout.fillWidth: true
                         visible: NetworkState.isConnected
-                        Text { text: "TRAFİK"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 56 }
+                        Text { text: I18n.t("TRAFİK", "TRAFFIC"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 56 }
                         Text { text: "RX " + NetworkState.formatRate(NetworkState.rxRate); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11 }
                         Text { text: "|"; color: Theme.borderSubtle; font.family: Theme.fontMono; font.pixelSize: 11 }
                         Text { text: "TX " + NetworkState.formatRate(NetworkState.txRate); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
@@ -365,7 +365,7 @@ Item {
                                 Text {
                                     anchors.centerIn: parent
                                     visible: NetworkState.qrBusy || NetworkState.qrError !== ""
-                                    text: NetworkState.qrBusy ? "Üretiliyor..." : NetworkState.qrError
+                                    text: NetworkState.qrBusy ? I18n.t("Üretiliyor...", "Generating...") : NetworkState.qrError
                                     color: Theme.bgDark
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
@@ -383,8 +383,8 @@ Item {
 
                 Repeater {
                     model: [
-                        { key: "networks", label: "AĞLAR" },
-                        { key: "tools", label: "DNS & HIZ" }
+                        { key: "networks", label: I18n.t("AĞLAR", "NETWORKS") },
+                        { key: "tools", label: I18n.t("DNS & HIZ", "DNS & SPEED") }
                     ]
 
                     delegate: Rectangle {
@@ -661,7 +661,7 @@ Item {
                 // Gizli Ag
                 Text {
                     visible: NetworkState.hasWifiDevice && NetworkState.wifiEnabled
-                    text: root.hiddenOpen ? "▾ GİZLİ AĞA BAĞLAN" : "▸ GİZLİ AĞA BAĞLAN"
+                    text: root.hiddenOpen ? I18n.t("▾ GİZLİ AĞA BAĞLAN", "▾ CONNECT TO HIDDEN NETWORK") : I18n.t("▸ GİZLİ AĞA BAĞLAN", "▸ CONNECT TO HIDDEN NETWORK")
                     color: hiddenMa.containsMouse ? Theme.accent : Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -700,7 +700,7 @@ Item {
                             onTextChanged: root.hiddenSsid = text
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "GİZLİ SSID"
+                                text: I18n.t("GİZLİ SSID", "HIDDEN SSID")
                                 color: Theme.textMuted
                                 font.family: Theme.fontMono
                                 font.pixelSize: 10
@@ -811,7 +811,7 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { text: "DNS SAĞLAYICISI"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
+                    Text { text: I18n.t("DNS SAĞLAYICISI", "DNS PROVIDER"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
                     Text { text: NetworkState.dnsBusy ? "[UYGULANIYOR]" : ""; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10; visible: NetworkState.dnsBusy }
                 }
 
@@ -824,7 +824,7 @@ Item {
                             { label: "DHCP", key: "dhcp" },
                             { label: "Cloudflare", key: "cloudflare" },
                             { label: "Google", key: "google" },
-                            { label: "Özel", key: "custom" }
+                            { label: I18n.t("Özel", "Custom"), key: "custom" }
                         ]
 
                         delegate: Rectangle {
@@ -870,7 +870,7 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     visible: NetworkState.isConnected && NetworkState.dnsServers.length > 0
-                    text: "AKTİF DNS: " + NetworkState.dnsServers.join(", ")
+                    text: I18n.t("AKTİF DNS: ", "ACTIVE DNS: ") + NetworkState.dnsServers.join(", ")
                     color: Theme.textMuted
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -936,7 +936,7 @@ Item {
                     color: Theme.surfaceActive
                     border.color: Theme.accent
                     border.width: 1
-                    Text { anchors.centerIn: parent; text: "[YENİDEN BAĞLAN VE UYGULA]"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
+                    Text { anchors.centerIn: parent; text: I18n.t("[YENİDEN BAĞLAN VE UYGULA]", "RECONNECT & APPLY"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
                     MouseArea {
                         anchors.fill: parent
                         cursorShape: Qt.PointingHandCursor
@@ -958,7 +958,7 @@ Item {
 
                 RowLayout {
                     Layout.fillWidth: true
-                    Text { text: "HIZ TESTİ"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
+                    Text { text: I18n.t("HIZ TESTİ", "SPEED TEST"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
                     Rectangle {
                         implicitWidth: 68
                         implicitHeight: 22
@@ -968,7 +968,7 @@ Item {
                         border.width: 1
                         Text {
                             anchors.centerIn: parent
-                            text: NetworkState.speedRunning ? "[DURDUR]" : "[BAŞLAT]"
+                            text: NetworkState.speedRunning ? "[DURDUR]" : I18n.t("[BAŞLAT]", "START")
                             color: NetworkState.isConnected ? Theme.accent : Theme.textMuted
                             font.family: Theme.fontMono
                             font.pixelSize: 10
@@ -999,18 +999,18 @@ Item {
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "GECİKME"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 74 }
-                        Text { text: NetworkState.speedPhase === "latency" ? "ÖLÇÜLÜYOR..." : (NetworkState.speedPingMs > 0 ? (NetworkState.speedPingMs.toFixed(1) + " ms") : "-"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
+                        Text { text: I18n.t("GECİKME", "LATENCY"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 74 }
+                        Text { text: NetworkState.speedPhase === "latency" ? I18n.t("ÖLÇÜLÜYOR...", "MEASURING...") : (NetworkState.speedPingMs > 0 ? (NetworkState.speedPingMs.toFixed(1) + " ms") : "-"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "İNDİRME"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 74 }
-                        Text { text: NetworkState.speedPhase === "download" ? "ÖLÇÜLÜYOR..." : (NetworkState.speedDownloadMbps > 0 ? (NetworkState.speedDownloadMbps.toFixed(1) + " Mbps") : "-"); color: NetworkState.speedDownloadMbps > 0 ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
+                        Text { text: I18n.t("İNDİRME", "DOWNLOAD"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 74 }
+                        Text { text: NetworkState.speedPhase === "download" ? I18n.t("ÖLÇÜLÜYOR...", "MEASURING...") : (NetworkState.speedDownloadMbps > 0 ? (NetworkState.speedDownloadMbps.toFixed(1) + " Mbps") : "-"); color: NetworkState.speedDownloadMbps > 0 ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "YÜKLEME"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 74 }
-                        Text { text: NetworkState.speedPhase === "upload" ? "ÖLÇÜLÜYOR..." : (NetworkState.speedUploadMbps > 0 ? (NetworkState.speedUploadMbps.toFixed(1) + " Mbps") : "-"); color: NetworkState.speedUploadMbps > 0 ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
+                        Text { text: I18n.t("YÜKLEME", "UPLOAD"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 74 }
+                        Text { text: NetworkState.speedPhase === "upload" ? I18n.t("ÖLÇÜLÜYOR...", "MEASURING...") : (NetworkState.speedUploadMbps > 0 ? (NetworkState.speedUploadMbps.toFixed(1) + " Mbps") : "-"); color: NetworkState.speedUploadMbps > 0 ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
                     }
                     Text {
                         Layout.fillWidth: true
@@ -1044,7 +1044,7 @@ Item {
 
                 Text {
                     anchors.centerIn: parent
-                    text: "GELİŞMİŞ AĞ AYARLARI"
+                    text: I18n.t("GELİŞMİŞ AĞ AYARLARI", "ADVANCED NETWORK SETTINGS")
                     color: Theme.textPrimary
                     font.family: Theme.fontMono
                     font.pixelSize: 11

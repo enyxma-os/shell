@@ -82,7 +82,7 @@ Item {
                     Text {
                         id: pwrTxt
                         anchors.centerIn: parent
-                        text: BluetoothState.enabled ? "Açık" : "Kapalı"
+                        text: BluetoothState.enabled ? I18n.t("Açık", "On") : I18n.t("Kapalı", "Off")
                         color: BluetoothState.enabled ? Theme.accent : Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
@@ -196,7 +196,7 @@ Item {
 
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
-                        text: !BluetoothState.supported ? "BlueZ aracı bulunamadı" : "Bluetooth adaptörü kapalı"
+                        text: !BluetoothState.supported ? I18n.t("BlueZ aracı bulunamadı", "BlueZ tools not found") : I18n.t("Bluetooth adaptörü kapalı", "Bluetooth adapter is off")
                         color: Theme.textPrimary
                         font.family: Theme.fontFamily
                         font.pixelSize: 12
@@ -215,7 +215,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Bluetooth'u Aç"
+                            text: I18n.t("Bluetooth'u Aç", "Enable Bluetooth")
                             color: Theme.accent
                             font.family: Theme.fontFamily
                             font.pixelSize: 12
@@ -280,7 +280,7 @@ Item {
                             Text {
                                 width: parent.width
                                 text: {
-                                    var st = devRow.modelData.connected ? "Bağlı" : (devRow.modelData.paired ? "Eşleştirilmiş" : "Bulunan")
+                                    var st = devRow.modelData.connected ? I18n.t("Bağlı", "Connected") : (devRow.modelData.paired ? I18n.t("Eşleştirilmiş", "Paired") : "Bulunan")
                                     if (devRow.modelData.battery >= 0) st += " · Pil %" + devRow.modelData.battery
                                     return st
                                 }
@@ -302,7 +302,7 @@ Item {
                             Text {
                                 id: actTxt
                                 anchors.centerIn: parent
-                                text: devRow.isBusy ? "…" : (devRow.modelData.connected ? "Ayır" : (devRow.modelData.paired ? "Bağlan" : "Eşle"))
+                                text: devRow.isBusy ? "…" : (devRow.modelData.connected ? I18n.t("Ayır", "Unmount") : (devRow.modelData.paired ? I18n.t("Bağlan", "Connect") : I18n.t("Eşle", "Pair")))
                                 color: devRow.modelData.connected ? Theme.textPrimary : Theme.accent
                                 font.family: Theme.fontFamily
                                 font.pixelSize: 11
@@ -353,7 +353,7 @@ Item {
                 Text {
                     anchors.centerIn: parent
                     visible: BluetoothState.devices.length === 0
-                    text: BluetoothState.isScanning ? "Cihazlar taranıyor..." : "Kayıtlı veya yakında cihaz yok"
+                    text: BluetoothState.isScanning ? I18n.t("Cihazlar taranıyor...", "Scanning for devices...") : I18n.t("Kayıtlı veya yakında cihaz yok", "No paired or nearby devices")
                     color: Theme.textMuted
                     font.family: Theme.fontFamily
                     font.pixelSize: 12

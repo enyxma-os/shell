@@ -25,3 +25,4 @@ singleton SettingsState 1.0 SettingsState.qml
 singleton FocusState 1.0 FocusState.qml
 singleton ContainerState 1.0 ContainerState.qml
 singleton PluginState 1.0 PluginState.qml
+singleton I18n 1.0 I18n.qml

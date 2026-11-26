@@ -48,7 +48,7 @@ Item {
                 Layout.fillWidth: true
 
                 Text {
-                    text: "BİLDİRİMLER"
+                    text: I18n.t("BİLDİRİMLER", "NOTIFICATIONS")
                     color: Theme.textPrimary
                     font.family: Theme.fontDisplay
                     font.pixelSize: Theme.fontSizeNormal
@@ -75,7 +75,7 @@ Item {
                     onClicked: NotificationState.clearAll()
 
                     Text {
-                        text: "Temizle"
+                        text: I18n.t("Temizle", "Clear")
                         color: Theme.textMuted
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall

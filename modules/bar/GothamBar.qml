@@ -292,7 +292,7 @@ Rectangle {
                 }
 
                 Text {
-                    text: "DİSK"
+                    text: I18n.t("DİSK", "DISK")
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
                     font.pixelSize: Theme.fontSizeXS

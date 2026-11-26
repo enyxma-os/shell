@@ -101,7 +101,7 @@ PanelWindow {
                     anchors.rightMargin: 8
 
                     Text {
-                        text: "24 Saat Biçimi"
+                        text: I18n.t("24 Saat Biçimi", "24-Hour Format")
                         color: Theme.textPrimary
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
@@ -148,7 +148,7 @@ PanelWindow {
                     anchors.rightMargin: 8
 
                     Text {
-                        text: "Saniyeleri Göster"
+                        text: I18n.t("Saniyeleri Göster", "Show Seconds")
                         color: Theme.textPrimary
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
@@ -195,7 +195,7 @@ PanelWindow {
                     anchors.rightMargin: 8
 
                     Text {
-                        text: "Sıcaklık Birimi"
+                        text: I18n.t("Sıcaklık Birimi", "Temperature Unit")
                         color: Theme.textPrimary
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall
@@ -262,7 +262,7 @@ PanelWindow {
 
                         Text {
                             anchors.centerIn: parent
-                            text: TimeState.pomodoroActive ? "Durdur" : "Başlat"
+                            text: TimeState.pomodoroActive ? I18n.t("Durdur", "Stop") : I18n.t("Başlat", "Start")
                             color: Theme.bgGlass
                             font.family: Theme.fontFamily
                             font.pixelSize: 10
@@ -295,7 +295,7 @@ PanelWindow {
                     }
 
                     Text {
-                        text: "Hava Durumunu Güncelle"
+                        text: I18n.t("Hava Durumunu Güncelle", "Refresh Weather")
                         color: Theme.textSecondary
                         font.family: Theme.fontFamily
                         font.pixelSize: 11
