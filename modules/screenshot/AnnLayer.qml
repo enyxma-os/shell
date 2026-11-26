@@ -48,8 +48,7 @@ Item {
 
     function strokeColorOf(a) {
         if (a.type !== "marker") return a.color;
-        var c = Qt.color(a.color);
-        return Qt.rgba(c.r, c.g, c.b, 0.35);
+        return Qt.alpha(a.color, 0.35);
     }
 
     function strokeWidthOf(a) {
@@ -188,8 +187,7 @@ Item {
                 height: cell.valid ? Math.abs(cell.a.points[1].y - cell.a.points[0].y) : 0
                 color: {
                     if (!cell.valid) return "transparent";
-                    var c = Qt.color(cell.a.color);
-                    return Qt.rgba(c.r, c.g, c.b, 0.4);
+                    return Qt.alpha(cell.a.color, 0.4);
                 }
                 antialiasing: true
             }
