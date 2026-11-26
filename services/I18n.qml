@@ -1,4 +1,5 @@
 pragma Singleton
+import Quickshell
 import QtQuick
 import "."
 
@@ -12,3 +13,4 @@ Singleton {
         return root.isEn ? enText : trText
     }
 }
+
