@@ -1,42 +1,44 @@
 # Enyxma Shell
 
-Enyxma OS için Quickshell ve Qt 6 / QML tabanlı, olay-güdümlü, çift temalı ve yerel eklenti destekli yeni nesil masaüstü kabuğu.
+> **Language / Dil:** **English** | [Türkçe](./README.tr.md)
+
+A next-generation, event-driven, dual-theme desktop shell with local plugin support built with Quickshell and Qt 6 / QML for Enyxma OS.
 
 ---
 
-## 🌟 Öne Çıkan Özellikler
+## 🌟 Highlights
 
-- **Çift Tema Mimarisi:**
-  - **Gotham 2.0:** Sıfır yuvarlak köşeli, keskin taktiksel monokrom ve amber paleti.
-  - **Dinamik Matugen:** Seçilen duvar kağıdından anlık renk çıkarımı ile canlı Hyprland kenarlık, GTK, Kitty, Foot, Starship, btop, Yazi ve `hyprlock` senkronizasyonu.
-- **Enyxma Ayarlar 2.0 — `SUPER + I`:**
-  - **7 Kategori:** Genel Bakış, Görünüm, Üst Çubuk, Ekran, Klavye ve Fare, Kısayollar, Sistem.
-  - **Canlı Kontrol:** Genel arama, tek tıkla Geri Al bildirimi, `hyprctl eval` ile anlık pencere geometrisi, çözünürlük / Hz / ölçek / VRR, Gece Işığı Kelvin kontrolü, otomatik `hypridle` kilit / DPMS / uyku yönetimi, canlı `binds.lua` kısayol listesi ve `~/.config/enyxma/settings.json` kalıcılığı.
-- **Yerleşik Paneller ve Modüller:**
-  - **Birleşik Sistem / Performans / Depolama Paneli:** Linux `hwmon` ve DRM sürücüleri — `amdgpu`, `i915`, `xe`, `nouveau` — üzerinden CPU/GPU sıcaklıkları, VRAM kullanımı, top süreçler, disk ve NVMe durumu.
-  - **Ağ Paneli:** Wi-Fi tarama ve bağlantı, VPN / DNS yönetimi ve anlık QR kod paylaşımı.
-  - **PipeWire / WirePlumber Ses Mikseri:** Çıkış, mikrofon ve uygulama bazlı ses akışları.
-  - **BlueZ Bluetooth Yöneticisi:** Cihaz tarama, eşleştirme, bağlanma, kaldırma ve pil düzeyi.
-  - **Harmonik Bento Zaman, Takvim ve Hava Durumu Hub'ı:** İnteraktif takvim, gün döngüsü, canlı meteoroloji ve saatlik tahmin akışı.
-  - **İsteğe Bağlı Modüller — Odak Sayacı ve Konteyner İzleyici:** `Ayarlar -> Sistem` altından açılabilen Pomodoro zamanlayıcısı ile Docker / Podman konteyner yöneticisi.
-  - **3 Sekmeli Yan Panel:** Yerel AI sohbeti, `yt-dlp` ve Cobalt tabanlı medya indirici / dönüştürücü ve aktif pencere tabanlı yerel ekran süresi istatistikleri.
-  - **OmniLauncher, Medya & Ekran Görüntüsü Tarayıcısı, Bildirim Merkezi ve Enyxma Shot:** Bulanık aramalı başlatıcı, MPRIS medya kontrolü, ekran görüntüsü / video tarayıcısı, bildirim havuzu ve ekran görüntüsü stüdyosu.
-- **Kesin Veri ve Görünüm Ayrımı:** Arayüz bileşenleri durum tutmaz; tüm mantık ve sistem durumu `services/` altındaki `pragma Singleton` servislerinde merkezi olarak yönetilir.
-- **Uygulama İzolasyonu — `enyxma-launch`:** `uwsm app` ve `systemd-run --user --scope` ile başlatılan uygulamalar kabuk yeniden başlasa veya `nh os switch` çalışsa bile kapanmadan yaşamaya devam eder.
+- **Dual-Theme Architecture:**
+  - **Gotham 2.0:** Zero-radius, sharp tactical monochrome and amber palette.
+  - **Dynamic Matugen:** Instant color extraction from the active wallpaper with live sync across Hyprland borders, GTK, Kitty, Foot, Starship, btop, Yazi, and `hyprlock`.
+- **Enyxma Settings 2.0 — `SUPER + I`:**
+  - **7 Categories:** Overview, Appearance, Top Bar, Display, Keyboard & Mouse, Shortcuts, System.
+  - **Live Control:** Global search, one-click Undo toast, instant Hyprland window geometry via `hyprctl eval`, resolution / Hz / scale / VRR, Night Light Kelvin control, automatic `hypridle` lock / DPMS / suspend management, live `binds.lua` shortcut browser, and `~/.config/enyxma/settings.json` persistence.
+- **Built-in Panels & Modules:**
+  - **Unified System / Performance / Storage Panel:** CPU/GPU temperatures and utilization via Linux `hwmon` and DRM drivers (`amdgpu`, `i915`, `xe`, `nouveau`), VRAM usage, top processes, disk and NVMe health.
+  - **Network Panel:** Wi-Fi scan and connect, VPN / DNS management, and instant Wi-Fi QR code sharing.
+  - **PipeWire / WirePlumber Audio Mixer:** Output, microphone, and per-application audio streams.
+  - **BlueZ Bluetooth Manager:** Device scanning, pairing, connecting, removal, and battery level tracking.
+  - **Harmonic Bento Time, Calendar & Weather Hub:** Interactive calendar, day cycle, live weather, and hourly forecast.
+  - **Optional Modules — Focus Timer & Container Monitor:** Pomodoro work/break timer and Docker / Podman container manager toggled under Settings -> System.
+  - **3-Tab Side Panel:** Local AI chat, `yt-dlp` and Cobalt media downloader / converter, and active-window local screen time statistics.
+  - **OmniLauncher, Media & Capture Browser, Notification Center, and Enyxma Shot:** Fuzzy-search launcher, MPRIS media controls, screenshot/recording browser, notification center, and annotation/mockup studio.
+- **Strict Separation of Data and View:** UI components hold no business state; all logic lives in `pragma Singleton` services under `services/`.
+- **App Isolation — `enyxma-launch`:** Applications launched via `uwsm app` and `systemd-run --user --scope` survive shell restarts and `nh os switch`.
 
 ---
 
-## 🧩 Yerel Eklenti Yuvası
+## 🧩 Local Plugin Slot
 
-Kullanıcılar `~/.config/enyxma/plugins/<eklenti-adi>/` dizinine bir `manifest.json` ve QML bileşeni ekleyerek üst çubuğa özel widget'lar yerleştirebilir. `Ayarlar -> Sistem` altından tek tıkla açılıp kapatılabilir.
+Users can add custom widgets to the top bar by placing a `manifest.json` and QML component inside `~/.config/enyxma/plugins/<plugin-name>/` and toggling them under Settings -> System.
 
-Örnek `manifest.json`:
+Example `manifest.json`:
 
 ```json
 {
-  "id": "ornek-eklenti",
-  "name": "Örnek Widget",
-  "description": "Kısa eklenti açıklaması",
+  "id": "example-plugin",
+  "name": "Example Widget",
+  "description": "Short plugin description",
   "slot": "bar",
   "entry": "Main.qml"
 }
@@ -44,9 +46,9 @@ Kullanıcılar `~/.config/enyxma/plugins/<eklenti-adi>/` dizinine bir `manifest.
 
 ---
 
-## 🚀 Hızlı Kurulum — Nix Flake
+## 🚀 Quick Install — Nix Flake
 
-Ana sisteminizin `flake.nix` dosyasına girdi olarak ekleyin:
+Add as an input to your `flake.nix`:
 
 ```nix
 inputs = {
@@ -54,7 +56,7 @@ inputs = {
 };
 ```
 
-### NixOS Sistem Modülü Olarak Kullanım
+### As a NixOS System Module
 
 ```nix
 imports = [
@@ -64,7 +66,7 @@ imports = [
 enyxma.shell.enable = true;
 ```
 
-### Home Manager Kullanıcı Modülü Olarak Kullanım
+### As a Home Manager Module
 
 ```nix
 imports = [
@@ -76,109 +78,110 @@ enyxma.shell.enable = true;
 
 ---
 
-## 📁 Dizin Mimarisi
+## 📁 Directory Structure
 
 ```text
 .
-├── .gitleaks.toml                  # Gizli anahtar tarama yapılandırması
-├── AGENTS.md                       # Ajan çalışma ve mimari kuralları
-├── Justfile                        # Geliştirici ve CI/CD görev otomasyonu
-├── LICENSE                         # GPL-3.0-or-later lisans metni
-├── README.md                       # Proje dokümantasyonu
-├── VERSION                         # Sürüm numarası
-├── flake.lock                      # Bağımlılık kilit dosyası
-├── flake.nix                       # Nix Flake tanımı, paket ve modül çıktıları
-├── matugen.toml                    # Matugen renk çıkarımı ve tema şablon hedefleri
-├── shell.qml                       # Çoklu ekran ve pencere katmanları giriş noktası
-├── assets/                         # Varsayılan duvar kağıtları ve görsel varlıklar
-├── bin/                            # Yardımcı kabuk betikleri — enyxma-clip, enyxma-shot
+├── .gitleaks.toml                  # Secret scanning configuration
+├── AGENTS.md                       # Agent workflow and architectural rules
+├── Justfile                        # Developer and CI/CD task automation
+├── LICENSE                         # GPL-3.0-or-later license text
+├── README.md                       # Documentation (English)
+├── README.tr.md                    # Documentation (Turkish)
+├── VERSION                         # Version number
+├── flake.lock                      # Dependency lock file
+├── flake.nix                       # Nix Flake definition, package, and module outputs
+├── matugen.toml                    # Matugen color extraction and template targets
+├── shell.qml                       # Multi-screen and window layer entry point
+├── assets/                         # Default wallpapers and visual assets
+├── bin/                            # Helper scripts — enyxma-clip, enyxma-shot
 ├── docs/
-│   ├── design-tokens.md            # Renk, tipografi ve animasyon standartları
-│   └── quickshell-gotchas.md       # Quickshell & QML teknik kısıtları
-├── templates/                      # Matugen tarafından işlenen uygulama tema şablonları
-├── services/                       # Pragma Singleton servis katmanı
-│   ├── AIState.qml                 # Yerel LLM soket ve akış durumu
-│   ├── AudioState.qml              # PipeWire ve WirePlumber ses mikseri
-│   ├── BluetoothState.qml          # BlueZ tarama, eşleştirme ve pil servisi
-│   ├── BrightnessState.qml         # Ekran parlaklığı yönetimi
-│   ├── ContainerState.qml          # Docker ve Podman konteyner izleme servisi
-│   ├── FocusState.qml              # Pomodoro odak sayacı servisi
-│   ├── GeneratedColors.qml         # Matugen tarafından üretilen dinamik palet
-│   ├── HyprlandState.qml           # Çalışma alanları ve aktif pencere durumu
-│   ├── LauncherState.qml           # Uygulama başlatıcı durumu
-│   ├── MediaBrowserState.qml       # Ekran görüntüsü ve ekran kaydı tarayıcısı
-│   ├── MediaState.qml              # MPRIS medya oynatıcı ve çalma durumu
-│   ├── NetworkState.qml            # Wi-Fi, Ethernet, VPN, DNS ve QR paylaşımı
-│   ├── NotificationState.qml       # Masaüstü bildirim havuzu
-│   ├── OverviewState.qml           # Mission Control genel bakış servisi
-│   ├── PerformanceState.qml        # CPU, RAM, DRM GPU, VRAM, sıcaklık ve top süreçler
-│   ├── PluginState.qml             # Yerel eklenti tarayıcı ve durum yönetimi
-│   ├── qmldir                      # Modül ve singleton kayıtları
-│   ├── ScreenState.qml             # Odaklı monitör takibi ve çoklu ekran katman politikası
-│   ├── ScreenTimeState.qml         # Aktif pencere tabanlı yerel ekran süresi takibi
-│   ├── SettingsState.qml           # Merkezi ayarlar, hyprctl eval ve hypridle canlı yönetimi
-│   ├── StorageState.qml            # Disk alanı ve NVMe durumu
-│   ├── SystemState.qml             # Kontrol Merkezi görünürlüğü, UPower pil, uptime ve ağ özeti
-│   ├── Theme.qml                   # Renk paleti ve tasarım token'ları
-│   ├── TimeState.qml               # Saat ve takvim biçimlendirme
-│   ├── ToolsState.qml              # yt-dlp ve Cobalt tabanlı medya indirme ve dönüştürme servisi
-│   ├── WallpaperState.qml          # Duvar kağıdı ve tema yönetimi
-│   └── WeatherState.qml            # Canlı meteoroloji ve saatlik tahmin servisi
-├── widgets/                        # Atomik görsel bileşenler
-│   └── EnyxmaPill.qml              # Standart durum kapsülü
-└── modules/                        # Masaüstü katmanları ve açılır paneller
-    ├── ai/                         # 3 sekmeli yan panel — AI sohbeti, medya indirici, ekran süresi
-    ├── audio/                      # Ses mikseri panelleri
-    ├── background/                 # Masaüstü arka plan katmanı
-    ├── bar/                        # Gotham ve Dinamik üst çubuk bileşenleri
-    ├── bluetooth/                  # Bluetooth yönetim panelleri
-    ├── cc/                         # Kontrol merkezi
-    ├── containers/                 # Konteyner izleme panelleri
-    ├── launcher/                   # OmniLauncher uygulama başlatıcı
-    ├── media/                      # MPRIS medya kontrol paneli ve ekran görüntüsü tarayıcısı
-    ├── network/                    # Ağ ve Wi-Fi QR panelleri
-    ├── notifications/              # Bildirim merkezi ve toast'lar
-    ├── osd/                        # Ses ve parlaklık OSD katmanı
-    ├── overview/                   # Mission Control genel bakış katmanı
-    ├── performance/                # Sistem, performans ve depolama panelleri
-    ├── screenshot/                 # Enyxma Shot ekran görüntüsü ve mockup aracı
-    ├── settings/                   # Enyxma Ayarlar 2.0 panelleri
-    ├── time/                       # Harmonik Bento zaman, takvim ve hava hub'ı
-    └── wallpaper/                  # Duvar kağıdı seçici galerisi
+│   ├── design-tokens.md            # Color, typography, and animation standards
+│   └── quickshell-gotchas.md       # Quickshell & QML technical constraints
+├── templates/                      # Application theme templates rendered by Matugen
+├── services/                       # Pragma Singleton service layer
+│   ├── AIState.qml                 # Local LLM socket and streaming state
+│   ├── AudioState.qml              # PipeWire and WirePlumber audio mixer
+│   ├── BluetoothState.qml          # BlueZ scanning, pairing, and battery service
+│   ├── BrightnessState.qml         # Screen brightness control
+│   ├── ContainerState.qml          # Docker and Podman container monitor
+│   ├── FocusState.qml              # Pomodoro focus timer service
+│   ├── GeneratedColors.qml         # Dynamic palette generated by Matugen
+│   ├── HyprlandState.qml           # Workspaces and active window state
+│   ├── LauncherState.qml           # Application launcher state
+│   ├── MediaBrowserState.qml       # Screenshot and screen recording browser
+│   ├── MediaState.qml              # MPRIS media player and playback state
+│   ├── NetworkState.qml            # Wi-Fi, Ethernet, VPN, DNS, and QR sharing
+│   ├── NotificationState.qml       # Desktop notification pool
+│   ├── OverviewState.qml           # Mission Control overview service
+│   ├── PerformanceState.qml        # CPU, RAM, DRM GPU, VRAM, temps, and top processes
+│   ├── PluginState.qml             # Local plugin scanner and state management
+│   ├── qmldir                      # Module and singleton registry
+│   ├── ScreenState.qml             # Focused monitor tracking and layer policy
+│   ├── ScreenTimeState.qml         # Active-window local screen time tracker
+│   ├── SettingsState.qml           # Central settings, hyprctl eval, and live hypridle
+│   ├── StorageState.qml            # Disk space and NVMe status
+│   ├── SystemState.qml             # Control Center state, UPower battery, uptime, net summary
+│   ├── Theme.qml                   # Color palette and design tokens
+│   ├── TimeState.qml               # Time and calendar formatting
+│   ├── ToolsState.qml              # yt-dlp and Cobalt media download/convert service
+│   ├── WallpaperState.qml          # Wallpaper and theme management
+│   └── WeatherState.qml            # Live weather and hourly forecast service
+├── widgets/                        # Atomic visual components
+│   └── EnyxmaPill.qml              # Standard status pill
+└── modules/                        # Desktop layers and popup panels
+    ├── ai/                         # 3-tab side panel — AI chat, media downloader, screen time
+    ├── audio/                      # Audio mixer panels
+    ├── background/                 # Desktop background layer
+    ├── bar/                        # Gotham and Dynamic top bar components
+    ├── bluetooth/                  # Bluetooth management panels
+    ├── cc/                         # Control center
+    ├── containers/                 # Container monitor panels
+    ├── launcher/                   # OmniLauncher application launcher
+    ├── media/                      # MPRIS media panel and capture browser
+    ├── network/                    # Network and Wi-Fi QR panels
+    ├── notifications/              # Notification center and popups
+    ├── osd/                        # Volume and brightness OSD layer
+    ├── overview/                   # Mission Control overview layer
+    ├── performance/                # System, performance, and storage panels
+    ├── screenshot/                 # Enyxma Shot capture and mockup tool
+    ├── settings/                   # Enyxma Settings 2.0 panels
+    ├── time/                       # Harmonic Bento time, calendar, and weather hub
+    └── wallpaper/                  # Wallpaper picker gallery
 ```
 
 ---
 
-## 🛠️ Geliştirme ve Doğrulama
+## 🛠️ Development & Verification
 
-Kod bütünlüğünü ve tasarım standartlarını korumak için `Justfile` üzerinde tanımlı adımlar `nix develop` ortamında çalıştırılır:
+All static checks defined in `Justfile` run inside `nix develop`:
 
 ```bash
-# 1. Tüm statik kontrolleri çalıştır
+# 1. Run all static checks
 nix develop -c just verify
 
-# 2. Kabuk enjeksiyonu taraması
+# 2. Shell injection scan
 nix develop -c just check-shell
 
-# 3. Kaçak hardcoded renk ve sabit yol taraması
+# 3. Hardcoded color and path leak scan
 nix develop -c just check-leaks
 
-# 4. Tüm servislerin qmldir içinde kayıtlı olduğunu doğrula
+# 4. Verify all services are registered in qmldir
 nix develop -c just check-qmldir
 
-# 5. QML sözdizimi doğrulaması
+# 5. QML syntax validation
 nix develop -c just lint
 
-# 6. Sahte rastgele veri taraması ve doğrulama notları
+# 6. Fake random data scan and unverified markers
 nix develop -c just fake-data
 nix develop -c just unverified
 
-# 7. Kabuğu yerel oturumda çalıştır
+# 7. Run shell in local session
 nix develop -c just run
 ```
 
 ---
 
-## 📜 Lisans
+## 📜 License
 
-GPL-3.0-or-later — Ayrıntılar için [LICENSE](./LICENSE) dosyasına bakın. Telif Hakkı © 2026 Enyxma OS Contributors.
+GPL-3.0-or-later — See [LICENSE](./LICENSE) for details. Copyright © 2026 Enyxma OS Contributors.
