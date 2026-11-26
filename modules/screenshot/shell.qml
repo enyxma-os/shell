@@ -73,7 +73,9 @@ ShellRoot {
         { id: "marker",   key: "m", icon: "marker",   label: "Vurgula" },
         { id: "counter",  key: "n", icon: "counter",  label: "Numara" },
         { id: "text",     key: "t", icon: "text",     label: "Metin" },
-        { id: "redact",   key: "x", icon: "redact",   label: "Sansür" }
+        { id: "blur",     key: "b", icon: "blur",     label: "Bulanıklaştır" },
+        { id: "redact",   key: "x", icon: "redact",   label: "Sansür" },
+        { id: "magnify",  key: "z", icon: "magnify",  label: "Büyüteç" }
     ]
 
     function toolHasFill(tool) {

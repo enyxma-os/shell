@@ -66,6 +66,8 @@ Item {
                 anchors.fill: parent
                 sourceItem: fx.frame
                 live: false
+                Component.onCompleted: scheduleUpdate()
+                onSourceItemChanged: scheduleUpdate()
                 onSourceRectChanged: scheduleUpdate()
                 recursive: false
                 sourceRect: Qt.rect(cell.rx, cell.ry, cell.rw, cell.rh)
@@ -112,6 +114,8 @@ Item {
                 anchors.centerIn: parent
                 sourceItem: fx.frame
                 live: false
+                Component.onCompleted: scheduleUpdate()
+                onSourceItemChanged: scheduleUpdate()
                 onSourceRectChanged: scheduleUpdate()
                 recursive: false
                 sourceRect: Qt.rect(cell.rx + cell.rw / 2 - cell.magD / (2 * cell.magZoom),
