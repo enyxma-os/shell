@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 export XDG_RUNTIME_DIR="${XDG_RUNTIME_DIR:-/run/user/$(id -u)}"
-mkdir -p "$HOME/.cache"
 exec 9>"$XDG_RUNTIME_DIR/enyxma-theme-apply.lock"
 flock 9
-mkdir -p "$HOME/.config/btop/themes" "$HOME/.config/yazi"
+mkdir -p "$HOME/.cache" "$HOME/.config/enyxma" "$HOME/.config/btop/themes" "$HOME/.config/yazi"
 if [ ! -f "$HOME/.config/btop/btop.conf" ]; then
   cat > "$HOME/.config/btop/btop.conf" << 'EOF'
 color_theme = "enyxma"
@@ -33,7 +32,20 @@ safe_write() {
 }
 
 extract_vibrant_hex() {
-  ffmpeg -v error -i "$1" -vf "scale=64:64" -f rawvideo -pix_fmt rgb24 - | od -An -tu1 -w3 -v | awk '
+  local img="$1"
+  local cache="$HOME/.cache/enyxma-hex-cache.tsv"
+  local sig=""
+  sig=$(stat -c '%Y:%s' "$img" 2>/dev/null || echo "0")
+  if [ -f "$cache" ]; then
+    local hit=""
+    hit=$(awk -F '\t' -v p="$img" -v s="$sig" '$1 == p && $2 == s { print $3; exit }' "$cache" 2>/dev/null || true)
+    if [ -n "$hit" ]; then
+      printf '%s\n' "$hit"
+      return 0
+    fi
+  fi
+  local hex=""
+  hex=$(ffmpeg -v error -i "$img" -vf "scale=64:64" -f rawvideo -pix_fmt rgb24 - | od -An -tu1 -w3 -v | awk '
   NF == 3 {
     r = $1 / 255.0; g = $2 / 255.0; b = $3 / 255.0;
     max = r; if (g > max) max = g; if (b > max) max = b;
@@ -64,52 +76,63 @@ extract_vibrant_hex() {
     } else {
       print "#38bdf8";
     }
-  }'
+  }')
+  printf '%s\t%s\t%s\n' "$img" "$sig" "$hex" >> "$cache" 2>/dev/null || true
+  if [ -f "$cache" ] && [ "$(wc -l < "$cache" 2>/dev/null || echo 0)" -gt 120 ]; then
+    tail -n 100 "$cache" > "$cache.tmp" 2>/dev/null && mv -f "$cache.tmp" "$cache" 2>/dev/null || true
+  fi
+  printf '%s\n' "$hex"
+}
+
+CUR_THEME="Bibata-Modern-Ice"
+CUR_SIZE="24"
+ICON_THEME="Papirus-Dark"
+
+sync_hyprland() {
+  if [ ! -f "$HOME/.config/hypr/colors.lua" ]; then
+    return 0
+  fi
+  local act_a="" act_b="" inact="" rnd="" bsz="" gin="" gout="" c_t="" c_s=""
+  eval "$(awk '
+    match($0, /^[[:space:]]*(accent|accent_secondary|outline|cursor_theme)[[:space:]]*=[[:space:]]*"([^"]*)"/, m) {
+      val[m[1]] = m[2]
+    }
+    match($0, /^[[:space:]]*(rounding|border_size|gaps_in|gaps_out|cursor_size)[[:space:]]*=[[:space:]]*([0-9]+)/, m) {
+      val[m[1]] = m[2]
+    }
+    END {
+      printf "act_a=%s\n",   ("\x27" val["accent"] "\x27")
+      printf "act_b=%s\n",   ("\x27" val["accent_secondary"] "\x27")
+      printf "inact=%s\n",   ("\x27" val["outline"] "\x27")
+      printf "rnd=%s\n",     ("\x27" val["rounding"] "\x27")
+      printf "bsz=%s\n",     ("\x27" val["border_size"] "\x27")
+      printf "gin=%s\n",     ("\x27" val["gaps_in"] "\x27")
+      printf "gout=%s\n",    ("\x27" val["gaps_out"] "\x27")
+      printf "c_t=%s\n",     ("\x27" val["cursor_theme"] "\x27")
+      printf "c_s=%s\n",     ("\x27" val["cursor_size"] "\x27")
+    }
+  ' "$HOME/.config/hypr/colors.lua")"
+  [ -n "$c_t" ] && CUR_THEME="$c_t"
+  [ -n "$c_s" ] && CUR_SIZE="$c_s"
+
+  if command -v hyprctl >/dev/null 2>&1; then
+    local lua_sync eval_res
+    lua_sync="hl.config({ general = { gaps_in = ${gin:-5}, gaps_out = ${gout:-10}, border_size = ${bsz:-2}, col = { active_border = { colors = { \"${act_a:-rgba(7aa2f7ee)}\", \"${act_b:-rgba(bb9af7ee)}\" }, angle = 45 }, inactive_border = \"${inact:-rgba(3b4261aa)}\" } }, decoration = { rounding = ${rnd:-10} } })"
+    eval_res=$(hyprctl eval "$lua_sync" 2>/dev/null || true)
+    if [ "$eval_res" != "ok" ]; then
+      [ -n "$act_a" ] && [ -n "$act_b" ] && hyprctl keyword general:col.active_border "$act_a $act_b 45deg" >/dev/null 2>&1 || true
+      [ -n "$inact" ] && hyprctl keyword general:col.inactive_border "$inact" >/dev/null 2>&1 || true
+      [ -n "$rnd" ] && hyprctl keyword decoration:rounding "$rnd" >/dev/null 2>&1 || true
+      [ -n "$bsz" ] && hyprctl keyword general:border_size "$bsz" >/dev/null 2>&1 || true
+      [ -n "$gin" ] && hyprctl keyword general:gaps_in "$gin" >/dev/null 2>&1 || true
+      [ -n "$gout" ] && hyprctl keyword general:gaps_out "$gout" >/dev/null 2>&1 || true
+    fi
+    hyprctl setcursor "$CUR_THEME" "$CUR_SIZE" >/dev/null 2>&1 || true
+  fi
 }
 
 apply_gotham_preset() {
   mkdir -p "$HOME/.cache" "$HOME/.config/hypr" "$HOME/.config/kitty" "$HOME/.config/foot" "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0" "$HOME/.config/btop/themes" "$HOME/.config/yazi"
-
-  safe_write "$HOME/.cache/enyxma-GeneratedColors.qml.next" << 'EOF'
-// Enyxma OS — Gotham 2.0 Brutalist Sabit Paleti
-pragma Singleton
-import QtQuick
-
-QtObject {
-    id: root
-
-    property string preset: "gotham"
-
-    // Primary Accents (Kontrollu endustriyel kehribar)
-    property color primary: "#f0b429"
-    property color primaryFg: "#07080b"
-    property color primaryContainer: "#241e0a"
-    property color primaryContainerFg: "#fcd34d"
-
-    // Secondary & Tertiary (Soguk arduvaz ve grafit)
-    property color secondary: "#64748b"
-    property color secondaryFg: "#07080b"
-    property color tertiary: "#94a3b8"
-    property color tertiaryFg: "#07080b"
-
-    // Surfaces & Containers (Obsidyen ve bazalt katmanlari)
-    property color background: "#07080b"
-    property color backgroundFg: "#e2e8f0"
-    property color surface: "#0b0d12"
-    property color surfaceFg: "#e2e8f0"
-    property color surfaceContainer: "#11141c"
-    property color surfaceContainerHigh: "#171b26"
-    property color surfaceVariantFg: "#94a3b8"
-
-    // Outlines & Borders (Soguk grafit ve arduvaz)
-    property color outline: "#333c4d"
-    property color outlineVariant: "#222834"
-
-    // State & Status
-    property color danger: "#e11d48"
-    property color dangerFg: "#07080b"
-}
-EOF
 
   safe_write "$HOME/.config/hypr/colors.lua" << 'EOF'
 -- Enyxma OS Gotham 2.0 Hyprland Paleti
@@ -129,6 +152,7 @@ return {
     outline = "rgba(222834cc)",
 }
 EOF
+  sync_hyprland
 
   safe_write "$HOME/.config/kitty/kitty.conf" << 'EOF'
 # Enyxma OS — Gotham 2.0 Kitty Yapilandirmasi
@@ -448,39 +472,10 @@ if [ "$MODE" = "preset" ] && [ "$TARGET" = "gotham" ]; then
 elif [ "$MODE" = "image" ]; then
   HEX=$(extract_vibrant_hex "$TARGET")
   matugen -c "$CFG" -t scheme-vibrant color hex "$HEX" || true
+  sync_hyprland
 else
   matugen -c "$CFG" -t scheme-vibrant color hex "$TARGET" || true
-fi
-
-CUR_THEME="Bibata-Modern-Ice"
-CUR_SIZE="24"
-ICON_THEME="Papirus-Dark"
-if [ -f "$HOME/.config/hypr/colors.lua" ]; then
-  ACT_A=$(sed -n 's/^[[:space:]]*accent[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-  ACT_B=$(sed -n 's/^[[:space:]]*accent_secondary[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-  INACT=$(sed -n 's/^[[:space:]]*outline[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-  RND=$(sed -n 's/^[[:space:]]*rounding[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-  BSZ=$(sed -n 's/^[[:space:]]*border_size[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-  GIN=$(sed -n 's/^[[:space:]]*gaps_in[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-  GOUT=$(sed -n 's/^[[:space:]]*gaps_out[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-  C_T=$(sed -n 's/^[[:space:]]*cursor_theme[[:space:]]*=[[:space:]]*"\([^"]*\)".*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-  C_S=$(sed -n 's/^[[:space:]]*cursor_size[[:space:]]*=[[:space:]]*\([0-9][0-9]*\).*/\1/p' "$HOME/.config/hypr/colors.lua" | head -n 1)
-  [ -n "$C_T" ] && CUR_THEME="$C_T"
-  [ -n "$C_S" ] && CUR_SIZE="$C_S"
-
-  if command -v hyprctl >/dev/null 2>&1; then
-    LUA_SYNC="hl.config({ general = { gaps_in = ${GIN:-5}, gaps_out = ${GOUT:-10}, border_size = ${BSZ:-2}, col = { active_border = { colors = { \"${ACT_A:-rgba(7aa2f7ee)}\", \"${ACT_B:-rgba(bb9af7ee)}\" }, angle = 45 }, inactive_border = \"${INACT:-rgba(3b4261aa)}\" } }, decoration = { rounding = ${RND:-10} } })"
-    EVAL_RES=$(hyprctl eval "$LUA_SYNC" 2>/dev/null || true)
-    if [ "$EVAL_RES" != "ok" ]; then
-      [ -n "$ACT_A" ] && [ -n "$ACT_B" ] && hyprctl keyword general:col.active_border "$ACT_A $ACT_B 45deg" >/dev/null 2>&1 || true
-      [ -n "$INACT" ] && hyprctl keyword general:col.inactive_border "$INACT" >/dev/null 2>&1 || true
-      [ -n "$RND" ] && hyprctl keyword decoration:rounding "$RND" >/dev/null 2>&1 || true
-      [ -n "$BSZ" ] && hyprctl keyword general:border_size "$BSZ" >/dev/null 2>&1 || true
-      [ -n "$GIN" ] && hyprctl keyword general:gaps_in "$GIN" >/dev/null 2>&1 || true
-      [ -n "$GOUT" ] && hyprctl keyword general:gaps_out "$GOUT" >/dev/null 2>&1 || true
-    fi
-    hyprctl setcursor "$CUR_THEME" "$CUR_SIZE" >/dev/null 2>&1 || true
-  fi
+  sync_hyprland
 fi
 
 for gtk_dir in "$HOME/.config/gtk-3.0" "$HOME/.config/gtk-4.0"; do
@@ -500,17 +495,14 @@ safe_write "$HOME/.icons/default/index.theme" << EOF
 Inherits=$CUR_THEME
 EOF
 
-if command -v gsettings >/dev/null 2>&1; then
-  gsettings set org.gnome.desktop.interface cursor-theme "$CUR_THEME" >/dev/null 2>&1 || true
-  gsettings set org.gnome.desktop.interface cursor-size "$CUR_SIZE" >/dev/null 2>&1 || true
-  gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" >/dev/null 2>&1 || true
-  gsettings set org.gnome.desktop.interface color-scheme "prefer-dark" >/dev/null 2>&1 || true
-fi
-
 pkill -USR1 -x kitty >/dev/null 2>&1 || true
 pkill -USR2 -x btop >/dev/null 2>&1 || true
 
-if [ -f "$HOME/.cache/enyxma-GeneratedColors.qml.next" ]; then
-  mkdir -p "$SHELL_DIR/services"
-  mv -f "$HOME/.cache/enyxma-GeneratedColors.qml.next" "$SHELL_DIR/services/GeneratedColors.qml"
-fi
+(
+  if command -v gsettings >/dev/null 2>&1; then
+    gsettings set org.gnome.desktop.interface cursor-theme "$CUR_THEME" >/dev/null 2>&1 || true
+    gsettings set org.gnome.desktop.interface cursor-size "$CUR_SIZE" >/dev/null 2>&1 || true
+    gsettings set org.gnome.desktop.interface icon-theme "$ICON_THEME" >/dev/null 2>&1 || true
+    gsettings set org.gnome.desktop.interface color-scheme "prefer-dark" >/dev/null 2>&1 || true
+  fi
+) >/dev/null 2>&1 &

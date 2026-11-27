@@ -94,7 +94,6 @@ deploy vm="enyxma@localhost":
     @echo "🚀 VM'e senkronize ediliyor: {{vm}}"
     rsync -avz --delete \
         --exclude='.git' \
-        --exclude='services/GeneratedColors.qml' \
         --exclude='*.qmlc' \
         ./ {{vm}}:~/.config/quickshell/
     @echo "🔄 Yeniden başlatılıyor..."

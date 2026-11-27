@@ -62,7 +62,7 @@ PanelWindow {
             Behavior on opacity {
                 enabled: !Theme.reduceMotion
                 NumberAnimation {
-                    duration: 680
+                    duration: 300
                     easing.type: Easing.OutCubic
                 }
             }
@@ -70,7 +70,7 @@ PanelWindow {
             Behavior on scale {
                 enabled: !Theme.reduceMotion
                 NumberAnimation {
-                    duration: 750
+                    duration: 360
                     easing.type: Easing.OutQuint
                 }
             }
@@ -97,7 +97,7 @@ PanelWindow {
             Behavior on opacity {
                 enabled: !Theme.reduceMotion
                 NumberAnimation {
-                    duration: 680
+                    duration: 300
                     easing.type: Easing.OutCubic
                 }
             }
@@ -105,7 +105,7 @@ PanelWindow {
             Behavior on scale {
                 enabled: !Theme.reduceMotion
                 NumberAnimation {
-                    duration: 750
+                    duration: 360
                     easing.type: Easing.OutQuint
                 }
             }
@@ -137,7 +137,7 @@ PanelWindow {
                 property: "opacity"
                 from: 0.22
                 to: 0.0
-                duration: 500
+                duration: 280
                 easing.type: Easing.OutCubic
             }
         }

@@ -2,8 +2,8 @@
 reload_apps = true
 
 [templates.quickshell]
-input_path = "templates/GeneratedColors.qml.in"
-output_path = "~/.cache/enyxma-GeneratedColors.qml.next"
+input_path = "templates/colors.json.in"
+output_path = "~/.config/enyxma/colors.json"
 
 [templates.hyprland]
 input_path = "templates/colors.lua.in"

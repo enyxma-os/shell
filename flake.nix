@@ -50,10 +50,8 @@
           binPath = pkgs.lib.makeBinPath (runtimeDeps pkgs);
 
           # ── Çalışma zamanı ağacı ──────────────────────────────────────
-          # matugen, services/GeneratedColors.qml'i YAZAR. /nix/store salt
-          # okunurdur; oradan çalıştırmak tema zincirini sessizce kırıyordu.
-          # Bu yüzden paket ağacı ilk çalıştırmada yazılabilir bir dizine
-          # kopyalanır ve shell oradan çalışır.
+          # Dinamik renkler `~/.config/enyxma/colors.json` üzerinden okunur;
+          # paket ağacı ilk çalıştırmada yazılabilir dizine kopyalanır.
           bootstrap = ''
             SRC="@src@"
             ROOT="''${XDG_DATA_HOME:-$HOME/.local/share}/enyxma-shell"
@@ -68,7 +66,7 @@
               mkdir -p "$RUNTIME"
               find "$ROOT" -mindepth 1 -maxdepth 1 -type d ! -name "runtime" \
                 -exec rm -rf {} + 2>/dev/null || true
-              cp -r "$SRC"/. "$RUNTIME"/
+              cp -rf "$SRC"/. "$RUNTIME"/
               chmod -R u+w "$RUNTIME"
               chmod +x "$RUNTIME/enyxma-theme-apply"
               echo "$SRC" > "$RUNTIME/.store-source"

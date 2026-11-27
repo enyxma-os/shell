@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "."
 
 /**
  * WallpaperState — duvar kağıdı, karartma ve matugen tema zinciri.
@@ -93,6 +94,7 @@ Singleton {
         }
 
         root.currentTheme = name
+        GeneratedColors.setPreset(name)
         var nextWp = map[name]
         if (!nextWp || String(nextWp).trim().length === 0) {
             nextWp = (name === "gotham") ? root.defaultGothamWallpaper : root.defaultWallpaper
@@ -112,17 +114,44 @@ Singleton {
 
     function cycleTheme() {
         var next = (root.currentTheme === "gotham") ? "dynamic" : "gotham"
-        var label = (next === "gotham") ? "Gotham — Brutalist Mimari" : "✦ Dinamik — Matugen"
+        var label = (next === "gotham")
+            ? I18n.t("Gotham — Brutalist Mimari", "Gotham — Brutalist Architecture")
+            : I18n.t("✦ Dinamik — Matugen", "✦ Dynamic — Matugen")
         setThemePreset(next)
-        Quickshell.execDetached(["notify-send", "-a", "Enyxma", "-t", "2200", "Enyxma Tema Motoru", label])
+        Quickshell.execDetached([
+            "notify-send", "-a", "Enyxma", "-t", "2200",
+            I18n.t("Enyxma Tema Motoru", "Enyxma Theme Engine"),
+            label
+        ])
     }
 
     function setDim(level) {
         dimLevel = Math.max(0.0, Math.min(1.0, level))
     }
 
+    property var _pendingThemeArgs: null
+
+    Process {
+        id: themeApplyProc
+        command: []
+        running: false
+        onExited: (code) => {
+            if (root._pendingThemeArgs !== null) {
+                var nextArgs = root._pendingThemeArgs
+                root._pendingThemeArgs = null
+                themeApplyProc.exec(nextArgs)
+            } else {
+                GeneratedColors.reload()
+            }
+        }
+    }
+
     function runThemeApply(args) {
-        Quickshell.execDetached(args)
+        if (themeApplyProc.running) {
+            root._pendingThemeArgs = args
+        } else {
+            themeApplyProc.exec(args)
+        }
     }
 
     function generateThemeFromImage(rawPath) {
@@ -141,15 +170,8 @@ Singleton {
         ])
     }
 
-    Timer {
-        id: reloadTimer
-        interval: 120
-        repeat: false
-        onTriggered: Quickshell.reload(false)
-    }
-
     function reloadTheme() {
-        reloadTimer.restart()
+        GeneratedColors.reload()
     }
 
     // ── Kalıcı durum: yalnızca duvar kağıdı ──────────────────────────
@@ -224,6 +246,7 @@ Singleton {
         }
         // dimLevel bilinçli olarak yüklenmez, kara ekran korumasıdır.
         root.dimLevel = 0.0
+        GeneratedColors.setPreset(root.currentTheme)
         if (root.scannedTheme !== root.currentTheme && !root.isScanning) {
             root.scanWallpapers()
         }
