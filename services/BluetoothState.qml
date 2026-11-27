@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "."
 
 /**
  * BluetoothState — BlueZ adaptor ve cihaz yoneticisi.
@@ -36,17 +37,18 @@ Singleton {
     }
 
     readonly property string statusText: {
-        if (root.state === "unsupported") return "bluetoothctl yok"
-        if (root.state === "unknown") return "Sorgulanıyor…"
-        if (root.state === "on") return root.adapter !== "" ? root.adapter : "Açık"
-        return "Kapalı"
+        var _l = I18n.lang
+        if (root.state === "unsupported") return I18n.t("bluetoothctl yok", "bluetoothctl missing")
+        if (root.state === "unknown") return I18n.t("Sorgulanıyor…", "Querying…")
+        if (root.state === "on") return root.adapter !== "" ? root.adapter : I18n.t("Açık", "On")
+        return I18n.t("Kapalı", "Off")
     }
 
     readonly property string connectedSummary: {
         if (!root.enabled) return root.statusText
         for (var i = 0; i < devices.length; i++) {
             if (devices[i].connected) {
-                var bat = devices[i].battery >= 0 ? (" · %" + devices[i].battery) : ""
+                var bat = devices[i].battery >= 0 ? (" · " + I18n.pct(devices[i].battery)) : ""
                 return devices[i].name + bat
             }
         }
@@ -89,14 +91,14 @@ Singleton {
             root.busy = false
             if (code !== 0) {
                 root.state = "unsupported"
-                root.lastError = "bluetoothctl bulunamadı"
+                root.lastError = I18n.t("bluetoothctl bulunamadı", "bluetoothctl not found")
                 root.devices = []
                 return
             }
             const text = out.text || ""
             if (text.indexOf("No default controller available") >= 0) {
                 root.state = "unsupported"
-                root.lastError = "Bluetooth adaptörü bulunamadı"
+                root.lastError = I18n.t("Bluetooth adaptörü bulunamadı", "No Bluetooth adapter found")
                 root.devices = []
                 return
             }
@@ -258,11 +260,11 @@ Singleton {
             if (code !== 0) {
                 var txt = String(actionOut.text || "").toLowerCase()
                 if (txt.indexOf("not available") >= 0 || txt.indexOf("page timeout") >= 0 || txt.indexOf("host is down") >= 0) {
-                    root.setError("Cihaz erişilebilir değil")
+                    root.setError(I18n.t("Cihaz erişilebilir değil", "Device unreachable"))
                 } else if (txt.indexOf("refused") >= 0 || txt.indexOf("failed") >= 0) {
-                    root.setError("Bağlantı reddedildi")
+                    root.setError(I18n.t("Bağlantı reddedildi", "Connection refused"))
                 } else {
-                    root.setError("Bluetooth işlemi başarısız")
+                    root.setError(I18n.t("Bluetooth işlemi başarısız", "Bluetooth action failed"))
                 }
             } else {
                 root.setError("")
@@ -280,7 +282,7 @@ Singleton {
 
     function togglePower() {
         if (!root.supported || root.busy) {
-            if (!root.supported) root.lastError = "BlueZ aracı yok"
+            if (!root.supported) root.lastError = I18n.t("BlueZ aracı yok", "BlueZ utility missing")
             return
         }
         const targetOn = !root.enabled
@@ -310,7 +312,7 @@ Singleton {
         running: false
         onExited: (code) => {
             if (code !== 0) {
-                root.lastError = "Bluetooth gücü değiştirilemedi"
+                root.lastError = I18n.t("Bluetooth gücü değiştirilemedi", "Failed to toggle Bluetooth power")
             }
             verifyTimer.restart()
         }

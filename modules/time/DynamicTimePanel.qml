@@ -58,7 +58,10 @@ Item {
                 property int viewMonth: TimeState.now.getMonth()
                 property int selectedDay: TimeState.dayNumber
 
-                readonly property var monthNames: [
+                readonly property var monthNames: I18n.isEn ? [
+                    "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+                    "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+                ] : [
                     "OCAK", "ŞUBAT", "MART", "NİSAN", "MAYIS", "HAZİRAN",
                     "TEMMUZ", "AĞUSTOS", "EYLÜL", "EKİM", "KASIM", "ARALIK"
                 ]
@@ -183,7 +186,7 @@ Item {
                         spacing: 0
 
                         Repeater {
-                            model: ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"]
+                            model: I18n.isEn ? ["Mo", "Tu", "We", "Th", "Fr", "Sa", "Su"] : ["Pt", "Sa", "Ça", "Pe", "Cu", "Ct", "Pz"]
 
                             Item {
                                 width: (330 - 24) / 7
@@ -293,7 +296,9 @@ Item {
                                 Layout.fillWidth: true
 
                                 Text {
-                                    text: "🗓️ " + calendarBox.selectedDay + " " + calendarBox.monthNames[calendarBox.viewMonth] + " " + calendarBox.viewYear
+                                    text: I18n.isEn
+                                        ? ("🗓️ " + calendarBox.monthNames[calendarBox.viewMonth] + " " + calendarBox.selectedDay + ", " + calendarBox.viewYear)
+                                        : ("🗓️ " + calendarBox.selectedDay + " " + calendarBox.monthNames[calendarBox.viewMonth] + " " + calendarBox.viewYear)
                                     color: Theme.textPrimary
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 11
@@ -302,7 +307,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: "Hafta " + TimeState.weekNumber
+                                    text: I18n.t("Hafta ", "Week ") + TimeState.weekNumber
                                     color: Theme.accent
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
@@ -314,14 +319,14 @@ Item {
                                 Layout.fillWidth: true
 
                                 Text {
-                                    text: "🌅 Doğuş: 07:18  •  🌇 Batış: 18:32"
+                                    text: I18n.t("🌅 Doğuş: 07:18  •  🌇 Batış: 18:32", "🌅 Sunrise: 07:18  •  🌇 Sunset: 18:32")
                                     color: Theme.textMuted
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
                                 }
 
                                 Text {
-                                    text: I18n.t("Yılın ", "Day ") + TimeState.dayOfYear + ". Günü"
+                                    text: I18n.isEn ? ("Day " + TimeState.dayOfYear + " of Year") : ("Yılın " + TimeState.dayOfYear + ". Günü")
                                     color: Theme.textSecondary
                                     font.family: Theme.fontMono
                                     font.pixelSize: 9
@@ -505,7 +510,7 @@ Item {
                                 Text { text: "💨"; font.pixelSize: 12 }
                                 ColumnLayout {
                                     spacing: 0
-                                    Text { text: WeatherState.windSpeed + " km/s " + WeatherState.windDir; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
+                                    Text { text: WeatherState.windSpeed + I18n.t(" km/s ", " km/h ") + WeatherState.windDir; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
                                     Text { text: I18n.t("Rüzgar Hızı", "Wind Speed"); color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 9 }
                                 }
                             }
@@ -516,7 +521,7 @@ Item {
                                 ColumnLayout {
                                     spacing: 0
                                     Text { text: WeatherState.humidity + "%"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true }
-                                    Text { text: "Havadaki Nem"; color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 9 }
+                                    Text { text: I18n.t("Havadaki Nem", "Humidity"); color: Theme.textMuted; font.family: Theme.fontFamily; font.pixelSize: 9 }
                                 }
                             }
 

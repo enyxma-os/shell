@@ -66,7 +66,7 @@ Item {
 
                 Text {
                     text: (SystemState.uptime.length > 0 ? ("󰅐 " + SystemState.uptime + " · ") : "")
-                        + (SystemState.isBatteryPresent ? ("%" + SystemState.batteryPercent) : "AC")
+                        + (SystemState.isBatteryPresent ? I18n.pct(SystemState.batteryPercent) : "AC")
                         + (SystemState.isCharging ? " ⚡" : "")
                     color: Theme.textSecondary
                     font.family: Theme.fontMono
@@ -316,7 +316,7 @@ Item {
                             }
 
                             Text {
-                                text: NotificationState.dnd ? "Sessiz" : I18n.t("Açık", "On")
+                                text: NotificationState.dnd ? I18n.t("Sessiz", "Muted") : I18n.t("Açık", "On")
                                 color: root.dndActive ? Theme.accent : Theme.textSecondary
                                 font.family: Theme.fontMono
                                 font.pixelSize: Theme.fontSizeXS
@@ -390,7 +390,7 @@ Item {
                     Layout.fillWidth: true
 
                     Text {
-                        text: AudioState.muted ? "󰝟 SES" : "󰕾 SES"
+                        text: AudioState.muted ? I18n.t("󰝟 SES", "󰝟 VOLUME") : I18n.t("󰕾 SES", "󰕾 VOLUME")
                         color: AudioState.muted ? Theme.danger : Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -470,7 +470,7 @@ Item {
                     Layout.fillWidth: true
 
                     Text {
-                        text: "󰃠 PARLAKLIK"
+                        text: I18n.t("󰃠 PARLAKLIK", "󰃠 BRIGHTNESS")
                         color: Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -693,7 +693,7 @@ Item {
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "Kilitle"
+                            text: I18n.t("Kilitle", "Lock")
                             color: lockMa.containsMouse ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS
@@ -735,7 +735,7 @@ Item {
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "Uyku"
+                            text: I18n.t("Uyku", "Sleep")
                             color: suspMa.containsMouse ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS

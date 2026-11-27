@@ -12,5 +12,9 @@ Singleton {
     function t(trText, enText) {
         return root.isEn ? enText : trText
     }
+
+    function pct(val) {
+        return root.isEn ? (val + "%") : ("%" + val)
+    }
 }
 

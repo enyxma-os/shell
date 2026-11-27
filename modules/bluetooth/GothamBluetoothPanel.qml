@@ -317,7 +317,7 @@ Item {
                             Text {
                                 id: actTxt
                                 anchors.centerIn: parent
-                                text: devRow.isBusy ? "..." : (devRow.modelData.connected ? "AYIR" : (devRow.modelData.paired ? I18n.t("BAĞLAN", "CONNECT") : I18n.t("EŞLE", "PAIR")))
+                                text: devRow.isBusy ? "..." : (devRow.modelData.connected ? I18n.t("AYIR", "DISCONNECT") : (devRow.modelData.paired ? I18n.t("BAĞLAN", "CONNECT") : I18n.t("EŞLE", "PAIR")))
                                 color: devRow.modelData.connected ? Theme.textPrimary : Theme.accent
                                 font.family: Theme.fontMono
                                 font.pixelSize: 10

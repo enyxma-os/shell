@@ -74,7 +74,7 @@ PanelWindow {
 
             // Başlık
             Text {
-                text: "HIZLI AYARLAR & FORMAT"
+                text: I18n.t("HIZLI AYARLAR & FORMAT", "QUICK SETTINGS & FORMAT")
                 color: Theme.textMuted
                 font.family: Theme.fontFamily
                 font.pixelSize: 10
@@ -239,7 +239,7 @@ PanelWindow {
                     anchors.rightMargin: 8
 
                     Text {
-                        text: "⏱️ Odak:"
+                        text: I18n.t("⏱️ Odak:", "⏱️ Focus:")
                         color: Theme.textSecondary
                         font.family: Theme.fontFamily
                         font.pixelSize: Theme.fontSizeSmall

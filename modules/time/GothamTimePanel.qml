@@ -67,7 +67,7 @@ Item {
                 }
 
                 Text {
-                    text: "[ HAFTA " + TimeState.weekNumber + I18n.t(" · GÜN ", " · DAY ") + TimeState.dayOfYear + " ]"
+                    text: "[ " + I18n.t("HAFTA ", "WEEK ") + TimeState.weekNumber + I18n.t(" · GÜN ", " · DAY ") + TimeState.dayOfYear + " ]"
                     color: Theme.accent
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -99,7 +99,10 @@ Item {
                     property int viewMonth: TimeState.now.getMonth()
                     property int selectedDay: TimeState.dayNumber
 
-                    readonly property var monthNames: [
+                    readonly property var monthNames: I18n.isEn ? [
+                        "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+                        "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+                    ] : [
                         "OCAK", "ŞUBAT", "MART", "NİSAN", "MAYIS", "HAZİRAN",
                         "TEMMUZ", "AĞUSTOS", "EYLÜL", "EKİM", "KASIM", "ARALIK"
                     ]
@@ -354,7 +357,9 @@ Item {
                                     Layout.fillWidth: true
 
                                     Text {
-                                        text: "󰃭  " + calendarBox.selectedDay + " " + calendarBox.monthNames[calendarBox.viewMonth] + " " + calendarBox.viewYear
+                                        text: I18n.isEn
+                                            ? ("󰃭  " + calendarBox.monthNames[calendarBox.viewMonth] + " " + calendarBox.selectedDay + ", " + calendarBox.viewYear)
+                                            : ("󰃭  " + calendarBox.selectedDay + " " + calendarBox.monthNames[calendarBox.viewMonth] + " " + calendarBox.viewYear)
                                         color: Theme.textPrimary
                                         font.family: Theme.fontMono
                                         font.pixelSize: 10
@@ -384,7 +389,7 @@ Item {
                                     Item { Layout.fillWidth: true }
 
                                     Text {
-                                        text: "YILIN " + TimeState.dayOfYear + I18n.t(". GÜNÜ", " OF YEAR")
+                                        text: I18n.isEn ? ("DAY " + TimeState.dayOfYear + " OF YEAR") : ("YILIN " + TimeState.dayOfYear + ". GÜNÜ")
                                         color: Theme.textSecondary
                                         font.family: Theme.fontMono
                                         font.pixelSize: 9
@@ -560,7 +565,7 @@ Item {
                                     Text { text: "󰖝"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 13 }
                                     ColumnLayout {
                                         spacing: 0
-                                        Text { text: WeatherState.windSpeed + " km/s " + WeatherState.windDir; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
+                                        Text { text: WeatherState.windSpeed + I18n.t(" km/s ", " km/h ") + WeatherState.windDir; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
                                         Text { text: I18n.t("RÜZGAR", "WIND"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 8 }
                                     }
                                 }
@@ -571,7 +576,7 @@ Item {
                                     ColumnLayout {
                                         spacing: 0
                                         Text { text: WeatherState.humidity + "%"; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 10; font.bold: true }
-                                        Text { text: "NEM"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 8 }
+                                        Text { text: I18n.t("NEM", "HUMIDITY"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 8 }
                                     }
                                 }
 

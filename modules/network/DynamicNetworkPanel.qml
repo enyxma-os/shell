@@ -216,7 +216,7 @@ Item {
 
                         Text {
                             visible: NetworkState.isConnected && NetworkState.connectionType === "wifi"
-                            text: "%" + NetworkState.signalStrength
+                            text: I18n.pct(NetworkState.signalStrength)
                             color: Theme.accent
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeSmall
@@ -572,7 +572,7 @@ Item {
                                 spacing: 6
 
                                 Text {
-                                    text: "%" + modelData.signal
+                                    text: I18n.pct(modelData.signal)
                                     color: modelData.inUse ? Theme.accent : Theme.textSecondary
                                     font.family: Theme.fontMono
                                     font.pixelSize: 11
@@ -615,7 +615,7 @@ Item {
                                 // Kayitli / Unut
                                 Rectangle {
                                     visible: modelData.saved && !modelData.inUse
-                                    implicitWidth: 38
+                                    implicitWidth: forgetDynTxt.implicitWidth + 12
                                     implicitHeight: 20
                                     radius: Theme.radiusButton
                                     color: forgetMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive
@@ -623,8 +623,9 @@ Item {
                                     border.width: 1
 
                                     Text {
+                                        id: forgetDynTxt
                                         anchors.centerIn: parent
-                                        text: "Unut"
+                                        text: I18n.t("Unut", "Forget")
                                         color: forgetMa.containsMouse ? Theme.danger : Theme.textSecondary
                                         font.family: Theme.fontMono
                                         font.pixelSize: 10
@@ -797,7 +798,7 @@ Item {
                             onTextChanged: root.hiddenSsid = text
                             Text {
                                 anchors.verticalCenter: parent.verticalCenter
-                                text: "Gizli SSID"
+                                text: I18n.t("Gizli SSID", "Hidden SSID")
                                 color: Theme.textMuted
                                 font.family: Theme.fontMono
                                 font.pixelSize: Theme.fontSizeSmall
@@ -831,7 +832,7 @@ Item {
                                 onTextChanged: root.hiddenPassword = text
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: "Parola"
+                                    text: I18n.t("Parola", "Password")
                                     color: Theme.textMuted
                                     font.family: Theme.fontMono
                                     font.pixelSize: Theme.fontSizeSmall
@@ -1013,7 +1014,7 @@ Item {
                 Text {
                     Layout.fillWidth: true
                     visible: NetworkState.isConnected && NetworkState.dnsServers.length > 0
-                    text: "Aktif: " + NetworkState.dnsServers.join(", ")
+                    text: I18n.t("Aktif: ", "Active: ") + NetworkState.dnsServers.join(", ")
                     color: Theme.textMuted
                     font.family: Theme.fontMono
                     font.pixelSize: 10
@@ -1063,7 +1064,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: "Kaydet"
+                            text: I18n.t("Kaydet", "Save")
                             color: Theme.accent
                             font.family: Theme.fontMono
                             font.pixelSize: 11
@@ -1144,7 +1145,7 @@ Item {
 
                         Text {
                             anchors.centerIn: parent
-                            text: NetworkState.speedRunning ? "durdur" : I18n.t("başlat", "start")
+                            text: NetworkState.speedRunning ? I18n.t("durdur", "stop") : I18n.t("başlat", "start")
                             color: NetworkState.isConnected ? Theme.accent : Theme.textMuted
                             font.family: Theme.fontMono
                             font.pixelSize: 11
@@ -1171,12 +1172,12 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Sunucu"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 80 }
+                        Text { text: I18n.t("Sunucu", "Server"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 80 }
                         Text { text: NetworkState.speedEdgeText; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; elide: Text.ElideRight; Layout.fillWidth: true }
                     }
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "Gecikme"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 80 }
+                        Text { text: I18n.t("Gecikme", "Latency"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 80 }
                         Text { text: NetworkState.speedPhase === "latency" ? I18n.t("Ölçülüyor...", "Measuring...") : (NetworkState.speedPingMs > 0 ? (NetworkState.speedPingMs.toFixed(1) + " ms") : "-"); color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
                     }
                     RowLayout {

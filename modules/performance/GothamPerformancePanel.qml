@@ -418,7 +418,7 @@ Item {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            Text { text: "KULLANILAN: " + StorageState.rootUsedGiB.toFixed(1) + "G"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
+                            Text { text: I18n.t("KULLANILAN: ", "USED: ") + StorageState.rootUsedGiB.toFixed(1) + "G"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10; Layout.fillWidth: true }
                             Text { text: I18n.t("BOŞ: ", "FREE: ") + StorageState.rootFreeGiB.toFixed(1) + "G"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 10 }
                             Text { text: "/ " + StorageState.rootTotalGiB.toFixed(1) + "G"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10 }
                         }
@@ -498,7 +498,7 @@ Item {
                             RowLayout {
                                 Layout.fillWidth: true
                                 Text {
-                                    text: modelData.media + (modelData.fileSystems ? (" · " + modelData.fileSystems) : "") + " · " + modelData.state + (modelData.mounted && modelData.percent >= 0 ? (" · %" + modelData.percent) : "")
+                                    text: modelData.media + (modelData.fileSystems ? (" · " + modelData.fileSystems) : "") + " · " + modelData.state + (modelData.mounted && modelData.percent >= 0 ? (" · " + I18n.pct(modelData.percent)) : "")
                                     color: Theme.textSecondary
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
@@ -520,7 +520,7 @@ Item {
                                     color: Theme.surfaceActive
                                     border.color: Theme.accent
                                     border.width: 1
-                                    Text { anchors.centerIn: parent; text: modelData.mounted ? "[AYIR]" : I18n.t("[BAĞLA]", "MOUNT"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9 }
+                                    Text { anchors.centerIn: parent; text: modelData.mounted ? I18n.t("[AYIR]", "UNMOUNT") : I18n.t("[BAĞLA]", "MOUNT"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 9 }
                                     MouseArea {
                                         anchors.fill: parent
                                         cursorShape: Qt.PointingHandCursor

@@ -426,7 +426,7 @@ Item {
 
                         RowLayout {
                             Layout.fillWidth: true
-                            Text { text: "Ana Disk · " + StorageState.rootMount; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true; Layout.fillWidth: true }
+                            Text { text: I18n.t("Ana Disk · ", "Root Disk · ") + StorageState.rootMount; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true; Layout.fillWidth: true }
                             Text { text: StorageState.rootPercent + "%"; color: StorageState.rootPercent > 85 ? Theme.danger : Theme.accent; font.family: Theme.fontMono; font.pixelSize: Theme.fontSizeSmall; font.bold: true }
                         }
 
@@ -525,7 +525,7 @@ Item {
                             RowLayout {
                                 Layout.fillWidth: true
                                 Text {
-                                    text: modelData.media + (modelData.fileSystems ? (" · " + modelData.fileSystems) : "") + " · " + modelData.state + (modelData.mounted && modelData.percent >= 0 ? (" · %" + modelData.percent) : "")
+                                    text: modelData.media + (modelData.fileSystems ? (" · " + modelData.fileSystems) : "") + " · " + modelData.state + (modelData.mounted && modelData.percent >= 0 ? (" · " + I18n.pct(modelData.percent)) : "")
                                     color: Theme.textSecondary
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10

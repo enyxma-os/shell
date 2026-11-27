@@ -155,10 +155,13 @@ Item {
             spacing: 6
 
             Repeater {
-                model: [
-                    { key: "devices", label: I18n.t("CİHAZLAR", "DEVICES") },
-                    { key: "apps",    label: "UYGULAMALAR · " + AudioState.streams.length }
-                ]
+                model: {
+                    var _l = I18n.lang
+                    return [
+                        { key: "devices", label: I18n.t("CİHAZLAR", "DEVICES") },
+                        { key: "apps",    label: I18n.t("UYGULAMALAR · ", "APPLICATIONS · ") + AudioState.streams.length }
+                    ]
+                }
                 delegate: Rectangle {
                     id: tabBtn
                     required property var modelData

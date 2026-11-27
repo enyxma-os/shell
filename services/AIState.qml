@@ -142,7 +142,7 @@ Singleton {
             if (exitCode !== 0) {
                 let list = root.messages.slice()
                 if (list.length > 0 && list[list.length - 1].role === "assistant" && list[list.length - 1].content === "") {
-                    list[list.length - 1].content = "⚠️ [AI servisine bağlanılamadı veya `enyxma-ai-client` bulunamadı.]"
+                    list[list.length - 1].content = I18n.t("⚠️ [AI servisine bağlanılamadı veya `enyxma-ai-client` bulunamadı.]", "⚠️ [Could not connect to AI service or `enyxma-ai-client` not found.]")
                     root.messages = list
                 }
             }

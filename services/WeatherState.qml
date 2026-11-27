@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "."
 
 Singleton {
     id: root
@@ -17,7 +18,11 @@ Singleton {
     property int windSpeed: 12
     property string windDir: "KB"
     property int rainProb: 0
-    property string conditionText: "Güneşli"
+    property string rawCondition: "Sunny"
+    readonly property string conditionText: {
+        var _l = I18n.lang;
+        return root.translateDesc(root.rawCondition);
+    }
     property string conditionGlyph: "☀️"
     property bool isDay: true
     property bool isLoading: false
@@ -55,15 +60,15 @@ Singleton {
 
     function translateDesc(desc) {
         const d = (desc || "").toLowerCase();
-        if (d.includes("sunny")) return "Güneşli";
-        if (d.includes("clear")) return isDay ? "Açık" : "Açık Gece";
-        if (d.includes("partly cloudy")) return "Parçalı Bulutlu";
-        if (d.includes("cloudy") || d.includes("overcast")) return "Bulutlu";
-        if (d.includes("rain") || d.includes("drizzle")) return "Yağmurlu";
-        if (d.includes("thunder")) return "Gök Gürültülü";
-        if (d.includes("snow") || d.includes("sleet")) return "Karlı";
-        if (d.includes("fog") || d.includes("mist")) return "Sisli";
-        return desc || "Açık";
+        if (d.includes("sunny")) return I18n.t("Güneşli", "Sunny");
+        if (d.includes("clear")) return isDay ? I18n.t("Açık", "Clear") : I18n.t("Açık Gece", "Clear Night");
+        if (d.includes("partly cloudy")) return I18n.t("Parçalı Bulutlu", "Partly Cloudy");
+        if (d.includes("cloudy") || d.includes("overcast")) return I18n.t("Bulutlu", "Cloudy");
+        if (d.includes("rain") || d.includes("drizzle")) return I18n.t("Yağmurlu", "Rainy");
+        if (d.includes("thunder")) return I18n.t("Gök Gürültülü", "Thunderstorm");
+        if (d.includes("snow") || d.includes("sleet")) return I18n.t("Karlı", "Snowy");
+        if (d.includes("fog") || d.includes("mist")) return I18n.t("Sisli", "Foggy");
+        return desc || I18n.t("Açık", "Clear");
     }
 
     function glyphFor(desc, dayTime) {
@@ -89,13 +94,13 @@ Singleton {
             root.feelsLikeC = parseInt(curr.FeelsLikeC) || root.feelsLikeC;
             root.humidity = parseInt(curr.humidity) || root.humidity;
             root.windSpeed = parseInt(curr.windspeedKmph) || root.windSpeed;
-            root.windDir = curr.winddir16Point || "KB";
+            root.windDir = curr.winddir16Point || (I18n.isEn ? "NW" : "KB");
             root.rainProb = parseInt(curr.precipMM > 0 ? 80 : 0);
 
             const rawDesc = (curr.weatherDesc && curr.weatherDesc[0]) ? curr.weatherDesc[0].value : "Clear";
             const nowHour = new Date().getHours();
             root.isDay = (nowHour >= 6 && nowHour < 19);
-            root.conditionText = root.translateDesc(rawDesc);
+            root.rawCondition = rawDesc;
             root.conditionGlyph = root.glyphFor(rawDesc, root.isDay);
 
             // Saatlik Tahminleri İşle

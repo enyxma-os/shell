@@ -2,6 +2,7 @@ pragma Singleton
 import Quickshell
 import Quickshell.Io
 import QtQuick
+import "."
 
 /**
  * NetworkState — ağ durumu, trafik ve hız testi.
@@ -123,7 +124,7 @@ Singleton {
         onExited: (code) => {
             root.qrBusy = false
             if (code !== 0) {
-                root.qrError = "QR kodu üretilemedi"
+                root.qrError = I18n.t("QR kodu üretilemedi", "Failed to generate QR code")
                 root.qrImagePath = ""
                 return
             }
@@ -176,7 +177,7 @@ Singleton {
     function copyText(text, label) {
         if (!text || String(text).length === 0) return
         Quickshell.execDetached(["wl-copy", "--", String(text)])
-        root.copiedHint = label ? (label + " kopyalandı") : "Kopyalandı"
+        root.copiedHint = label ? (label + I18n.t(" kopyalandı", " copied")) : I18n.t("Kopyalandı", "Copied")
         copyHintTimer.restart()
     }
 
@@ -716,10 +717,10 @@ Singleton {
                 var msg = (actionErrOut.text || "").trim()
                 var low = msg.toLowerCase()
                 if (failedSsid && (low.indexOf("secrets") >= 0 || low.indexOf("password") >= 0 || low.indexOf("parola") >= 0 || low.indexOf("802-11-wireless-security") >= 0)) {
-                    root.actionError = "Parola gerekli veya hatalı: " + failedSsid
+                    root.actionError = I18n.t("Parola gerekli veya hatalı: ", "Password required or invalid: ") + failedSsid
                     root.passwordRequired(failedSsid)
                 } else {
-                    root.actionError = msg !== "" ? msg.split("\n")[0] : ("İşlem başarısız, kod " + code)
+                    root.actionError = msg !== "" ? msg.split("\n")[0] : (I18n.t("İşlem başarısız, kod ", "Action failed, code ") + code)
                 }
             }
         }
@@ -771,14 +772,14 @@ Singleton {
 
     function setDnsProvider(provider, customServers) {
         if (dnsBusy) return
-        if (!connectionName) { dnsError = "Aktif bağlantı yok"; return }
+        if (!connectionName) { dnsError = I18n.t("Aktif bağlantı yok", "No active connection"); return }
 
         var servers = []
         if (provider === "cloudflare") servers = ["1.1.1.1", "1.0.0.1"]
         else if (provider === "google") servers = ["8.8.8.8", "8.8.4.4"]
         else if (provider === "custom") {
             servers = root.sanitizeServers(customServers)
-            if (servers.length === 0) { dnsError = "Geçersiz DNS adresi"; return }
+            if (servers.length === 0) { dnsError = I18n.t("Geçersiz DNS adresi", "Invalid DNS address"); return }
         }
 
         dnsBusy = true
@@ -806,7 +807,7 @@ Singleton {
                 root.refreshDetails()
             } else {
                 var msg = (dnsErrOut.text || "").trim()
-                root.dnsError = msg !== "" ? msg.split("\n")[0] : ("DNS değiştirilemedi, kod " + code)
+                root.dnsError = msg !== "" ? msg.split("\n")[0] : (I18n.t("DNS değiştirilemedi, kod ", "Failed to update DNS, code ") + code)
             }
         }
     }
@@ -880,10 +881,11 @@ Singleton {
     }
 
     readonly property string speedEdgeText: {
-        if (speedPhase === "idle" || speedPhase === "cancelled") return "Test Edilmedi"
-        if (speedPhase === "offline") return "Çevrimdışı"
-        if (speedPhase === "error" || speedPhase === "timeout") return "Kullanılamıyor"
-        if (speedPhase === "latency") return "Sunucu aranıyor..."
+        var _l = I18n.lang
+        if (speedPhase === "idle" || speedPhase === "cancelled") return I18n.t("Test Edilmedi", "Not Tested")
+        if (speedPhase === "offline") return I18n.t("Çevrimdışı", "Offline")
+        if (speedPhase === "error" || speedPhase === "timeout") return I18n.t("Kullanılamıyor", "Unavailable")
+        if (speedPhase === "latency") return I18n.t("Sunucu aranıyor...", "Finding server...")
         var edge = speedEdgeCode !== "" ? ("Cloudflare · " + speedEdgeCode) : "Cloudflare Edge"
         var flag = flagForCountry(speedCountryCode)
         return edge + (flag !== "" ? (" " + flag) : "")
@@ -959,7 +961,7 @@ Singleton {
                             sendSpeedRequest(method, url, body, binary, onSuccess, attempt + 1)
                     })
                 } else {
-                    finishSpeedFailure("error", xhr.status === 0 ? "Bağlantı hatası" : "Sunucu yanıt vermedi")
+                    finishSpeedFailure("error", xhr.status === 0 ? I18n.t("Bağlantı hatası", "Connection error") : I18n.t("Sunucu yanıt vermedi", "Server did not respond"))
                 }
                 return
             }
@@ -992,7 +994,7 @@ Singleton {
             if (attempt < 1) {
                 sendSpeedRequest(method, url, body, binary, onSuccess, attempt + 1)
             } else {
-                finishSpeedFailure("timeout", "Zaman aşımı")
+                finishSpeedFailure("timeout", I18n.t("Zaman aşımı", "Timed out"))
             }
         }
 
@@ -1057,7 +1059,7 @@ Singleton {
             var value = result.responseBytes * 8 / (speedPingMs + payloadTime) / 1000
             if (!(payloadTime > 0) || !(result.responseBytes > 0) || !(value > 0) || !isFinite(value)) {
                 if (attempt < 1) measureDownload(bytes, onSuccess, attempt + 1)
-                else finishSpeedFailure("error", "İndirme ölçüm hatası")
+                else finishSpeedFailure("error", I18n.t("İndirme ölçüm hatası", "Download measurement error"))
                 return
             }
             onSuccess(value, payloadTime)
@@ -1108,7 +1110,7 @@ Singleton {
             body = null
             if (!(ttfb > 0) || !(value > 0) || !isFinite(value)) {
                 if (attempt < 1) measureUpload(bytes, onSuccess, attempt + 1)
-                else finishSpeedFailure("error", "Yükleme ölçüm hatası")
+                else finishSpeedFailure("error", I18n.t("Yükleme ölçüm hatası", "Upload measurement error"))
                 return
             }
             onSuccess(value, ttfb - speedPingMs)
@@ -1161,7 +1163,7 @@ Singleton {
         id: speedOverallTimer
         interval: 60000
         repeat: false
-        onTriggered: root.finishSpeedFailure("timeout", "Hız testi zaman aşımına uğradı")
+        onTriggered: root.finishSpeedFailure("timeout", I18n.t("Hız testi zaman aşımına uğradı", "Speed test timed out"))
     }
 
     IpcHandler {

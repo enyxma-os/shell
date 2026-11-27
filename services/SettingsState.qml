@@ -220,7 +220,7 @@ Singleton {
 
     function recordUndo(label) {
         root._undoSnapshot = snapshotPayload()
-        root.undoLabel = String(label || "Ayar güncellendi")
+        root.undoLabel = String(label || I18n.t("Ayar güncellendi", "Setting updated"))
         undoTimer.restart()
     }
 
@@ -247,7 +247,7 @@ Singleton {
     function adjustBarHeight(delta) {
         var next = Math.max(-4, Math.min(8, root.barHeightOffset + delta))
         if (next !== root.barHeightOffset) {
-            recordUndo("Üst çubuk yüksekliği değişti")
+            recordUndo(I18n.t("Üst çubuk yüksekliği değişti", "Top bar height changed"))
             root.barHeightOffset = next
             root.save()
         }
@@ -323,7 +323,7 @@ Singleton {
 
     function applyVrr(mode) {
         var next = Math.max(0, Math.min(2, Math.round(mode)))
-        recordUndo("VRR modu güncellendi")
+        recordUndo(I18n.t("VRR modu güncellendi", "VRR mode updated"))
         root.hyprVrr = next
         save()
         hyprVrrProc.fallbackMode = next
@@ -349,7 +349,7 @@ Singleton {
     }
 
     function toggleNightLight() {
-        recordUndo(root.nightLightEnabled ? "Gece ışığı kapatıldı" : "Gece ışığı açıldı")
+        recordUndo(root.nightLightEnabled ? I18n.t("Gece ışığı kapatıldı", "Night light disabled") : I18n.t("Gece ışığı açıldı", "Night light enabled"))
         root.nightLightEnabled = !root.nightLightEnabled
         applyNightLight()
         save()
@@ -357,7 +357,7 @@ Singleton {
 
     function setNightLightTemp(kelvin) {
         var next = Math.max(3000, Math.min(6000, Math.round(kelvin)))
-        recordUndo("Gece ışığı sıcaklığı güncellendi")
+        recordUndo(I18n.t("Gece ışığı sıcaklığı güncellendi", "Night light temperature updated"))
         root.nightLightTemp = next
         if (!root.nightLightEnabled) root.nightLightEnabled = true
         applyNightLight()
@@ -365,7 +365,7 @@ Singleton {
     }
 
     function setNotifTimeout(sec) {
-        recordUndo("Bildirim süresi güncellendi")
+        recordUndo(I18n.t("Bildirim süresi güncellendi", "Notification timeout updated"))
         root.notifTimeoutSec = Math.max(2, Math.min(20, Math.round(sec)))
         save()
     }
@@ -384,7 +384,7 @@ Singleton {
     function togglePluginEnabled(id, title) {
         var pid = String(id || "")
         if (pid === "") return
-        recordUndo((title || pid) + " eklentisi güncellendi")
+        recordUndo((title || pid) + I18n.t(" eklentisi güncellendi", " plugin updated"))
         var list = (root.enabledPlugins || []).slice()
         var idx = list.indexOf(pid)
         if (idx >= 0) list.splice(idx, 1)
@@ -466,7 +466,7 @@ Singleton {
     }
 
     function resetHyprStyle() {
-        recordUndo("Pencere stili tema varsayılanına döndü")
+        recordUndo(I18n.t("Pencere stili tema varsayılanına döndü", "Window style reset to theme default"))
         root.customHyprStyle = false
         save()
         Quickshell.execDetached(["hyprctl", "reload"])

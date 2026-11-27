@@ -64,10 +64,11 @@ Singleton {
     }
 
     function formatFree(bytes) {
+        var _l = I18n.lang
         var value = Number(bytes) || 0
         if (value >= 1099511627776)
-            return (value / 1099511627776).toFixed(1) + " TiB boş"
-        return (value / 1073741824).toFixed(1) + " GiB boş"
+            return (value / 1099511627776).toFixed(1) + I18n.t(" TiB boş", " TiB free")
+        return (value / 1073741824).toFixed(1) + I18n.t(" GiB boş", " GiB free")
     }
 
     function driveTypeIcon(driveType) {
@@ -128,7 +129,7 @@ Singleton {
                 root.refresh()
             } else {
                 var msg = (driveActionErr.text || "").trim()
-                root.actionError = msg !== "" ? msg.split("\n")[0] : ("Sürücü işlemi başarısız, kod " + code)
+                root.actionError = msg !== "" ? msg.split("\n")[0] : (I18n.t("Sürücü işlemi başarısız, kod ", "Drive action failed, code ") + code)
             }
         }
     }
@@ -308,7 +309,7 @@ Singleton {
                         : rotational ? (tran !== "" ? tran + " HDD" : "HDD")
                         : (tran !== "" ? tran + " SSD" : "SSD")
                     var state = primaryMount !== "" ? primaryMount
-                        : (fsList.length > 0 ? "Bağlı değil" : "Dosya sistemi yok")
+                        : (fsList.length > 0 ? I18n.t("Bağlı değil", "Not mounted") : I18n.t("Dosya sistemi yok", "No filesystem"))
 
                     list.push({
                         name: name,

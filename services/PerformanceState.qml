@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import QtQuick
 import "."
+import "."
 
 Singleton {
     id: root
@@ -46,7 +47,7 @@ Singleton {
 
     // ── Donanim Metrikleri ──────────────────────────────────────────
     property int cpuPercent: 0
-    property string cpuModel: "İşlemci"
+    property string cpuModel: I18n.t("İşlemci", "Processor")
     property int cpuCores: 0
     property int cpuTempC: 0
     property string kernel: ""
@@ -59,7 +60,7 @@ Singleton {
     property real memTotalGiB: 0.0
 
     property int gpuPercent: 0
-    property string gpuModel: "Ekran Kartı"
+    property string gpuModel: I18n.t("Ekran Kartı", "GPU")
     property int gpuTempC: 0
     property int vramPercent: 0
     property real vramUsedGiB: 0.0

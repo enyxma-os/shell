@@ -141,10 +141,13 @@ Item {
             spacing: 6
 
             Repeater {
-                model: [
-                    { key: "devices", label: "Cihazlar" },
-                    { key: "apps",    label: "Uygulamalar · " + AudioState.streams.length }
-                ]
+                model: {
+                    var _l = I18n.lang
+                    return [
+                        { key: "devices", label: I18n.t("Cihazlar", "Devices") },
+                        { key: "apps",    label: I18n.t("Uygulamalar · ", "Applications · ") + AudioState.streams.length }
+                    ]
+                }
                 delegate: Rectangle {
                     id: tabBtn
                     required property var modelData
@@ -241,7 +244,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: AudioState.muted ? "Sessiz" : (Math.round(AudioState.volume * 100) + "%")
+                                    text: AudioState.muted ? I18n.t("Sessiz", "Muted") : (Math.round(AudioState.volume * 100) + "%")
                                     color: AudioState.muted ? Theme.danger : Theme.accent
                                     font.family: Theme.fontMono
                                     font.pixelSize: 11
@@ -303,7 +306,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: AudioState.micMuted ? "Sessiz" : (Math.round(AudioState.micVolume * 100) + "%")
+                                    text: AudioState.micMuted ? I18n.t("Sessiz", "Muted") : (Math.round(AudioState.micVolume * 100) + "%")
                                     color: AudioState.micMuted ? Theme.danger : Theme.accent
                                     font.family: Theme.fontMono
                                     font.pixelSize: 11
@@ -506,7 +509,7 @@ Item {
                                 }
 
                                 Text {
-                                    text: streamRow.modelData.muted ? "Sessiz" : (Math.round(streamRow.modelData.volume * 100) + "%")
+                                    text: streamRow.modelData.muted ? I18n.t("Sessiz", "Muted") : (Math.round(streamRow.modelData.volume * 100) + "%")
                                     color: streamRow.modelData.muted ? Theme.danger : Theme.accent
                                     font.family: Theme.fontMono
                                     font.pixelSize: 11

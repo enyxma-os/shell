@@ -161,7 +161,7 @@ Item {
                 spacing: 3
 
                 Text {
-                    text: "ENYXMA // AYARLAR"
+                    text: I18n.t("ENYXMA // AYARLAR", "ENYXMA // SETTINGS")
                     color: Theme.accent
                     font.family: Theme.fontDisplay
                     font.pixelSize: 13
@@ -545,14 +545,17 @@ Item {
                             columnSpacing: 8
 
                             Repeater {
-                                model: [
-                                    { label: I18n.t("İŞLEMCİ", "PROCESSOR"),  value: PerformanceState.cpuModel + " · %" + PerformanceState.cpuPercent },
-                                    { label: I18n.t("EKRAN KARTI", "GPU"), value: PerformanceState.gpuModel },
-                                    { label: I18n.t("BELLEK", "MEMORY"),   value: PerformanceState.memUsedGiB.toFixed(1) + " / " + PerformanceState.memTotalGiB.toFixed(1) + " GiB · %" + PerformanceState.memPercent },
-                                    { label: I18n.t("DEPOLAMA", "STORAGE"), value: StorageState.rootMount + " · %" + StorageState.rootPercent + " · " + StorageState.rootUsedGiB.toFixed(0) + " GiB" },
-                                    { label: I18n.t("EKRAN", "DISPLAY"),    value: (SettingsState.monitors.length > 0) ? (SettingsState.monitors[0].name + " · " + SettingsState.monitors[0].width + "×" + SettingsState.monitors[0].height + " @ " + Math.round(SettingsState.monitors[0].refreshRate) + "Hz") : I18n.t("Algılanıyor", "Detecting") },
-                                    { label: I18n.t("AĞ", "NETWORK"),       value: NetworkState.isConnected ? ((NetworkState.ssid || NetworkState.connectionName || I18n.t("Bağlı", "Connected")) + " · " + NetworkState.ipAddress) : I18n.t("Çevrimdışı", "Offline") }
-                                ]
+                                model: {
+                                    var _l = I18n.lang
+                                    return [
+                                        { label: I18n.t("İŞLEMCİ", "PROCESSOR"),  value: PerformanceState.cpuModel + " · " + I18n.pct(PerformanceState.cpuPercent) },
+                                        { label: I18n.t("EKRAN KARTI", "GPU"), value: PerformanceState.gpuModel },
+                                        { label: I18n.t("BELLEK", "MEMORY"),   value: PerformanceState.memUsedGiB.toFixed(1) + " / " + PerformanceState.memTotalGiB.toFixed(1) + " GiB · " + I18n.pct(PerformanceState.memPercent) },
+                                        { label: I18n.t("DEPOLAMA", "STORAGE"), value: StorageState.rootMount + " · " + I18n.pct(StorageState.rootPercent) + " · " + StorageState.rootUsedGiB.toFixed(0) + " GiB" },
+                                        { label: I18n.t("EKRAN", "DISPLAY"),    value: (SettingsState.monitors.length > 0) ? (SettingsState.monitors[0].name + " · " + SettingsState.monitors[0].width + "×" + SettingsState.monitors[0].height + " @ " + Math.round(SettingsState.monitors[0].refreshRate) + "Hz") : I18n.t("Algılanıyor", "Detecting") },
+                                        { label: I18n.t("AĞ", "NETWORK"),       value: NetworkState.isConnected ? ((NetworkState.ssid || NetworkState.connectionName || I18n.t("Bağlı", "Connected")) + " · " + NetworkState.ipAddress) : I18n.t("Çevrimdışı", "Offline") }
+                                    ]
+                                }
                                 delegate: Rectangle {
                                     id: ovCard
                                     required property var modelData

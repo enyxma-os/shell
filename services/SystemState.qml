@@ -44,7 +44,22 @@ Singleton {
     }
 
     // ── Uptime (fork yok) ───────────────────────────────────────────
-    property string uptime: ""
+    property int uptimeSeconds: 0
+    readonly property string uptime: {
+        const s = root.uptimeSeconds
+        if (s <= 0) return ""
+        const d = Math.floor(s / 86400)
+        const h = Math.floor((s % 86400) / 3600)
+        const m = Math.floor((s % 3600) / 60)
+        if (I18n.isEn) {
+            if (d > 0) return d + "d " + h + "h"
+            if (h > 0) return h + "h " + m + "m"
+            return m + "m"
+        }
+        if (d > 0) return d + "g " + h + "s"
+        if (h > 0) return h + "s " + m + "d"
+        return m + "d"
+    }
 
     FileView {
         id: uptimeFile
@@ -55,13 +70,7 @@ Singleton {
 
     function parseUptime(text) {
         const s = Math.floor(parseFloat(String(text || "").trim()) || 0)
-        if (s <= 0) return
-        const d = Math.floor(s / 86400)
-        const h = Math.floor((s % 86400) / 3600)
-        const m = Math.floor((s % 3600) / 60)
-        if (d > 0) root.uptime = d + "g " + h + "s"
-        else if (h > 0) root.uptime = h + "s " + m + "d"
-        else root.uptime = m + "d"
+        if (s > 0) root.uptimeSeconds = s
     }
 
     Timer {

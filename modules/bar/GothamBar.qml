@@ -484,7 +484,7 @@ Rectangle {
                 }
 
                 Text {
-                    text: (SystemState.isBatteryPresent ? ("%" + SystemState.batteryPercent) : "AC")
+                    text: (SystemState.isBatteryPresent ? I18n.pct(SystemState.batteryPercent) : "AC")
                         + (SystemState.isCharging ? " 󰂄" : "")
                     color: SystemState.isControlCenterOpen ? Theme.accent : Theme.textPrimary
                     font.family: Theme.fontMono

@@ -224,7 +224,7 @@ Item {
                         }
                         Text {
                             visible: NetworkState.isConnected && NetworkState.connectionType === "wifi"
-                            text: "%" + NetworkState.signalStrength
+                            text: I18n.pct(NetworkState.signalStrength)
                             color: Theme.accent
                             font.family: Theme.fontMono
                             font.pixelSize: 11
@@ -276,13 +276,14 @@ Item {
                             }
                         }
                         Rectangle {
-                            implicitWidth: 44
+                            implicitWidth: discTxt.implicitWidth + 14
                             implicitHeight: 18
                             radius: 0
                             color: discMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive
                             border.color: discMa.containsMouse ? Theme.danger : Theme.borderSubtle
                             border.width: 1
                             Text {
+                                id: discTxt
                                 anchors.centerIn: parent
                                 text: I18n.t("KES", "DISCONNECT")
                                 color: discMa.containsMouse ? Theme.danger : Theme.textSecondary
@@ -445,7 +446,7 @@ Item {
                     RowLayout {
                         anchors.fill: parent
                         anchors.margins: 8
-                        Text { text: "WI-FI RADYOSU KAPALI"; color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
+                        Text { text: I18n.t("WI-FI RADYOSU KAPALI", "WI-FI RADIO OFF"); color: Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 11; Layout.fillWidth: true }
                         Rectangle {
                             implicitWidth: 74
                             implicitHeight: 24
@@ -453,7 +454,7 @@ Item {
                             color: Theme.surfaceActive
                             border.color: Theme.accent
                             border.width: 1
-                            Text { anchors.centerIn: parent; text: "[AÇ]"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11 }
+                            Text { anchors.centerIn: parent; text: I18n.t("[AÇ]", "[ENABLE]"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 11 }
                             MouseArea { anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: NetworkState.toggleWifi() }
                         }
                     }
@@ -490,7 +491,7 @@ Item {
                                 spacing: 6
 
                                 Text {
-                                    text: "%" + modelData.signal
+                                    text: I18n.pct(modelData.signal)
                                     color: modelData.inUse ? Theme.accent : Theme.textSecondary
                                     font.family: Theme.fontMono
                                     font.pixelSize: 11
@@ -525,15 +526,16 @@ Item {
 
                                 Rectangle {
                                     visible: modelData.saved && !modelData.inUse
-                                    implicitWidth: 44
+                                    implicitWidth: forgetTxt.implicitWidth + 10
                                     implicitHeight: 18
                                     radius: 0
                                     color: forgetMa.containsMouse ? Theme.surfaceHover : Theme.surfaceActive
                                     border.color: forgetMa.containsMouse ? Theme.danger : Theme.borderSubtle
                                     border.width: 1
                                     Text {
+                                        id: forgetTxt
                                         anchors.centerIn: parent
-                                        text: "[UNUT]"
+                                        text: I18n.t("[UNUT]", "[FORGET]")
                                         color: forgetMa.containsMouse ? Theme.danger : Theme.textSecondary
                                         font.family: Theme.fontMono
                                         font.pixelSize: 9
@@ -551,7 +553,7 @@ Item {
                             MouseArea {
                                 id: netMa
                                 anchors.fill: parent
-                                anchors.rightMargin: (modelData.saved && !modelData.inUse) ? 48 : 0
+                                anchors.rightMargin: (modelData.saved && !modelData.inUse) ? 62 : 0
                                 hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
                                 enabled: !NetworkState.actionBusy
@@ -627,7 +629,7 @@ Item {
                             }
 
                             Rectangle {
-                                implicitWidth: 68
+                                implicitWidth: 76
                                 implicitHeight: 26
                                 radius: 0
                                 color: Theme.surfaceActive
@@ -635,7 +637,7 @@ Item {
                                 border.width: 1
                                 Text {
                                     anchors.centerIn: parent
-                                    text: "[BAĞLAN]"
+                                    text: I18n.t("[BAĞLAN]", "[CONNECT]")
                                     color: Theme.accent
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
@@ -734,7 +736,7 @@ Item {
                                 onTextChanged: root.hiddenPassword = text
                                 Text {
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: "PAROLA"
+                                    text: I18n.t("PAROLA", "PASSWORD")
                                     color: Theme.textMuted
                                     font.family: Theme.fontMono
                                     font.pixelSize: 10
@@ -743,13 +745,13 @@ Item {
                             }
                         }
                         Rectangle {
-                            implicitWidth: 68
+                            implicitWidth: 76
                             implicitHeight: 26
                             radius: 0
                             color: Theme.surfaceActive
                             border.color: Theme.accent
                             border.width: 1
-                            Text { anchors.centerIn: parent; text: "[BAĞLAN]"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
+                            Text { anchors.centerIn: parent; text: I18n.t("[BAĞLAN]", "[CONNECT]"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
                             MouseArea {
                                 anchors.fill: parent
                                 cursorShape: Qt.PointingHandCursor
@@ -790,7 +792,7 @@ Item {
                                 anchors.leftMargin: 8
                                 anchors.rightMargin: 8
                                 Text { text: modelData.name; color: modelData.active ? Theme.accent : Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; elide: Text.ElideRight; Layout.fillWidth: true }
-                                Text { text: modelData.active ? "[AÇIK]" : "[KAPALI]"; color: modelData.active ? Theme.success : Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10 }
+                                Text { text: modelData.active ? I18n.t("[AÇIK]", "[ON]") : I18n.t("[KAPALI]", "[OFF]"); color: modelData.active ? Theme.success : Theme.textMuted; font.family: Theme.fontMono; font.pixelSize: 10 }
                             }
                             MouseArea {
                                 anchors.fill: parent
@@ -812,7 +814,7 @@ Item {
                 RowLayout {
                     Layout.fillWidth: true
                     Text { text: I18n.t("DNS SAĞLAYICISI", "DNS PROVIDER"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; font.bold: true; Layout.fillWidth: true }
-                    Text { text: NetworkState.dnsBusy ? "[UYGULANIYOR]" : ""; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10; visible: NetworkState.dnsBusy }
+                    Text { text: NetworkState.dnsBusy ? I18n.t("[UYGULANIYOR]", "[APPLYING]") : ""; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10; visible: NetworkState.dnsBusy }
                 }
 
                 RowLayout {
@@ -915,7 +917,7 @@ Item {
                         color: Theme.surfaceActive
                         border.color: Theme.accent
                         border.width: 1
-                        Text { anchors.centerIn: parent; text: "[KAYDET]"; color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
+                        Text { anchors.centerIn: parent; text: I18n.t("[KAYDET]", "[SAVE]"); color: Theme.accent; font.family: Theme.fontMono; font.pixelSize: 10 }
                         MouseArea {
                             anchors.fill: parent
                             cursorShape: Qt.PointingHandCursor
@@ -968,7 +970,7 @@ Item {
                         border.width: 1
                         Text {
                             anchors.centerIn: parent
-                            text: NetworkState.speedRunning ? "[DURDUR]" : I18n.t("[BAŞLAT]", "START")
+                            text: NetworkState.speedRunning ? I18n.t("[DURDUR]", "[STOP]") : I18n.t("[BAŞLAT]", "START")
                             color: NetworkState.isConnected ? Theme.accent : Theme.textMuted
                             font.family: Theme.fontMono
                             font.pixelSize: 10
@@ -994,7 +996,7 @@ Item {
 
                     RowLayout {
                         Layout.fillWidth: true
-                        Text { text: "SUNUCU"; color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 74 }
+                        Text { text: I18n.t("SUNUCU", "SERVER"); color: Theme.textSecondary; font.family: Theme.fontMono; font.pixelSize: 11; Layout.preferredWidth: 74 }
                         Text { text: NetworkState.speedEdgeText; color: Theme.textPrimary; font.family: Theme.fontMono; font.pixelSize: 11; elide: Text.ElideRight; Layout.fillWidth: true }
                     }
                     RowLayout {
@@ -1015,7 +1017,7 @@ Item {
                     Text {
                         Layout.fillWidth: true
                         visible: NetworkState.speedPhase === "success" && NetworkState.speedLastStamp.length > 0
-                        text: "TAMAMLANDI • " + NetworkState.speedLastStamp
+                        text: I18n.t("TAMAMLANDI • ", "COMPLETED • ") + NetworkState.speedLastStamp
                         color: Theme.success
                         font.family: Theme.fontMono
                         font.pixelSize: 10

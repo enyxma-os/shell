@@ -85,7 +85,7 @@ Rectangle {
             Text {
                 Layout.fillWidth: true
                 text: "[ "
-                    + (card.popup ? (card.popup.appName || "SİSTEM").toUpperCase() : "")
+                    + (card.popup ? (card.popup.appName || I18n.t("SİSTEM", "SYSTEM")).toUpperCase() : "")
                     + (card.popup && card.popup.time ? (" // " + card.popup.time) : "")
                     + " ]"
                 color: card.isCritical ? Theme.danger : Theme.textSecondary

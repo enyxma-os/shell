@@ -3,6 +3,7 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 import QtQuick
+import "."
 
 /**
  * AudioState — varsayilan cikis/giris dugumu ve canli PipeWire ses karistiricisi.
@@ -21,12 +22,12 @@ Singleton {
     // ── Cikis (Hoparlor / Kulaklik) ──────────────────────────────────
     readonly property real volume: Pipewire.defaultAudioSink?.audio?.volume ?? 0.0
     readonly property bool muted: Pipewire.defaultAudioSink?.audio?.muted ?? false
-    readonly property string sinkName: Pipewire.defaultAudioSink?.description ?? "Dahili Ses"
+    readonly property string sinkName: Pipewire.defaultAudioSink?.description ?? I18n.t("Dahili Ses", "Built-in Audio")
 
     // ── Giris (Mikrofon) ─────────────────────────────────────────────
     readonly property real micVolume: Pipewire.defaultAudioSource?.audio?.volume ?? 0.0
     readonly property bool micMuted: Pipewire.defaultAudioSource?.audio?.muted ?? false
-    readonly property string sourceName: Pipewire.defaultAudioSource?.description ?? "Mikrofon"
+    readonly property string sourceName: Pipewire.defaultAudioSource?.description ?? I18n.t("Mikrofon", "Microphone")
 
     // ── Panel Durumu ve Karistirici Listeleri ────────────────────────
     property bool isOpen: false

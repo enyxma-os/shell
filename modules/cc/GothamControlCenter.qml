@@ -98,7 +98,7 @@ Item {
 
                     Text {
                         text: (SystemState.uptime.length > 0 ? (I18n.t("ÇALIŞMA: ", "UPTIME: ") + SystemState.uptime.toUpperCase() + " · ") : "")
-                            + I18n.t("GÜÇ: ", "POWER: ") + (SystemState.isBatteryPresent ? ("%" + SystemState.batteryPercent) : "AC")
+                            + I18n.t("GÜÇ: ", "POWER: ") + (SystemState.isBatteryPresent ? I18n.pct(SystemState.batteryPercent) : "AC")
                             + (SystemState.isCharging ? " 󰂄" : "")
                         color: Theme.textSecondary
                         font.family: Theme.fontMono
@@ -461,7 +461,7 @@ Item {
                     Layout.fillWidth: true
 
                     Text {
-                        text: AudioState.muted ? "󰝟 SES KANALI" : "󰕾 SES KANALI"
+                        text: AudioState.muted ? I18n.t("󰝟 SES KANALI", "󰝟 AUDIO OUTPUT") : I18n.t("󰕾 SES KANALI", "󰕾 AUDIO OUTPUT")
                         color: AudioState.muted ? Theme.danger : Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -554,7 +554,7 @@ Item {
                     Layout.fillWidth: true
 
                     Text {
-                        text: "󰃠 PARLAKLIK"
+                        text: I18n.t("󰃠 PARLAKLIK", "󰃠 BRIGHTNESS")
                         color: Theme.textSecondary
                         font.family: Theme.fontMono
                         font.pixelSize: 10
@@ -833,7 +833,7 @@ Item {
 
                         Text {
                             Layout.alignment: Qt.AlignHCenter
-                            text: "UYKU"
+                            text: I18n.t("UYKU", "SLEEP")
                             color: suspMa.containsMouse ? Theme.accent : Theme.textSecondary
                             font.family: Theme.fontMono
                             font.pixelSize: Theme.fontSizeXS
