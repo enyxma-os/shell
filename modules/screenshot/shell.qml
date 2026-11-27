@@ -514,12 +514,25 @@ ShellRoot {
                 ? Coords.intersectRect(root.globalSel, { x: win.modelData.x, y: win.modelData.y, width: win.width, height: win.height })
                 : null
 
+            Shortcut {
+                sequences: ["Escape"]
+                onActivated: root.escapeStep()
+            }
+
             FocusScope {
+                id: focusRoot
                 anchors.fill: parent
                 focus: true
 
+                Component.onCompleted: focusRoot.forceActiveFocus()
+
                 Keys.onEscapePressed: root.escapeStep()
                 Keys.onPressed: (e) => {
+                    if (e.key === Qt.Key_Escape) {
+                        root.escapeStep();
+                        e.accepted = true;
+                        return;
+                    }
                     if (root.textEditing) return;
                     var handled = root.phase === "selecting" ? root.selectKey(e) : root.editKey(e);
                     if (handled) e.accepted = true;
@@ -539,7 +552,12 @@ ShellRoot {
                     moveOffset: root.moveOffset
                     resizable: root.phase === "editing"
 
-                    onPressedAt: (gx, gy, mods) => root.pointerPressed(gx, gy, mods)
+                    onFrozen: focusRoot.forceActiveFocus()
+                    onCancelRequested: {
+                        if (root.phase === "selecting") root.escapeStep();
+                        else root.clearSelection();
+                    }
+                    onPressedAt: (gx, gy, mods) => { focusRoot.forceActiveFocus(); root.pointerPressed(gx, gy, mods); }
                     onMovedTo: (gx, gy, mods) => root.pointerMoved(gx, gy, mods)
                     onReleased: root.pointerReleased()
                     onTextChanged: (t) => { if (root.draft && root.draft.type === "text") { root.draft.text = t; root.bumpAnn(); } }
@@ -547,6 +565,64 @@ ShellRoot {
                     onResizeStarted: (role, gx, gy) => root.beginResize(role, gx, gy)
                     onResizeMoved: (gx, gy) => root.updateResize(gx, gy)
                     onResizeEnded: root.endResize()
+                }
+
+                Rectangle {
+                    id: selectHintBar
+                    visible: root.phase === "selecting" && !root.capturing && root.anchorOverlay() === win
+                    anchors.top: parent.top
+                    anchors.topMargin: 18
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    z: 30
+                    width: hintRow.implicitWidth + 24
+                    height: 34
+                    radius: Theme.radiusSmall
+                    color: Theme.bgPanel
+                    border.color: Theme.borderSubtle
+                    border.width: 1
+
+                    Row {
+                        id: hintRow
+                        anchors.centerIn: parent
+                        spacing: 12
+
+                        Text {
+                            anchors.verticalCenter: parent.verticalCenter
+                            text: Theme.t(
+                                "Alan seçmek için sürükleyin  ·  Tam ekran: Ctrl+A  ·  İptal: Sağ tık / Esc",
+                                "Drag to select region  ·  Full screen: Ctrl+A  ·  Cancel: Right-click / Esc"
+                            )
+                            color: Theme.textPrimary
+                            font.family: Theme.fontMono
+                            font.pixelSize: Theme.fontSizeSmall
+                        }
+
+                        Rectangle {
+                            width: 22
+                            height: 22
+                            anchors.verticalCenter: parent.verticalCenter
+                            radius: Theme.radiusSmall
+                            color: closeHintMa.containsMouse ? Theme.danger : Theme.surface2
+                            border.color: Theme.borderSubtle
+                            border.width: 1
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: "✕"
+                                color: Theme.textPrimary
+                                font.family: Theme.fontMono
+                                font.pixelSize: Theme.fontSizeSmall
+                            }
+
+                            MouseArea {
+                                id: closeHintMa
+                                anchors.fill: parent
+                                hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: root.escapeStep()
+                            }
+                        }
+                    }
                 }
 
                 Toolbar {

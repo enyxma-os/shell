@@ -19,3 +19,4 @@
   "danger": "{{colors.error.default.hex}}",
   "dangerFg": "{{colors.on_error.default.hex}}"
 }
+

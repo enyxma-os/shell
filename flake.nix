@@ -109,6 +109,10 @@
           '' + bootstrap + ''
             # Kilit: XDG_RUNTIME_DIR, --close alt süreçlerin kilidi miras almasını önler.
             lock="''${XDG_RUNTIME_DIR:-/tmp}/enyxma-shot.lock"
+            if [ "$#" -eq 0 ] && ! flock -n "$lock" true 2>/dev/null; then
+              pkill -f "$RUNTIME/modules/screenshot/shell.qml" 2>/dev/null || true
+              exit 0
+            fi
             exec flock --close -n "$lock" ${qsPkg}/bin/quickshell \
               -p "$RUNTIME/modules/screenshot/shell.qml" "$@"
           '');

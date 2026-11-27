@@ -37,6 +37,7 @@ Item {
     signal resizeMoved(real gx, real gy)
     signal resizeEnded()
     signal sampled(color c)
+    signal cancelRequested()
 
     readonly property int sx: screenData ? screenData.x : 0
     readonly property int sy: screenData ? screenData.y : 0
@@ -297,9 +298,13 @@ Item {
         anchors.fill: parent
         enabled: true
         hoverEnabled: true
-        acceptedButtons: Qt.LeftButton
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
         cursorShape: overlay.ready ? Qt.CrossCursor : Qt.BlankCursor
         onPressed: (m) => {
+            if (m.button === Qt.RightButton) {
+                overlay.cancelRequested();
+                return;
+            }
             if (!overlay.ready) return;
             overlay.pressedAt(m.x + overlay.sx, m.y + overlay.sy, m.modifiers);
         }
