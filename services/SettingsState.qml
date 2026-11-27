@@ -74,6 +74,8 @@ Singleton {
     property bool enableFocusTimer: false
     property bool enableContainerMonitor: false
     property var enabledPlugins: []
+    property var disabledPlugins: []
+    property var _pendingDefaultPlugins: []
 
     // ── Geri Al / Undo ───────────────────────────────────────────────
     property string undoLabel: ""
@@ -146,7 +148,8 @@ Singleton {
             { keys: "SUPER + F", action: en ? "Toggle fullscreen" : "Tam ekran aç / kapat" },
             { keys: "SUPER + V", action: en ? "Toggle floating mode" : "Yüzen pencere modu" },
             { keys: "SUPER + G", action: en ? "Gaming mode" : "Oyun modu" },
-            { keys: "SUPER + ALT + R", action: en ? "Start / stop screen recording" : "Ekran kaydını başlat / durdur" },
+            { keys: "SUPER + ALT + R", action: en ? "Screen recording studio" : "Ekran kaydı stüdyosu" },
+            { keys: "SUPER + CTRL + R", action: en ? "Quick start / stop recording" : "Hızlı ekran kaydı başlat / durdur" },
             { keys: en ? "SUPER + CTRL + SHIFT + Arrows" : "SUPER + CTRL + SHIFT + Ok Tuşları", action: en ? "Resize active window" : "Aktif pencereyi boyutlandır" },
             { keys: en ? "SUPER + Arrows" : "SUPER + Ok Tuşları", action: en ? "Move window focus" : "Pencereler arası odak" },
             { keys: "SUPER + 1..0", action: en ? "Switch workspace" : "Çalışma alanına geç" }
@@ -196,6 +199,7 @@ Singleton {
             idleScreenOffMin: root.idleScreenOffMin,
             idleSuspendMin: root.idleSuspendMin,
             enabledPlugins: root.enabledPlugins,
+            disabledPlugins: root.disabledPlugins,
             kbLayout: root.kbLayout,
             kbRepeatRate: root.kbRepeatRate,
             kbRepeatDelay: root.kbRepeatDelay,
@@ -381,15 +385,41 @@ Singleton {
         return list.indexOf(String(id)) >= 0
     }
 
+    function registerDefaultPlugin(id) {
+        var pid = String(id || "")
+        if (pid === "") return
+        if (!root._loaded) {
+            if (root._pendingDefaultPlugins.indexOf(pid) < 0) {
+                root._pendingDefaultPlugins.push(pid)
+            }
+            return
+        }
+        var enList = (root.enabledPlugins || []).slice()
+        var disList = root.disabledPlugins || []
+        if (enList.indexOf(pid) < 0 && disList.indexOf(pid) < 0) {
+            enList.push(pid)
+            root.enabledPlugins = enList
+            save()
+        }
+    }
+
     function togglePluginEnabled(id, title) {
         var pid = String(id || "")
         if (pid === "") return
         recordUndo((title || pid) + I18n.t(" eklentisi güncellendi", " plugin updated"))
         var list = (root.enabledPlugins || []).slice()
+        var disList = (root.disabledPlugins || []).slice()
         var idx = list.indexOf(pid)
-        if (idx >= 0) list.splice(idx, 1)
-        else list.push(pid)
+        if (idx >= 0) {
+            list.splice(idx, 1)
+            if (disList.indexOf(pid) < 0) disList.push(pid)
+        } else {
+            list.push(pid)
+            var dIdx = disList.indexOf(pid)
+            if (dIdx >= 0) disList.splice(dIdx, 1)
+        }
         root.enabledPlugins = list
+        root.disabledPlugins = disList
         save()
     }
 
@@ -657,6 +687,7 @@ Singleton {
         enableFocusTimer = false
         enableContainerMonitor = false
         enabledPlugins = []
+        disabledPlugins = []
         applyInputSettings()
         Quickshell.execDetached(["hyprctl", "reload"])
         save()
@@ -743,6 +774,10 @@ Singleton {
             if (typeof d.enableFocusTimer === "boolean") root.enableFocusTimer = d.enableFocusTimer
             if (typeof d.enableContainerMonitor === "boolean") root.enableContainerMonitor = d.enableContainerMonitor
             if (Array.isArray(d.enabledPlugins)) root.enabledPlugins = d.enabledPlugins
+            if (Array.isArray(d.disabledPlugins)) root.disabledPlugins = d.disabledPlugins
+            while (root._pendingDefaultPlugins.length > 0) {
+                root.registerDefaultPlugin(root._pendingDefaultPlugins.shift())
+            }
             if (root.customHyprStyle) root.applyHyprStyle()
             root.applyInputSettings()
             if (root.nightLightEnabled) root.applyNightLight()
@@ -799,7 +834,8 @@ Singleton {
         if (s.indexOf("window.pin") >= 0) return en ? "Pin window" : "Pencereyi sabitle"
         if (s.indexOf("window.center") >= 0) return en ? "Center floating window" : "Yüzen pencereyi ortala"
         if (s.indexOf("GamingMode") >= 0) return en ? "Gaming mode" : "Oyun modu"
-        if (s.indexOf("enyxma-record") >= 0) return en ? "Start / stop screen recording" : "Ekran kaydını başlat / durdur"
+        if (s.indexOf("enyxma-record panel") >= 0) return en ? "Screen recording studio" : "Ekran kaydı stüdyosu"
+        if (s.indexOf("enyxma-record") >= 0) return en ? "Quick start / stop recording" : "Hızlı ekran kaydı başlat / durdur"
         if (s.indexOf("hyprctl reload") >= 0) return en ? "Reload Hyprland config" : "Hyprland yapılandırmasını yenile"
         if (s.indexOf("hyprshutdown") >= 0) return en ? "Exit session" : "Oturumu kapat"
         if (s.indexOf("togglesplit") >= 0) return en ? "Toggle split direction" : "Bölme yönünü değiştir"

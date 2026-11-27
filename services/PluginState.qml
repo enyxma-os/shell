@@ -106,12 +106,18 @@ Singleton {
                         var dir = root._currentManifest.replace(/\/manifest\.json$/, "")
                         var cleanEntry = String(d.entry).replace(/^\/+/, "")
                         if (cleanEntry.indexOf("..") < 0) {
+                            var pid = String(d.id)
+                            var defOn = d.defaultEnabled === true
+                            if (defOn) {
+                                SettingsState.registerDefaultPlugin(pid)
+                            }
                             root._collected.push({
-                                id: String(d.id),
+                                id: pid,
                                 name: String(d.name || d.id),
                                 description: String(d.description || "Yerel Enyxma eklentisi"),
                                 slot: String(d.slot || "bar"),
-                                entryPath: dir + "/" + cleanEntry
+                                entryPath: dir + "/" + cleanEntry,
+                                defaultEnabled: defOn
                             })
                         }
                     }
