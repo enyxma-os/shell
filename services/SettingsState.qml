@@ -146,6 +146,7 @@ Singleton {
             { keys: "SUPER + F", action: en ? "Toggle fullscreen" : "Tam ekran aç / kapat" },
             { keys: "SUPER + V", action: en ? "Toggle floating mode" : "Yüzen pencere modu" },
             { keys: "SUPER + G", action: en ? "Gaming mode" : "Oyun modu" },
+            { keys: "SUPER + ALT + R", action: en ? "Start / stop screen recording" : "Ekran kaydını başlat / durdur" },
             { keys: en ? "SUPER + CTRL + SHIFT + Arrows" : "SUPER + CTRL + SHIFT + Ok Tuşları", action: en ? "Resize active window" : "Aktif pencereyi boyutlandır" },
             { keys: en ? "SUPER + Arrows" : "SUPER + Ok Tuşları", action: en ? "Move window focus" : "Pencereler arası odak" },
             { keys: "SUPER + 1..0", action: en ? "Switch workspace" : "Çalışma alanına geç" }
@@ -798,6 +799,7 @@ Singleton {
         if (s.indexOf("window.pin") >= 0) return en ? "Pin window" : "Pencereyi sabitle"
         if (s.indexOf("window.center") >= 0) return en ? "Center floating window" : "Yüzen pencereyi ortala"
         if (s.indexOf("GamingMode") >= 0) return en ? "Gaming mode" : "Oyun modu"
+        if (s.indexOf("enyxma-record") >= 0) return en ? "Start / stop screen recording" : "Ekran kaydını başlat / durdur"
         if (s.indexOf("hyprctl reload") >= 0) return en ? "Reload Hyprland config" : "Hyprland yapılandırmasını yenile"
         if (s.indexOf("hyprshutdown") >= 0) return en ? "Exit session" : "Oturumu kapat"
         if (s.indexOf("togglesplit") >= 0) return en ? "Toggle split direction" : "Bölme yönünü değiştir"
