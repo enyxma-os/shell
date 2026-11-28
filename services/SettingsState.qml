@@ -150,6 +150,8 @@ Singleton {
             { keys: "SUPER + G", action: en ? "Gaming mode" : "Oyun modu" },
             { keys: "SUPER + ALT + R", action: en ? "Screen recording studio" : "Ekran kaydı stüdyosu" },
             { keys: "SUPER + CTRL + R", action: en ? "Quick start / stop recording" : "Hızlı ekran kaydı başlat / durdur" },
+            { keys: "SUPER + CTRL + P", action: en ? "Pause / resume recording" : "Ekran kaydını duraklat / devam et" },
+            { keys: "SUPER + ALT + BackSpace", action: en ? "Save recent moment clip" : "Son an klibini kaydet" },
             { keys: en ? "SUPER + CTRL + SHIFT + Arrows" : "SUPER + CTRL + SHIFT + Ok Tuşları", action: en ? "Resize active window" : "Aktif pencereyi boyutlandır" },
             { keys: en ? "SUPER + Arrows" : "SUPER + Ok Tuşları", action: en ? "Move window focus" : "Pencereler arası odak" },
             { keys: "SUPER + 1..0", action: en ? "Switch workspace" : "Çalışma alanına geç" }
@@ -835,6 +837,8 @@ Singleton {
         if (s.indexOf("window.center") >= 0) return en ? "Center floating window" : "Yüzen pencereyi ortala"
         if (s.indexOf("GamingMode") >= 0) return en ? "Gaming mode" : "Oyun modu"
         if (s.indexOf("enyxma-record panel") >= 0) return en ? "Screen recording studio" : "Ekran kaydı stüdyosu"
+        if (s.indexOf("enyxma-record pause") >= 0) return en ? "Pause / resume recording" : "Ekran kaydını duraklat / devam et"
+        if (s.indexOf("enyxma-record replay save") >= 0) return en ? "Save recent moment clip" : "Son an klibini kaydet"
         if (s.indexOf("enyxma-record") >= 0) return en ? "Quick start / stop recording" : "Hızlı ekran kaydı başlat / durdur"
         if (s.indexOf("hyprctl reload") >= 0) return en ? "Reload Hyprland config" : "Hyprland yapılandırmasını yenile"
         if (s.indexOf("hyprshutdown") >= 0) return en ? "Exit session" : "Oturumu kapat"
